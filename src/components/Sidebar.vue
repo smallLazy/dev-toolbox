@@ -14,6 +14,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
+  { path: "/hello", label: "Hello Plugin", icon: "👋", keywords: "hello framework validation" },
   { path: "/crypto", label: "AES 加解密", icon: "🔐", keywords: "aes 加密 解密 cbc ecb" },
   { path: "/cloud-encrypt", label: "请求参数编解码", icon: "📦", keywords: "base_encryption filter urlencode" },
   { path: "/json", label: "JSON 格式化", icon: "📋", keywords: "json format compact" },
