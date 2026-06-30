@@ -36,7 +36,7 @@ const router = createRouter({
     {
       path: "/base64",
       name: "base64",
-      component: () => import("../modules/base64/Base64View.vue"),
+      component: () => import("../features/base64/Base64View.vue"),
     },
     {
       path: "/url",
