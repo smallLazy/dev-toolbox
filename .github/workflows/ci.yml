@@ -70,6 +70,17 @@ jobs:
       - run: npm ci
       - run: npx tsx scripts/ci/validate-plugins.ts
 
+  # ── Design Validation ────────────────────────────────────────────────
+  design-validation:
+    name: Design Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+      - run: npm ci
+      - run: npx tsx scripts/ci/validate-design.ts
+
   # ── Architecture Validation ──────────────────────────────────────────
   architecture-validation:
     name: Architecture Validation
@@ -105,7 +116,7 @@ jobs:
   # ── Final Gate ───────────────────────────────────────────────────────
   gate:
     name: ✅ Quality Gate
-    needs: [lint, test, plugin-validation, architecture-validation, build]
+    needs: [lint, test, plugin-validation, design-validation, architecture-validation, build]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -115,6 +126,7 @@ jobs:
           if [[ "${{ needs.lint.result }}" != "success" ]]; then echo "❌ Lint" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Lint" >> $GITHUB_STEP_SUMMARY; fi
           if [[ "${{ needs.test.result }}" != "success" ]]; then echo "❌ Tests" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Tests" >> $GITHUB_STEP_SUMMARY; fi
           if [[ "${{ needs.plugin-validation.result }}" != "success" ]]; then echo "❌ Plugins" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Plugins" >> $GITHUB_STEP_SUMMARY; fi
+          if [[ "${{ needs.design-validation.result }}" != "success" ]]; then echo "❌ Design" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Design" >> $GITHUB_STEP_SUMMARY; fi
           if [[ "${{ needs.architecture-validation.result }}" != "success" ]]; then echo "❌ Architecture" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Architecture" >> $GITHUB_STEP_SUMMARY; fi
           if [[ "${{ needs.build.result }}" != "success" ]]; then echo "❌ Build" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Build" >> $GITHUB_STEP_SUMMARY; fi
           echo "" >> $GITHUB_STEP_SUMMARY
