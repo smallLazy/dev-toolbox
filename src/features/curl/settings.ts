@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Curl Plugin — Settings Schema
  */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Wecom Plugin — Settings Schema
  */

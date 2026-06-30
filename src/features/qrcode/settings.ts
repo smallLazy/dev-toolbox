@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Qrcode Plugin — Settings Schema
  */

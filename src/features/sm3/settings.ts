@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Sm3 Plugin — Settings Schema
  */

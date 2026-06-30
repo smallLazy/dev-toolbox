@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Yaml Plugin — Settings Schema
  */

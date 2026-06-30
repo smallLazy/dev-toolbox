@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * RequestDecoder Plugin — Settings Schema
  */

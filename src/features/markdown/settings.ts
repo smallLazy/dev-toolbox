@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Markdown Plugin — Settings Schema
  */

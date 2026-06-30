@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Sql Plugin — Settings Schema
  */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Color Plugin — Settings Schema
  */

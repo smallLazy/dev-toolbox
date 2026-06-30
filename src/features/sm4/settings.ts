@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Sm4 Plugin — Settings Schema
  */

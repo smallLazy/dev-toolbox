@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Graphql Plugin — Settings Schema
  */

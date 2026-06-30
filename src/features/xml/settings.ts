@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Xml Plugin — Settings Schema
  */

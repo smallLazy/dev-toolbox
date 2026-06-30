@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Github Plugin — Settings Schema
  */

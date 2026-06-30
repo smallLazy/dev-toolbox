@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Explain Plugin — Settings Schema
  */

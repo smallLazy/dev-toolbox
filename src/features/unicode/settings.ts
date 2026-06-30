@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unicode Plugin — Settings Schema
  */

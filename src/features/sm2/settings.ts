@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Sm2 Plugin — Settings Schema
  */

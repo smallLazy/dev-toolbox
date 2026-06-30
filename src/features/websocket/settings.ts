@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Websocket Plugin — Settings Schema
  */

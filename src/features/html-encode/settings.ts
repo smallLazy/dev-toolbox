@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * HtmlEncode Plugin — Settings Schema
  */

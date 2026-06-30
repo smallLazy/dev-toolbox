@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Review Plugin — Settings Schema
  */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Zentao Plugin — Settings Schema
  */

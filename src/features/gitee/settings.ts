@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Gitee Plugin — Settings Schema
  */

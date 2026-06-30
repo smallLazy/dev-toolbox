@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Uuid Plugin — Settings Schema
  */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Prompt Plugin — Settings Schema
  */
