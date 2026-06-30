@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { TOOL_ICONS, ICON_SIZE } from "@/design/icons";
 
 const router = useRouter();
 
 interface ToolCard {
   path: string;
-  icon: string;
+  icon: keyof typeof TOOL_ICONS;
   title: string;
   desc: string;
 }
 
 const tools: ToolCard[] = [
-  { path: "/crypto", icon: "🔐", title: "AES 加解密", desc: "AES-256-CBC / ECB 对称加解密，支持多种编码格式" },
-  { path: "/cloud-encrypt", icon: "📦", title: "请求参数编解码", desc: "PHP base_encryption / filter 兼容的编解码管道" },
-  { path: "/json", icon: "📋", title: "JSON 格式化", desc: "JSON 美化与压缩，支持 2/4 空格缩进" },
-  { path: "/sql-in", icon: "🧾", title: "SQL IN 列表", desc: "批量数据转换为可直接用于 IN 查询的 SQL 列表" },
-  { path: "/base64", icon: "🔤", title: "Base64 编解码", desc: "Base64 编码与解码，支持 Unicode 和 Emoji" },
-  { path: "/url", icon: "🔗", title: "URL 编解码", desc: "encodeURIComponent / encodeURI 编解码" },
-  { path: "/timestamp", icon: "⏰", title: "时间戳转换", desc: "Unix 时间戳与日期互转，自动识别秒/毫秒" },
-  { path: "/hash", icon: "🔑", title: "Hash 计算", desc: "MD5 / SHA-256 哈希值计算" },
-  { path: "/jwt", icon: "🎫", title: "JWT 解析", desc: "解析 JWT Header / Payload / Signature" },
-  { path: "/config", icon: "⚙️", title: "设置", desc: "管理默认编码配置，本地持久化存储" },
+  { path: "/json", icon: "json", title: "JSON", desc: "Format, minify, and validate JSON" },
+  { path: "/crypto", icon: "crypto", title: "AES", desc: "AES-256-CBC / ECB symmetric encryption" },
+  { path: "/base64", icon: "base64", title: "Base64", desc: "Encode and decode Base64 with Unicode support" },
+  { path: "/url", icon: "url", title: "URL", desc: "encodeURIComponent / encodeURI" },
+  { path: "/timestamp", icon: "timestamp", title: "Timestamp", desc: "Unix timestamp & date conversion" },
+  { path: "/hash", icon: "hash", title: "Hash", desc: "MD5 / SHA-256 hash computation" },
+  { path: "/jwt", icon: "jwt", title: "JWT", desc: "Decode JWT Header / Payload / Signature" },
+  { path: "/cloud-encrypt", icon: "cloud-encrypt", title: "Cloud Encrypt", desc: "PHP base_encryption / filter codec" },
+  { path: "/sql-in", icon: "sql-in", title: "SQL IN", desc: "Batch data to SQL IN clause" },
 ];
 
 function openTool(path: string) {
@@ -32,7 +32,7 @@ function openTool(path: string) {
   <div class="dashboard">
     <header class="page-header">
       <h1 class="page-title">Dev Toolbox</h1>
-      <p class="page-desc">开发者日常工具箱 — 选择一个工具开始使用</p>
+      <p class="page-desc">Choose a tool to get started</p>
     </header>
 
     <div class="tool-grid">
@@ -42,7 +42,7 @@ function openTool(path: string) {
         class="tool-card"
         @click="openTool(tool.path)"
       >
-        <span class="tool-card-icon">{{ tool.icon }}</span>
+        <component :is="TOOL_ICONS[tool.icon]" class="tool-card-icon" :size="ICON_SIZE['2xl']" />
         <div class="tool-card-body">
           <h3 class="tool-card-title">{{ tool.title }}</h3>
           <p class="tool-card-desc">{{ tool.desc }}</p>
@@ -103,7 +103,7 @@ function openTool(path: string) {
   transition: all var(--duration-fast) var(--ease-standard);
 }
 .tool-card-icon {
-  font-size: 26px; line-height: 1; flex-shrink: 0; margin-top: 1px;
+  flex-shrink: 0; margin-top: 1px; color: var(--color-accent-primary);
   transition: transform var(--duration-normal) var(--ease-decelerate);
 }
 .tool-card:hover .tool-card-icon { transform: scale(1.08); }

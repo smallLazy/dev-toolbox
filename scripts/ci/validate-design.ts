@@ -100,12 +100,36 @@ function checkFile(filePath: string, relPath: string): void {
 
     // Check emoji in templates (not in comments or strings)
     if (line.includes('<template>') || (relPath.endsWith('.vue') && !line.trim().startsWith('//'))) {
-      if (EMOJI_RE.test(line) && !line.includes('<!--')) {
+      if (EMOJI_RE.test(line) && !line.includes('<!--') && !line.includes('/*')) {
         violations.push({
           file: relPath, line: lineNum, rule: 'DESIGN-003',
           message: 'Emoji found in template. Use SVG icon from @/design/icons instead.',
         })
       }
+    }
+
+    // DESIGN-004: No PNG/JPG/GIF icon usage in Vue templates
+    if (/\.(png|jpg|jpeg|gif|webp|ico)\b/.test(line) && (line.includes('src=') || line.includes('require('))) {
+      violations.push({
+        file: relPath, line: lineNum, rule: 'DESIGN-004',
+        message: 'Raster image found. Use SVG icon from @/design/icons instead.',
+      })
+    }
+
+    // DESIGN-005: No direct lucide import
+    if (/\bfrom\s+['"]lucide/.test(line) || /\bfrom\s+['"]@lucide/.test(line)) {
+      violations.push({
+        file: relPath, line: lineNum, rule: 'DESIGN-005',
+        message: 'Direct lucide import forbidden. Import from @/design/icons instead.',
+      })
+    }
+
+    // DESIGN-006: No inline SVG in Feature templates (use Icon Registry)
+    if (relPath.includes('/features/') && line.includes('<svg') && !relPath.includes('/design/icons/')) {
+      violations.push({
+        file: relPath, line: lineNum, rule: 'DESIGN-006',
+        message: 'Inline SVG in Feature. Import from @/design/icons instead.',
+      })
     }
   }
 }

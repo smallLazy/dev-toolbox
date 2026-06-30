@@ -31,8 +31,8 @@ const sections: MenuSection[] = [
       { path: '/hash', label: 'Hash', icon: 'Hash', keywords: 'md5 sha256 hash' },
       { path: '/jwt', label: 'JWT', icon: 'Shield', keywords: 'jwt token decode' },
       { path: '/cloud-encrypt', label: 'Cloud Encrypt', icon: 'Package', keywords: 'base_encryption filter urlencode' },
+      { path: '/sql-in', label: 'SQL IN', icon: 'Database', keywords: 'sql in list' },
       { path: '/hello', label: 'Hello', icon: 'Beaker', keywords: 'hello framework validation' },
-      { path: '/sql-in', label: 'SQL IN', icon: 'FileJson', keywords: 'sql in list' },
     ],
   },
   {
