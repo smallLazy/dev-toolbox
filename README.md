@@ -10,6 +10,7 @@
 |---|---|
 | 🔐 参数加解密 | AES-256-CBC / AES-256-ECB 对称加解密，支持多种编码 |
 | 📋 JSON 格式化 | JSON 格式化美化 / 压缩 |
+| 🧾 SQL IN 列表 | 批量数据转换为 SQL IN 查询列表 |
 | 🔤 Base64 编解码 | Base64 编码与解码，支持 Unicode |
 | 🔗 URL 编解码 | URL 编码与解码 (encodeURIComponent / encodeURI) |
 | ⏰ 时间戳转换 | 时间戳与日期时间互转 |

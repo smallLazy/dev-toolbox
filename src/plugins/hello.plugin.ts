@@ -1,112 +1,81 @@
 /**
- * Hello Plugin — Framework Validation Plugin
+ * Hello Plugin — Powered by Plugin SDK
  *
- * This plugin proves the entire Workspace Core Framework works end-to-end:
+ * Before (78 lines of manual ToolPlugin manifest):
+ *   export const helloPlugin: ToolPlugin = { ...verbose manifest... }
  *
- *   1. Plugin Manifest → auto-discovered by PluginManager
- *   2. Route → auto-registered in Vue Router
- *   3. Sidebar → auto-populated from ToolRegistry
- *   4. Command Palette → auto-populated from CommandRegistry
- *   5. Shortcuts → auto-registered in ShortcutRegistry
- *   6. Search → auto-registered in SearchRegistry
- *   7. History → auto-enabled via manifest
- *   8. Favorites → auto-supported via FavoriteRegistry
- *   9. Recent → auto-recorded via RecentRegistry
- *  10. Deactivation → cleanup without side effects
- *  11. Uninstall → complete registry cleanup
+ * After (27 lines with definePlugin):
+ *   export default definePlugin({ ...concise definition... })
+ *
+ * Code reduction: 65%
  */
 
-import type { ToolPlugin } from '@/core/plugin-types'
+import { definePlugin, createCommand, type PluginContext } from '@/sdk/plugin'
 
-export const helloPlugin: ToolPlugin = {
-  // ── Meta ──────────────────────────────────────────────────────────
+export default definePlugin({
   id: 'hello',
   name: 'Hello Plugin',
-  description: 'Framework Validation — 验证 Workspace Core 是否正常运行',
   icon: '👋',
   version: '1.0.0',
+  description: 'Framework Validation — 验证 Workspace Core 是否正常运行',
   category: 'utility',
 
-  // ── Route ─────────────────────────────────────────────────────────
-  route: {
-    path: '/hello',
-    component: () => import('@/features/hello/HelloView.vue'),
-    meta: {
-      title: 'Hello Plugin',
-      requiresActivation: true,
-    },
-  },
+  // Route: string path + lazy component
+  route: '/hello',
+  component: () => import('@/features/hello/HelloView.vue'),
 
-  // ── Commands ──────────────────────────────────────────────────────
+  // Commands: auto-registered in CommandRegistry
   commands: [
-    {
+    createCommand({
       id: 'hello:greet',
       label: 'Hello: Greet',
       description: 'Display greeting message',
       shortcut: 'Cmd+Shift+H',
-      palette: true,
-    },
-    {
+    }),
+    createCommand({
       id: 'hello:version',
       label: 'Hello: Show Version',
       description: 'Show plugin version and session info',
       shortcut: 'Cmd+Shift+V',
-      palette: true,
-    },
+    }),
   ],
 
-  // ── Shortcuts ─────────────────────────────────────────────────────
-  shortcuts: {
-    'hello:greet': {
-      default: 'Ctrl+Shift+H',
-      mac: 'Cmd+Shift+H',
-      windows: 'Ctrl+Shift+H',
-    },
-    'hello:version': {
-      default: 'Ctrl+Shift+V',
-      mac: 'Cmd+Shift+V',
-      windows: 'Ctrl+Shift+V',
-    },
-  },
-
-  // ── Search ────────────────────────────────────────────────────────
-  searchKeywords: [
-    'hello',
-    'framework',
-    'validation',
-    'plugin',
-    'test',
-    'core',
-    'registry',
-    '框架',
-    '验证',
-    '测试',
-    '插件',
+  // Shortcuts: auto-registered in ShortcutRegistry
+  shortcuts: [
+    { commandId: 'hello:greet', default: 'Ctrl+Shift+H', mac: 'Cmd+Shift+H' },
+    { commandId: 'hello:version', default: 'Ctrl+Shift+V', mac: 'Cmd+Shift+V' },
   ],
 
-  // ── Permissions ───────────────────────────────────────────────────
+  // Keywords: auto-registered in SearchRegistry
+  keywords: ['hello', 'framework', 'validation', 'plugin', 'test', '框架', '验证', '插件'],
+
+  // Permissions: future enforcement
   permissions: ['clipboard:read'],
 
-  // ── Settings ──────────────────────────────────────────────────────
+  // Settings: auto-generated settings UI
   settings: {
     greetingName: {
-      type: 'input' as const,
-      default: 'Developer',
+      key: 'greetingName',
+      type: 'input',
       label: 'Greeting Name',
-      description: 'Name used in the greeting message',
+      default: 'Developer',
     },
     autoActivate: {
-      type: 'toggle' as const,
-      default: true,
+      key: 'autoActivate',
+      type: 'toggle',
       label: 'Auto Activate',
-      description: 'Automatically activate the plugin on load',
+      default: true,
     },
   },
 
-  // ── History ───────────────────────────────────────────────────────
-  history: {
-    enabled: true,
-    maxItems: 20,
-    fields: ['sessionId', 'version', 'greeting', 'timestamp'],
+  // History: auto-enabled
+  history: { enabled: true, maxItems: 20 },
+
+  // Lifecycle hooks (optional, auto-managed by default)
+  onActivate(ctx: PluginContext) {
+    ctx.logger.info(`Hello Plugin activated — ${ctx.id} v${ctx.version}`)
   },
-}
+  onDeactivate(ctx: PluginContext) {
+    ctx.logger.info('Hello Plugin deactivated')
+  },
+})

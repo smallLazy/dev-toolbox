@@ -18,6 +18,7 @@ const menuItems: MenuItem[] = [
   { path: "/crypto", label: "AES 加解密", icon: "🔐", keywords: "aes 加密 解密 cbc ecb" },
   { path: "/cloud-encrypt", label: "请求参数编解码", icon: "📦", keywords: "base_encryption filter urlencode" },
   { path: "/json", label: "JSON 格式化", icon: "📋", keywords: "json format compact" },
+  { path: "/sql-in", label: "SQL IN 列表", icon: "🧾", keywords: "sql in list 数据库 查询 批量" },
   { path: "/base64", label: "Base64 编解码", icon: "🔤", keywords: "base64 encode decode" },
   { path: "/url", label: "URL 编解码", icon: "🔗", keywords: "url encode decode uri" },
   { path: "/timestamp", label: "时间戳转换", icon: "⏰", keywords: "timestamp unix 日期" },

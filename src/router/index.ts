@@ -29,6 +29,11 @@ const router = createRouter({
       component: () => import("../modules/json/JsonView.vue"),
     },
     {
+      path: "/sql-in",
+      name: "sql-in",
+      component: () => import("../modules/sql/SqlInView.vue"),
+    },
+    {
       path: "/base64",
       name: "base64",
       component: () => import("../modules/base64/Base64View.vue"),

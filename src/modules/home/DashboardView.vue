@@ -14,6 +14,7 @@ const tools: ToolCard[] = [
   { path: "/crypto", icon: "🔐", title: "AES 加解密", desc: "AES-256-CBC / ECB 对称加解密，支持多种编码格式" },
   { path: "/cloud-encrypt", icon: "📦", title: "请求参数编解码", desc: "PHP base_encryption / filter 兼容的编解码管道" },
   { path: "/json", icon: "📋", title: "JSON 格式化", desc: "JSON 美化与压缩，支持 2/4 空格缩进" },
+  { path: "/sql-in", icon: "🧾", title: "SQL IN 列表", desc: "批量数据转换为可直接用于 IN 查询的 SQL 列表" },
   { path: "/base64", icon: "🔤", title: "Base64 编解码", desc: "Base64 编码与解码，支持 Unicode 和 Emoji" },
   { path: "/url", icon: "🔗", title: "URL 编解码", desc: "encodeURIComponent / encodeURI 编解码" },
   { path: "/timestamp", icon: "⏰", title: "时间戳转换", desc: "Unix 时间戳与日期互转，自动识别秒/毫秒" },
