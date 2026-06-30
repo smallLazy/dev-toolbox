@@ -33,20 +33,23 @@ function onToggleFavorite(e: Event) {
 
 function onCardKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
-    emit('select', pluginId)
+    emit('select', props.pluginId)
   } else if (e.key === ' ') {
     e.preventDefault()
-    emit('select', pluginId)
+    emit('select', props.pluginId)
   }
 }
 </script>
 
 <template>
-  <button
+  <div
     class="dashboard-card"
     :class="[`card-${variant ?? 'default'}`]"
+    role="button"
+    tabindex="0"
     :aria-label="ariaLabel"
     @click="emit('select', pluginId)"
+    @keydown="onCardKeydown"
   >
     <div class="card-icon">
       <component :is="iconComponent" :size="ICON_SIZE['2xl']" />
@@ -63,7 +66,7 @@ function onCardKeydown(e: KeyboardEvent) {
     >
       <Icons.Star :size="ICON_SIZE.sm" />
     </button>
-  </button>
+  </div>
 </template>
 
 <style scoped>
@@ -92,6 +95,8 @@ function onCardKeydown(e: KeyboardEvent) {
 
 .dashboard-card:focus-visible {
   border-color: var(--border-color-focus);
+  outline: var(--border-width-thin) solid var(--border-color-focus);
+  outline-offset: 2px;
 }
 
 .card-icon {
