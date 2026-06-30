@@ -26,7 +26,7 @@ const router = createRouter({
     {
       path: "/json",
       name: "json",
-      component: () => import("../modules/json/JsonView.vue"),
+      component: () => import("../features/json/JsonView.vue"),
     },
     {
       path: "/sql-in",
