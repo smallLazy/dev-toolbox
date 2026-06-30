@@ -11,7 +11,8 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { path: "/crypto", label: "参数加解密", icon: "🔐" },
+  { path: "/crypto", label: "AES 加解密", icon: "🔐" },
+  { path: "/cloud-encrypt", label: "请求参数编解码", icon: "📦" },
   { path: "/json", label: "JSON 格式化", icon: "📋" },
   { path: "/base64", label: "Base64 编解码", icon: "🔤" },
   { path: "/url", label: "URL 编解码", icon: "🔗" },

@@ -13,6 +13,11 @@ const router = createRouter({
       component: () => import("../modules/crypto/CryptoView.vue"),
     },
     {
+      path: "/cloud-encrypt",
+      name: "cloud-encrypt",
+      component: () => import("../modules/cloud/CloudEncryptView.vue"),
+    },
+    {
       path: "/json",
       name: "json",
       component: () => import("../modules/json/JsonView.vue"),
