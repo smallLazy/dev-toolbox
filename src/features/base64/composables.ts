@@ -37,7 +37,20 @@ export function useBase64() {
 
   // Toolbar
   const toolbar = createToolbar({
-    onCopy() { feature.copyOutput() },
+    async onCopy() {
+      error.value = null
+
+      if (!output.value) {
+        error.value = 'No output to copy'
+        return
+      }
+
+      try {
+        await navigator.clipboard.writeText(output.value)
+      } catch (e) {
+        error.value = e instanceof Error ? e.message : 'Failed to copy output'
+      }
+    },
     onClear() { input.value = ''; output.value = null; outputStats.value = null; error.value = null },
     onSwap() { if (output.value) { input.value = output.value; output.value = null; outputStats.value = null } },
   })

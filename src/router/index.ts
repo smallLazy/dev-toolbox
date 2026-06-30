@@ -41,7 +41,7 @@ const router = createRouter({
     {
       path: "/url",
       name: "url",
-      component: () => import("../modules/url/UrlView.vue"),
+      component: () => import("../features/url/UrlView.vue"),
     },
     {
       path: "/timestamp",
