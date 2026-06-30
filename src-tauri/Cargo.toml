@@ -1,0 +1,24 @@
+[package]
+name = "dev-toolbox"
+version = "0.1.0"
+description = "A developer toolbox desktop application"
+authors = ["dev"]
+edition = "2021"
+
+[lib]
+name = "dev_toolbox_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-store = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+aes = "0.8"
+cbc = "0.1"
+block-padding = "0.3"
+hex = "0.4"
+base64 = "0.22"
