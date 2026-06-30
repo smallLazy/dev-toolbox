@@ -33,8 +33,8 @@ export const ICON_STROKE = 2
 
 function icon(paths: string[], viewBox = '0 0 24 24') {
   return defineComponent({
-    props: { size: { type: [Number, String], default: 24 }, class: { type: String, default: '' } },
-    setup(props: { size: number | string; class: string }) {
+    props: { size: { type: [Number, String], default: 24 } },
+    setup(props: { size: number | string }, { attrs }) {
       return () =>
         h('svg', {
           xmlns: 'http://www.w3.org/2000/svg',
@@ -44,7 +44,7 @@ function icon(paths: string[], viewBox = '0 0 24 24') {
           'stroke-width': ICON_STROKE,
           'stroke-linecap': 'round' as const,
           'stroke-linejoin': 'round' as const,
-          class: props.class,
+          ...attrs,
         }, paths.map((d) => h('path', { d })))
     },
   })
