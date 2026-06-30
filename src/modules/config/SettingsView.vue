@@ -2,6 +2,17 @@
 import { Icons } from '@/design/icons'
 import { useAppStore } from '@/stores/app'
 import { ref } from 'vue'
+import PluginEmptyState from '@/templates/PluginEmptyState.vue'
+
+// Build-time globals (Vite define)
+declare const __APP_VERSION__: string
+declare const __GIT_HASH__: string
+declare const __GIT_BRANCH__: string
+declare const __BUILD_MODE__: string
+declare const __TAURI_VERSION__: string
+declare const __VUE_VERSION__: string
+declare const __RUST_VERSION__: string
+declare const __BUILD_ARCH__: string
 
 const appStore = useAppStore()
 const savedMsg = ref('')
@@ -88,7 +99,11 @@ async function handleSave() {
         <div v-if="activeTab === 'plugins'" class="card">
           <div class="card-header">Installed Plugins</div>
           <div class="card-body">
-            <p class="empty-hint">Plugin management coming soon.</p>
+            <PluginEmptyState
+              :icon="Icons.Package"
+              title="Plugin management"
+              description="Coming soon."
+            />
           </div>
         </div>
 
@@ -109,9 +124,10 @@ async function handleSave() {
           <div class="card-header">About</div>
           <div class="card-body">
             <div class="about-info">
-              <p><strong>Dev Toolbox</strong> v0.1.0</p>
-              <p class="about-desc">A developer workspace for everyday tools.</p>
-              <p class="about-tech">Tauri v2 · Vue 3 · TypeScript · Rust</p>
+              <p><strong>Dev Toolbox</strong> v{{ __APP_VERSION__ }}</p>
+              <p class="about-desc">A desktop developer toolkit — crypto, encoding, formatting, conversion, and inspection tools.</p>
+              <p class="about-tech">Tauri v{{ __TAURI_VERSION__ }} · Vue v{{ __VUE_VERSION__ }} · TypeScript · Rust {{ __RUST_VERSION__ }}</p>
+              <p class="about-meta">Build {{ __GIT_HASH__ }} · {{ __GIT_BRANCH__ }} · {{ __BUILD_ARCH__ }} · {{ __BUILD_MODE__ }}</p>
             </div>
           </div>
         </div>
@@ -171,6 +187,7 @@ async function handleSave() {
 .about-info p { font-size: var(--text-body); color: var(--color-neutral-100); margin-bottom: 4px; }
 .about-desc { color: var(--color-neutral-70) !important; }
 .about-tech { font-size: var(--text-label) !important; color: var(--color-neutral-60) !important; font-family: var(--font-mono); margin-top: var(--space-2); }
+.about-meta { font-size: var(--text-caption) !important; color: var(--color-neutral-50) !important; font-family: var(--font-mono); margin-top: var(--space-1); }
 
 .empty-hint { text-align: center; padding: var(--space-6) 0; color: var(--color-neutral-70); font-size: var(--text-body); }
 </style>
