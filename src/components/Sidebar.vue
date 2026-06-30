@@ -88,103 +88,116 @@ function isActive(path: string): boolean {
 
 <style scoped>
 .sidebar {
-  width: var(--sidebar-width);
-  min-width: var(--sidebar-width);
-  background: var(--color-neutral-10);
+  width: var(--sidebar-width); min-width: var(--sidebar-width);
+  background: var(--color-neutral-15);
   color: var(--color-neutral-100);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+  display: flex; flex-direction: column; height: 100vh;
   user-select: none;
-  border-right: var(--border-width-thin) solid var(--border-color-subtle);
+  border-right: var(--border-width-thin) solid rgba(255,255,255,0.04);
 }
 
+/* ── Header ───────────────────────────── */
 .sidebar-header {
-  padding: var(--space-5) var(--space-5) var(--space-4);
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  cursor: pointer;
-  flex-shrink: 0;
+  padding: 18px var(--space-5) 14px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; flex-shrink: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
 }
+.sidebar-header:hover { opacity: 0.85; }
 
-.logo-icon { font-size: 22px; line-height: 1; }
-.logo-text h1 { font-size: var(--text-subtitle); font-weight: var(--weight-semibold); color: var(--color-neutral-100); line-height: var(--leading-tight); }
-.logo-sub { font-size: var(--text-caption); color: var(--color-neutral-80); font-weight: var(--weight-regular); }
+.logo-icon {
+  font-size: 20px; line-height: 1;
+  filter: grayscale(0.2);
+}
+.logo-text h1 {
+  font-size: var(--text-subtitle); font-weight: var(--weight-semibold);
+  color: var(--color-neutral-110); line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+}
+.logo-sub {
+  font-size: var(--text-caption); color: var(--color-neutral-70);
+  font-weight: var(--weight-regular); letter-spacing: 0.02em;
+}
 
 /* ── Search ───────────────────────────── */
 .search-box {
-  margin: 0 var(--space-3) var(--space-2);
-  position: relative;
-  display: flex;
-  align-items: center;
+  margin: 2px var(--space-3) var(--space-2);
+  position: relative; display: flex; align-items: center;
 }
-
 .search-icon {
-  position: absolute;
-  left: 10px;
-  font-size: 13px;
-  pointer-events: none;
+  position: absolute; left: 11px; font-size: 12px;
+  pointer-events: none; opacity: 0.5;
 }
-
 .search-input {
   width: 100%;
-  padding: 7px 28px 7px 30px;
+  padding: 6px 26px 6px 30px;
   border: var(--border-width-thin) solid var(--border-color-default);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   background: var(--color-neutral-20);
   color: var(--color-neutral-100);
-  font-size: var(--text-body);
-  font-family: var(--font-sans);
+  font-size: var(--text-body); font-family: var(--font-sans);
   outline: none;
-  transition: border-color var(--duration-fast) var(--ease-standard);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard);
 }
-
-.search-input:focus { border-color: var(--border-color-focus); }
+.search-input:hover { background: var(--color-neutral-25); border-color: var(--border-color-hover); }
+.search-input:focus {
+  background: var(--color-neutral-15);
+  border-color: var(--border-color-focus);
+  box-shadow: 0 0 0 2px var(--color-accent-dim);
+}
 .search-input::placeholder { color: var(--color-neutral-70); }
-
 .search-clear {
-  position: absolute;
-  right: 8px;
-  background: none;
-  border: none;
-  color: var(--color-neutral-70);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 4px;
+  position: absolute; right: 6px;
+  background: none; border: none;
+  color: var(--color-neutral-70); cursor: pointer;
+  font-size: 11px; padding: 3px 4px; border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--ease-standard);
 }
+.search-clear:hover { color: var(--color-neutral-100); }
 
 /* ── Nav ──────────────────────────────── */
 .sidebar-nav { flex: 1; padding: var(--space-1) 0; overflow-y: auto; }
 
 .nav-item {
   display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 8px var(--space-5);
+  padding: 7px var(--space-5);
+  margin: 1px 0;
   border: none; background: transparent;
-  color: var(--color-neutral-90);
+  color: var(--color-neutral-80);
   font-size: var(--text-body); font-family: var(--font-sans);
   cursor: pointer; text-align: left;
-  transition: all var(--duration-fast) var(--ease-standard);
   border-left: var(--border-width-thick) solid transparent;
+  transition: color var(--duration-fast) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard);
 }
-
-.nav-item:hover { background: var(--color-neutral-40); color: var(--color-neutral-100); }
+.nav-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--color-neutral-100);
+}
 .nav-item.active {
   background: var(--color-accent-dim);
   color: var(--color-accent-primary);
   border-left-color: var(--color-accent-primary);
 }
+.nav-item.active .nav-icon { filter: none; }
 
-.nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-icon {
+  font-size: 15px; width: 20px; text-align: center; flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.nav-item:hover .nav-icon { transform: translateX(1px); }
+
 .nav-label { white-space: nowrap; font-weight: var(--weight-regular); }
-
 .nav-empty { padding: var(--space-5); text-align: center; color: var(--color-neutral-70); font-size: var(--text-body); }
 
 /* ── Footer ───────────────────────────── */
 .sidebar-footer {
-  padding: var(--space-3) var(--space-5);
-  border-top: var(--border-width-thin) solid var(--border-color-subtle);
+  padding: 10px var(--space-5);
+  border-top: var(--border-width-thin) solid rgba(255,255,255,0.04);
   flex-shrink: 0;
 }
-.version { font-size: var(--text-caption); color: var(--color-neutral-70); }
+.version { font-size: var(--text-caption); color: var(--color-neutral-60); letter-spacing: 0.03em; }
 </style>
