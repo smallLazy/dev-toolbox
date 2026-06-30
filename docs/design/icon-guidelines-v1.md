@@ -24,13 +24,17 @@ import { Icons, TOOL_ICONS, APP_ICONS, getToolIcon, ICON_SIZE } from '@/design/i
 ### Icons (App)
 Navigation (Home, Search, ChevronRight, ExternalLink) +
 Actions (Copy, Trash, Star, Refresh, Download, Upload, Play, Pause, Check, Alert, Info, X, Folder, Zap) +
-App (Settings, Terminal, History, Beaker)
+App (Settings, Terminal, History, Beaker) +
+Brand (PanelsTopLeft, LayoutGrid, Layers3)
 
 ### TOOL_ICONS (Tools)
 json → FileJson, crypto/aes → Lock, base64 → CaseSensitive, url → Link, timestamp → Clock, hash → Hash, jwt → Shield, cloud-encrypt → Package, sql-in → Database, config/settings → Settings, hello → Beaker, home → Home
 
-### APP_ICONS (Toolbar)
-copy → Copy, paste → Clipboard, clear → Trash, swap → Refresh, star → Star, history → History, settings → Settings, search → Search, download → Download, upload → Upload, play → Play, check → Check, alert → Alert, info → Info, close → X, terminal → Terminal
+### APP_ICONS (Brand)
+toolbox → Layers3, workspace → PanelsTopLeft, dashboard → LayoutGrid
+
+### APP_ICONS (Actions)
+copy → Copy, paste → Copy, clear → Trash, swap → Refresh, star → Star, history → History, settings → Settings, search → Search, download → Download, upload → Upload, play → Play, pause → Pause, check → Check, alert → Alert, info → Info, close → X, home → Home, terminal → Terminal, external → ExternalLink, folder → Folder, zap → Zap, chevronRight → ChevronRight
 
 ---
 

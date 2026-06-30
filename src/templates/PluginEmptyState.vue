@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
+
 defineProps<{
-  icon?: string       // emoji fallback (until icon component is passed)
+  icon?: string | Component  // emoji fallback OR Vue icon component
   title: string
   description: string
 }>()
@@ -8,7 +10,10 @@ defineProps<{
 
 <template>
   <div class="empty-state">
-    <div v-if="icon" class="empty-icon">{{ icon }}</div>
+    <div v-if="icon" class="empty-icon">
+      <template v-if="typeof icon === 'string'">{{ icon }}</template>
+      <component v-else :is="icon" :size="32" />
+    </div>
     <h3 class="empty-title">{{ title }}</h3>
     <p class="empty-desc">{{ description }}</p>
   </div>

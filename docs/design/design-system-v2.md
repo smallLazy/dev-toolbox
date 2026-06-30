@@ -222,22 +222,122 @@ Elevation 对应的背景亮度（用于 `z-index` 层级表达）:
 --opacity-glass:     0.75
 ```
 
-## 1.8 Grid
+## 1.8 Application Icons
+
+> **Added**: 2026-06-30 — App Branding pass.
+> **Rationale**: The Workspace previously used a Terminal (>_) icon, which implied a CLI/Shell application rather than a Developer Toolbox Platform. Application branding icons are now centralized through `APP_ICONS` as the single source of truth.
+
+### Brand Icon Registry
+
+All application-level branding icons are defined in `src/design/icons/index.ts` and accessed exclusively through `APP_ICONS`:
+
+```typescript
+import { APP_ICONS } from '@/design/icons'
+
+// Usage in templates:
+<component :is="APP_ICONS.toolbox" :size="24" />
+<component :is="APP_ICONS.workspace" :size="22" />
+<component :is="APP_ICONS.dashboard" :size="32" />
+```
+
+| Icon | Key | SVG | Semantic | Usage |
+|------|-----|-----|----------|-------|
+| **Toolbox** | `APP_ICONS.toolbox` | `Layers3` | Layered platform architecture — container of tools | Primary brand mark, App icon |
+| **Workspace** | `APP_ICONS.workspace` | `PanelsTopLeft` | IDE/editor layout — where work happens | Sidebar header, Workspace sections |
+| **Dashboard** | `APP_ICONS.dashboard` | `LayoutGrid` | Grid overview — tool discovery surface | Home dashboard header |
+
+### Semantic Distinction
+
+| Icon | Represents | NOT |
+|------|-----------|------|
+| `toolbox` (Layers3) | Platform, modular architecture, tool container | A literal toolbox/chest |
+| `workspace` (PanelsTopLeft) | IDE layout, split panels, developer environment | Terminal, code brackets, CLI |
+| `dashboard` (LayoutGrid) | Grid overview, widget layout, home base | Chart, analytics, graph |
+
+### Rules
+
+1. **Always route through `APP_ICONS`** — never import icons directly in components.
+2. **Never use Terminal (>_) for workspace branding** — it implies CLI, not a Developer Platform.
+3. **Never use emoji, code brackets, or inline SVG** for brand elements.
+4. **All brand icon references are centralized** in `src/design/icons/index.ts` — the SSOT.
+
+### Prohibited for Branding
 
 ```
---grid-columns: 12
---grid-gutter:  var(--space-4)   ← 16px
---grid-margin:  var(--space-6)   ← 24px
-
-Content Max Widths:
-  --content-sm:   640px    ← 对话、简单表单
-  --content-md:   820px    ← 标准工具页
-  --content-lg:   1024px   ← Dashboard
-  --content-xl:   1280px   ← Workspace（SplitView）
+❌ Terminal (>_)
+❌ Code brackets (</>)
+❌ Emoji (🧰, 🔧, ⚙️)
+❌ Inline SVG in components
+❌ Direct Lucide imports
 ```
 
 ---
 
+## 1.9 Sidebar Tokens
+
+> **Added**: 2026-06-30 — Sidebar readability pass.
+> **Rationale**: When the plugin registry grows to 100+ items, navigation legibility is critical. Generic neutral-scale tokens did not provide sufficient contrast for the sidebar's specific needs. These semantic tokens are calibrated for WCAG AA compliance (≥4.5:1 contrast ratio for normal text) against the sidebar background (`#161616`).
+
+### Text
+
+| Token | Value | Contrast (on #161616) | Usage |
+|-------|-------|----------------------|-------|
+| `--sidebar-text` | `#CCCCCC` | 11.4:1 ✅ AA/AAA | Normal navigation items |
+| `--sidebar-text-secondary` | `#808080` | 4.6:1 ✅ AA | Secondary info, version, search placeholder |
+| `--sidebar-category` | `#999999` | 6.5:1 ✅ AA | Category labels, default icons |
+| `--sidebar-muted` | `var(--color-neutral-70)` (#555555) | ~2.4:1 (exempt) | Disabled items only |
+
+### Interaction
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--sidebar-hover-bg` | `rgba(255,255,255,0.06)` | Hover background (subtle but obvious) |
+| `--sidebar-active-bg` | `var(--color-accent-subtle)` | Active item background (accent tint, 18% opacity) |
+
+### Icons
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--sidebar-icon` | `var(--sidebar-category)` | Default icon color |
+| `--sidebar-icon-hover` | `var(--sidebar-text)` | Icon color on hover (matches text) |
+| `--sidebar-icon-active` | `var(--color-accent-primary)` | Icon color when item is active |
+
+### Badge & Divider
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--sidebar-badge-bg` | `var(--color-neutral-40)` | Badge/count background |
+| `--sidebar-badge-text` | `var(--color-neutral-90)` | Badge/count text |
+| `--sidebar-divider` | `rgba(255,255,255,0.06)` | Section dividers, borders |
+
+### Usage Rules
+
+1. **Always use sidebar tokens in Sidebar.vue styles** — never reference `--color-neutral-*` directly for sidebar elements.
+2. **Category labels** must use `font-size: var(--text-label)` (12px), `font-weight: var(--weight-semibold)` (600), `letter-spacing: 0.08em`. Never use `text-transform: uppercase` or `opacity` tricks.
+3. **Active items** must use `--sidebar-active-bg` for background + `--color-accent-primary` for text and left-border.
+4. **Hover** must use `--sidebar-hover-bg` — a consistent `rgba(255,255,255,0.06)` overlay.
+5. **Icons** use `--sidebar-icon` by default, `--sidebar-icon-hover` on hover, `--sidebar-icon-active` when active.
+
+### Accessibility Rationale
+
+| Element | Previous Token | Previous Contrast | New Token | New Contrast | WCAG AA |
+|---------|---------------|-------------------|-----------|-------------|---------|
+| Nav item text | `--color-neutral-80` (#6E6E6E) | 3.8:1 ❌ | `--sidebar-text` (#CCCCCC) | 11.4:1 ✅ | Pass |
+| Category label | `--color-neutral-60` (#3D3D3D) | 1.6:1 ❌ | `--sidebar-category` (#999999) | 6.5:1 ✅ | Pass |
+| Secondary text | (none formalized) | — | `--sidebar-text-secondary` (#808080) | 4.6:1 ✅ | Pass |
+| Badge count | `--color-neutral-30` bg | Near-invisible | `--sidebar-badge-bg` (#252525) | Visible ✅ | N/A |
+| Hover feedback | `rgba(255,255,255,0.04)` | Barely perceptible | `--sidebar-hover-bg` (0.06) | Subtle but obvious ✅ | N/A |
+
+### Category Labels — Before/After
+
+```
+Before: text-transform: uppercase; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; opacity trick
+After:  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; no transform; no opacity
+```
+
+The previous approach used uppercase + small font + low contrast to de-emphasize categories. The new approach uses readable typography with proper hierarchy — larger size, higher weight, wider tracking, and proper contrast — making categories scannable without competing with navigation items.
+
+---
 # 2. Components
 
 ## 2.1 Button
@@ -323,11 +423,11 @@ API:
 }
 ```
 
-**States**:
-- default: text `--gray-900`, bg transparent
-- hover: bg `rgba(255,255,255,0.04)`, text → `--gray-950`
-- active: bg `--accent-dim`, text → `--accent-primary`, left-border `3px solid --accent-primary`
-- active icon: no filter
+**States** (see §1.9 Sidebar Tokens for token definitions):
+- default: text `--sidebar-text`, icon `--sidebar-icon`, bg transparent
+- hover: bg `--sidebar-hover-bg`, text → `--color-neutral-100`, icon → `--sidebar-icon-hover`
+- active: bg `--sidebar-active-bg`, text → `--color-accent-primary`, icon → `--sidebar-icon-active`, left-border `3px solid --color-accent-primary`
+- category: text `--sidebar-category`, `font-size: 12px`, `font-weight: 600`, `letter-spacing: 0.08em` — no `text-transform: uppercase`, no opacity tricks
 
 **Layout**:
 - Header (logo + app name + version)

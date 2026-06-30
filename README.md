@@ -1,29 +1,40 @@
 # Dev Toolbox
 
-> **v0.1.0-beta.1** — Beta 内测版 | macOS arm64 | 不可公开发布
+> **v0.1.0-beta.2** — Beta Readiness | macOS arm64
 
-基于 **Tauri v2 + Vue 3 + TypeScript + Rust** 的桌面端开发者工具箱。
+A desktop developer toolbox — crypto, encoding, formatting, conversion, and inspection tools. Built on **Tauri v2 + Vue 3 + TypeScript + Rust**.
 
-## 功能
+## Features
 
-| 工具 | 说明 |
-|---|---|
-| 🔐 参数加解密 | AES-256-CBC / AES-256-ECB 对称加解密，支持多种编码 |
-| 📋 JSON 格式化 | JSON 格式化美化 / 压缩 |
-| 🧾 SQL IN 列表 | 批量数据转换为 SQL IN 查询列表 |
-| 🔤 Base64 编解码 | Base64 编码与解码，支持 Unicode |
-| 🔗 URL 编解码 | URL 编码与解码 (encodeURIComponent / encodeURI) |
-| ⏰ 时间戳转换 | 时间戳与日期时间互转 |
-| 🔑 MD5 / SHA256 | 计算文本的哈希值 |
-| 🎫 JWT 解析 | 解析 JWT Token 的 Header / Payload / Signature |
-| ⚙️ 配置管理 | 管理默认编码设置，配置本地持久化 |
+| Tool | Description |
+|------|-------------|
+| AES Crypto | AES-256-CBC / AES-256-ECB symmetric encryption with multiple encodings |
+| JSON Formatter | Format, beautify, and compact JSON |
+| SQL IN List | Convert batch data to SQL IN query lists |
+| Base64 | Encode and decode with Unicode support |
+| URL Encode | URL encoding and decoding (encodeURIComponent / encodeURI) |
+| Timestamp | Convert between timestamps and date-time |
+| MD5 / SHA256 | Compute text hash values |
+| JWT Parser | Parse JWT Header / Payload / Signature with expiry detection |
+| Settings | Manage default encoding preferences, persisted locally |
+| About | Version info, build details, plugin registry, license |
 
-## 技术栈
+## Keyboard Shortcuts
 
-- **前端**: Vue 3 + TypeScript + Vite + Pinia + Vue Router
-- **后端**: Rust + Tauri v2
-- **加解密**: AES-256 实现在 Rust 端，前端通过 `invoke` 调用
-- **配置存储**: Tauri Store 插件 (`@tauri-apps/plugin-store`)
+| Shortcut | Action |
+|----------|--------|
+| Cmd+K | Open Command Palette |
+| Arrow Up/Down | Navigate Command Palette |
+| Enter | Execute selected action |
+| Escape | Close Command Palette / cancel |
+| Tab / Shift+Tab | Navigate focus between elements |
+
+## Tech Stack
+
+- **Frontend**: Vue 3 + TypeScript + Vite + Pinia + Vue Router
+- **Backend**: Rust + Tauri v2
+- **Crypto**: AES-256 executed in Rust, invoked from frontend via IPC
+- **Storage**: Tauri Store plugin (`@tauri-apps/plugin-store`)
 
 ## 前置依赖
 
@@ -100,58 +111,79 @@ npm run tauri build
 
 ```
 dev-toolbox/
-├── index.html                    # 入口 HTML
-├── package.json                  # 前端依赖与脚本
-├── vite.config.ts                # Vite 配置
-├── tsconfig.json                 # TypeScript 配置
+├── index.html                    # Entry HTML
+├── package.json                  # Frontend dependencies & scripts
+├── vite.config.ts                # Vite config (with build metadata)
+├── tsconfig.json                 # TypeScript config
 ├── README.md
-├── src/                          # 前端源码
-│   ├── main.ts                   # 应用入口
-│   ├── App.vue                   # 根组件
-│   ├── env.d.ts                  # 类型声明
+├── src/                          # Frontend source
+│   ├── main.ts                   # App entry
+│   ├── App.vue                   # Root component
+│   ├── env.d.ts                  # Type declarations
 │   ├── components/
-│   │   └── Sidebar.vue           # 左侧工具菜单
+│   │   ├── Sidebar.vue           # Navigation sidebar
+│   │   ├── CommandPalette.vue    # Cmd+K command palette
+│   │   ├── DashboardWelcome.vue  # First-launch welcome
+│   │   ├── DashboardCard.vue     # Tool card
+│   │   ├── DashboardGrid.vue     # All tools grid
+│   │   ├── DashboardRecent.vue   # Recently used
+│   │   └── DashboardFavorites.vue # Favorited tools
 │   ├── layouts/
-│   │   └── MainLayout.vue        # 主布局 (左侧菜单 + 右侧面板)
+│   │   └── MainLayout.vue        # Main layout (Sidebar + Content)
 │   ├── router/
-│   │   └── index.ts              # Vue Router 路由配置
+│   │   └── index.ts              # Vue Router config
 │   ├── stores/
-│   │   └── app.ts                # Pinia 全局状态（含配置管理）
-│   └── modules/
-│       ├── crypto/
-│       │   └── CryptoView.vue    # 参数加解密面板
-│       ├── json/
-│       │   └── JsonView.vue      # JSON 格式化面板
-│       ├── base64/
-│       │   └── Base64View.vue    # Base64 编解码面板
-│       ├── url/
-│       │   └── UrlView.vue       # URL 编解码面板
-│       ├── timestamp/
-│       │   └── TimestampView.vue # 时间戳转换面板
-│       ├── hash/
-│       │   └── HashView.vue      # MD5 / SHA256 面板
-│       ├── jwt/
-│       │   └── JwtView.vue       # JWT 解析面板
-│       └── config/
-│           └── ConfigView.vue    # 配置管理面板
-└── src-tauri/                    # Rust 后端
-    ├── Cargo.toml                # Rust 依赖配置
-    ├── tauri.conf.json           # Tauri 配置
-    ├── build.rs                  # 构建脚本
+│   │   ├── app.ts                # App config store
+│   │   └── workspace.ts          # Workspace store (tools, recent, favorites)
+│   ├── composables/
+│   │   ├── useCommandPalette.ts  # Command palette state
+│   │   ├── useTools.ts           # Tool listing
+│   │   ├── useRecent.ts          # Recent tools
+│   │   └── useFavorites.ts       # Favorite tools
+│   ├── templates/
+│   │   └── PluginEmptyState.vue  # Reusable empty state
+│   ├── modules/
+│   │   ├── home/
+│   │   │   └── DashboardView.vue # Dashboard page
+│   │   ├── about/
+│   │   │   └── AboutView.vue     # About page
+│   │   ├── crypto/
+│   │   │   └── CryptoView.vue    # AES Crypto
+│   │   ├── base64/
+│   │   │   └── Base64View.vue    # Base64
+│   │   ├── url/
+│   │   │   └── UrlView.vue       # URL Encode
+│   │   ├── timestamp/
+│   │   │   └── TimestampView.vue # Timestamp
+│   │   ├── hash/
+│   │   │   └── HashView.vue      # MD5 / SHA256
+│   │   ├── jwt/
+│   │   │   └── JwtView.vue       # JWT Parser
+│   │   └── config/
+│   │       └── SettingsView.vue  # Settings
+│   ├── design/
+│   │   └── icons/
+│   │       └── index.ts          # Icon registry (SSOT)
+│   └── plugins/
+│       └── index.ts              # Plugin barrel (33 plugins)
+└── src-tauri/                    # Rust backend
+    ├── Cargo.toml                # Rust dependencies
+    ├── tauri.conf.json           # Tauri config (window, bundle, CSP)
+    ├── build.rs                  # Build script
     ├── capabilities/
-    │   └── default.json          # 权限配置
-    ├── icons/                    # 应用图标
+    │   └── default.json          # Permissions
+    ├── icons/                    # App icons
     └── src/
-        ├── main.rs               # Rust 入口
-        ├── lib.rs                # Tauri 插件注册与命令注册
+        ├── main.rs               # Rust entry
+        ├── lib.rs                # Tauri plugin & command registration
         ├── commands/
         │   ├── mod.rs
-        │   └── aes_cmd.rs        # AES 加解密 Tauri command
+        │   └── aes_cmd.rs        # AES crypto Tauri command
         ├── services/
         │   ├── mod.rs
-        │   └── crypto.rs         # AES-CBC / AES-ECB 核心逻辑
+        │   └── crypto.rs         # AES-CBC / AES-ECB core logic
         └── models/
-            └── mod.rs            # 数据结构定义
+            └── mod.rs            # Data structures
 ```
 
 ## 安全说明
@@ -161,18 +193,19 @@ dev-toolbox/
 - 配置仅保存在本地 Tauri Store，不联网传输
 - AES 加解密逻辑在 Rust 端执行
 
-## 后续待补
+## Roadmap
 
-- [ ] 运行 `npm run tauri icon ./src-tauri/icons/icon.png` 生成各平台图标
-- [ ] 深色模式支持
-- [ ] 多语言 (i18n)
-- [ ] 加解密：支持更多算法 (DES, 3DES, RSA, SM4)
-- [ ] Hash：支持更多算法 (SHA-1, SHA-512, SM3)
-- [ ] 配置文件导入/导出
-- [ ] 快捷键支持
-- [ ] 单元测试 / E2E 测试
-- [ ] CI/CD 自动构建
-- [ ] 自动更新功能
+- [ ] Generate high-resolution app icons (1024x1024 source)
+- [ ] Code signing & notarization (macOS)
+- [ ] Multi-platform builds (Intel Mac, Windows, Linux)
+- [ ] Auto-updater (Tauri updater plugin)
+- [ ] More crypto algorithms (GCM, CTR, RSA, SM4)
+- [ ] More hash algorithms (SHA-1, SHA-512, SM3)
+- [ ] Dark mode
+- [ ] i18n (multi-language)
+- [ ] E2E tests (Playwright)
+- [ ] CI/CD (GitHub Actions)
+- [ ] Plugin marketplace
 
 ## License
 

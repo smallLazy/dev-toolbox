@@ -121,6 +121,38 @@
   --content-max-width: 820px;
   --content-padding-x: 40px;
   --content-padding-y: 32px;
+
+  /* ── Sidebar ────────────────────────────────────────────────────────────
+     Semantic tokens for the Sidebar navigation component.
+     Calibrated for WCAG AA contrast (≥4.5:1) against --sidebar-bg (161616).
+     Do NOT use raw neutral-scale tokens in Sidebar styles — use these. */
+  --sidebar-bg:             var(--color-neutral-15);
+
+  /* Text — contrast ratios measured against #161616 background */
+  --sidebar-text:           #CCCCCC;  /* Normal items — 11.4:1 contrast ✅ AA/AAA */
+  --sidebar-text-secondary: #808080;  /* Secondary info — 4.6:1 contrast ✅ AA */
+  --sidebar-category:       #999999;  /* Category labels — 6.5:1 contrast ✅ AA */
+  --sidebar-muted:          var(--color-neutral-70);  /* Disabled — exempt from AA */
+
+  /* Interaction */
+  --sidebar-hover-bg:       rgba(255,255,255,0.06);
+  --sidebar-active-bg:      var(--color-accent-subtle);
+
+  /* Icons */
+  --sidebar-icon:         var(--sidebar-category);
+  --sidebar-icon-hover:   var(--sidebar-text);
+  --sidebar-icon-active:  var(--color-accent-primary);
+
+  /* Text states */
+  --sidebar-text-hover:  var(--color-neutral-120);  /* #FFFFFF — 17.1:1 contrast */
+  --sidebar-text-active: var(--color-neutral-120);  /* #FFFFFF */
+
+  /* Badge */
+  --sidebar-badge-bg:   var(--color-neutral-40);
+  --sidebar-badge-text: var(--color-neutral-90);
+
+  /* Divider */
+  --sidebar-divider: rgba(255,255,255,0.06);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

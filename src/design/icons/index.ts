@@ -83,6 +83,15 @@ export const Icons = {
   History: icon(['M3 3v5h5M3.05 13A9 9 0 106.58 5.3L3 8']),
   Beaker: icon(['M8 3h8M8 3v4.3a5 5 0 002.3 4.2L12 13l1.7-1.5A5 5 0 0016 7.3V3M8 3h8M3 21h18']),
 
+  // Brand
+  PanelsTopLeft: icon(['M21 3H3v7h18V3z', 'M21 14h-7v7h7v-7z', 'M10 14H3v7h7v-7z']),
+  LayoutGrid: icon(['M3 3h7v7H3V3z', 'M14 3h7v7h-7V3z', 'M14 14h7v7h-7v-7z', 'M3 14h7v7H3v-7z']),
+  Layers3: icon([
+    'm12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z',
+    'm6.08 9.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59',
+    'm6.08 14.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59',
+  ]),
+
   // Tool icons (used by TOOL_ICONS map)
   Lock: icon(['M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z', 'M7 11V7a5 5 0 0110 0v4']),
   FileJson: icon(['M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z', 'M14 2v6h6', 'M12 18v-6l2 3 2-3v6']),
@@ -97,6 +106,13 @@ export const Icons = {
   Globe: icon(['M12 2a10 10 0 100 20 10 10 0 000-20z', 'M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z']),
   Key: icon(['M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4']),
   FileCode: icon(['M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z', 'M14 2v6h6', 'M10 13l-2 2 2 2M14 13l2 2-2 2']),
+
+  // Extended tool icons (Sprint 01)
+  Palette: icon(['M2 12a10 10 0 1010-10 10 10 0 00-10 10z', 'M7.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z', 'M16.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z', 'M12 17.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z']),
+  QrCode: icon(['M3 3h6v6H3z', 'M15 3h6v6h-6z', 'M3 15h6v6H3z', 'M15 15h3v3h-3z', 'M21 15v6h-6']),
+  GitBranch: icon(['M6 3v12', 'M18 9a3 3 0 100-6 3 3 0 000 6z', 'M6 21a3 3 0 100-6 3 3 0 000 6z', 'M18 9a9 9 0 01-9 9']),
+  MessagesSquare: icon(['M14 9a2 2 0 01-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 012 2v5z', 'M18 9h2a2 2 0 012 2v11l-4-4h-6a2 2 0 01-2-2v-1']),
+  Eye: icon(['M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z', 'M12 15a3 3 0 100-6 3 3 0 000 6z']),
 } as const
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -104,6 +120,7 @@ export const Icons = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const TOOL_ICONS = {
+  // ── Core tools ──
   json: Icons.FileJson,
   crypto: Icons.Lock,
   aes: Icons.Lock,
@@ -118,6 +135,39 @@ export const TOOL_ICONS = {
   settings: Icons.Settings,
   hello: Icons.Beaker,
   home: Icons.Home,
+
+  // ── Sprint 01 — 33-plugin full coverage ──
+  agent: Icons.MessagesSquare,
+  color: Icons.Palette,
+  curl: Icons.Globe,
+  diff: Icons.GitBranch,
+  explain: Icons.MessagesSquare,
+  gitee: Icons.GitBranch,
+  github: Icons.GitBranch,
+  graphql: Icons.Globe,
+  ['html-encode']: Icons.FileCode,
+  ['http-client']: Icons.Globe,
+  jira: Icons.Check,
+  markdown: Icons.FileCode,
+  prompt: Icons.MessagesSquare,
+  qrcode: Icons.QrCode,
+  regex: Icons.FileCode,
+  ['request-decoder']: Icons.Globe,
+  review: Icons.Check,
+  rsa: Icons.Key,
+  sentry: Icons.Shield,
+  sm2: Icons.Key,
+  sm3: Icons.Hash,
+  sm4: Icons.Lock,
+  sql: Icons.Database,
+  translate: Icons.Globe,
+  unicode: Icons.CaseSensitive,
+  uuid: Icons.Hash,
+  websocket: Icons.Globe,
+  wecom: Icons.MessagesSquare,
+  xml: Icons.FileCode,
+  yaml: Icons.FileCode,
+  zentao: Icons.Check,
 } as const
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -125,8 +175,14 @@ export const TOOL_ICONS = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const APP_ICONS = {
+  // Brand
+  toolbox: Icons.Layers3,
+  workspace: Icons.PanelsTopLeft,
+  dashboard: Icons.LayoutGrid,
+
+  // Actions
   copy: Icons.Copy,
-  paste: Icons.Copy,  // Clipboard icon added below
+  paste: Icons.Copy,
   clear: Icons.Trash,
   swap: Icons.Refresh,
   star: Icons.Star,
