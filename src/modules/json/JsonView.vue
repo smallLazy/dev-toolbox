@@ -36,103 +36,93 @@ function copyOutput() {
 </script>
 
 <template>
-  <div class="tool-panel">
-    <div class="tool-header">
-      <h2 class="tool-title">JSON 格式化</h2>
-      <p class="tool-desc">格式化或压缩 JSON 文本</p>
-    </div>
+  <div class="page">
+    <header class="page-header">
+      <h1 class="page-title">JSON 格式化</h1>
+      <p class="page-desc">JSON 美化与压缩，支持 2/4 空格缩进</p>
+    </header>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>模式</label>
-        <div class="mode-switch">
-          <button :class="{ active: mode === 'format' }" @click="mode = 'format'">格式化</button>
-          <button :class="{ active: mode === 'compact' }" @click="mode = 'compact'">压缩</button>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header">配置</div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="field flex-1">
+              <label class="field-label">模式</label>
+              <div class="segmented-control">
+                <button :class="{ active: mode === 'format' }" @click="mode = 'format'">格式化</button>
+                <button :class="{ active: mode === 'compact' }" @click="mode = 'compact'">压缩</button>
+              </div>
+            </div>
+            <div class="field" v-if="mode === 'format'">
+              <label class="field-label">缩进</label>
+              <select v-model="indentSize" class="dt-select">
+                <option :value="2">2 空格</option>
+                <option :value="4">4 空格</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="form-group" v-if="mode === 'format'">
-        <label>缩进空格数</label>
-        <select v-model="indentSize">
-          <option :value="2">2</option>
-          <option :value="4">4</option>
-        </select>
+
+      <div class="card">
+        <div class="card-header">输入</div>
+        <div class="card-body">
+          <textarea v-model="input" class="dt-textarea" rows="8" placeholder="粘贴 JSON 文本..." />
+        </div>
       </div>
-    </div>
 
-    <div class="form-group full-width">
-      <label>输入</label>
-      <textarea v-model="input" rows="8" placeholder="粘贴 JSON 文本..." />
-    </div>
-
-    <div class="action-row">
-      <button class="btn-primary" @click="execute">{{ mode === 'format' ? '✨ 格式化' : '📦 压缩' }}</button>
-    </div>
-
-    <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
-
-    <div class="form-group full-width" v-if="output">
-      <div class="output-header">
-        <label>输出</label>
-        <button class="btn-sm" @click="copyOutput">复制</button>
+      <div class="action-bar">
+        <button class="btn-accent" @click="execute">{{ mode === 'format' ? '格式化' : '压缩' }}</button>
       </div>
-      <textarea v-model="output" rows="8" readonly class="output-area" />
+
+      <div v-if="errorMsg" class="alert-error">{{ errorMsg }}</div>
+
+      <div class="card card-output" v-if="output">
+        <div class="card-header">
+          <span>输出</span>
+          <button class="btn-sm" @click="copyOutput">复制</button>
+        </div>
+        <div class="card-body">
+          <textarea v-model="output" class="dt-textarea" rows="8" readonly />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.tool-panel { max-width: var(--content-max-width); margin: 0 auto; }
-.tool-header { margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
-.tool-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-100); margin-bottom: var(--space-1); }
-.tool-desc { color: var(--color-neutral-80); font-size: var(--text-body); }
-.form-row { display: flex; gap: var(--space-3); margin-bottom: var(--space-3); }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group.full-width { width: 100%; margin-bottom: var(--space-3); }
-.form-group label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-90); }
-.form-group select {
-  padding: var(--space-2) 10px; border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-md);
-  font-size: var(--text-body); background: var(--color-neutral-20); color: var(--color-neutral-100); cursor: pointer;
-  appearance: none; padding-right: 28px; font-family: var(--font-sans);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239D9D9D' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 10px center;
-  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
-}
-.form-group select:focus { outline: none; border-color: var(--border-color-focus); box-shadow: 0 0 0 1px var(--color-accent-moderate); }
-.form-group select option { background: var(--color-neutral-50); color: var(--color-neutral-100); }
-.form-group textarea {
-  padding: 10px; border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-md);
-  font-size: var(--text-body); font-family: var(--font-mono); background: var(--color-neutral-20);
-  color: var(--color-neutral-100); resize: vertical; width: 100%;
-  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
-}
-.form-group textarea:focus { outline: none; border-color: var(--border-color-focus); box-shadow: 0 0 0 1px var(--color-accent-moderate); }
-.form-group textarea::placeholder { color: var(--color-neutral-70); }
-.mode-switch { display: flex; }
-.mode-switch button {
-  flex: 1; padding: 7px var(--space-3); border: var(--border-width-thin) solid var(--border-color-default);
+.page { max-width: var(--content-max-width); margin: 0 auto; }
+.page-header { margin-bottom: var(--space-6); }
+.page-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-100); margin-bottom: var(--space-1); }
+.page-desc { font-size: var(--text-body); color: var(--color-neutral-80); }
+.page-content { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.card { background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+.card-header { padding: 10px var(--space-5); font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); border-bottom: var(--border-width-thin) solid var(--border-color-subtle); display: flex; justify-content: space-between; align-items: center; }
+.card-body { padding: var(--space-4) var(--space-5); }
+.card-output .card-body textarea { background: var(--color-neutral-10); border-color: var(--border-color-focus); }
+
+.form-row { display: flex; gap: var(--space-3); align-items: flex-end; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field.flex-1 { flex: 1; }
+.field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-90); }
+
+.segmented-control { display: flex; }
+.segmented-control button {
+  flex: 1; padding: 6px var(--space-3); border: var(--border-width-thin) solid var(--border-color-default);
   background: var(--color-neutral-20); color: var(--color-neutral-90);
   cursor: pointer; font-size: var(--text-body); font-family: var(--font-sans); transition: all var(--duration-fast) var(--ease-standard);
 }
-.mode-switch button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
-.mode-switch button:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; border-left: none; }
-.mode-switch button.active { background: var(--color-accent-primary); color: var(--color-neutral-120); border-color: var(--color-accent-primary); font-weight: var(--weight-medium); }
-.action-row { margin: var(--space-4) 0; }
-.btn-primary {
-  padding: 9px var(--space-5); background: var(--color-accent-primary); color: var(--color-neutral-120);
-  border: none; border-radius: var(--radius-md); font-size: var(--text-body); font-weight: var(--weight-medium);
-  font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard);
-}
-.btn-primary:hover { background: var(--color-accent-hover); }
-.btn-sm {
-  padding: 4px var(--space-3); background: var(--color-neutral-50); color: var(--color-neutral-100);
-  border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-md);
-  font-size: var(--text-label); font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard);
-}
+.segmented-control button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.segmented-control button:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; border-left: none; }
+.segmented-control button.active { background: var(--color-accent-primary); color: #fff; border-color: var(--color-accent-primary); font-weight: var(--weight-medium); }
+
+.action-bar { display: flex; gap: 10px; }
+.btn-accent { padding: 9px 24px; background: var(--color-accent-primary); color: #fff; border: none; border-radius: var(--radius-md); font-size: var(--text-body); font-weight: var(--weight-medium); font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard); }
+.btn-accent:hover { background: var(--color-accent-hover); }
+.btn-sm { padding: 3px 12px; background: var(--color-neutral-50); color: var(--color-neutral-100); border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-md); font-size: var(--text-label); font-family: var(--font-sans); cursor: pointer; }
 .btn-sm:hover { background: var(--color-neutral-40); }
-.output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.error-msg {
-  padding: 10px var(--space-3); background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border);
-  border-radius: var(--radius-md); color: var(--color-danger-text); font-size: var(--text-label); margin-bottom: var(--space-3);
-}
-.output-area { background: var(--color-neutral-10) !important; border-color: var(--border-color-focus) !important; }
+
+.alert-error { padding: 10px var(--space-4); background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border); border-radius: var(--radius-md); color: var(--color-danger-text); font-size: var(--text-label); }
 </style>

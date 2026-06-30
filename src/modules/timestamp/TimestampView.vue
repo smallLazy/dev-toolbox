@@ -40,73 +40,72 @@ function convertDateToTs() {
 </script>
 
 <template>
-  <div class="tool-panel">
-    <div class="tool-header">
-      <h2 class="tool-title">时间戳转换</h2>
-      <p class="tool-desc">时间戳与日期互转</p>
-    </div>
+  <div class="page">
+    <header class="page-header">
+      <h1 class="page-title">时间戳转换</h1>
+      <p class="page-desc">Unix 时间戳与日期互转，自动识别秒/毫秒</p>
+    </header>
 
-    <div class="current-time-card">
-      <div class="time-big">{{ nowFormatted }}</div>
-      <div class="time-meta">ISO: {{ nowISO }}</div>
-    </div>
-
-    <div class="section">
-      <h3>时间戳 → 日期</h3>
-      <div class="form-group">
-        <label>时间戳（秒或毫秒，自动识别）</label>
-        <input v-model="tsSeconds" type="text" placeholder="如 1700000000 或 1700000000000" @keyup.enter="convertTsToDate" />
+    <div class="page-content">
+      <div class="time-banner">
+        <div class="time-big">{{ nowFormatted }}</div>
+        <div class="time-meta">ISO: {{ nowISO }}</div>
       </div>
-      <button class="btn-primary" @click="convertTsToDate">→ 转换</button>
-      <div v-if="dateOutput" class="output-box"><pre>{{ dateOutput }}</pre></div>
-    </div>
 
-    <div class="section">
-      <h3>日期 → 时间戳</h3>
-      <div class="form-group">
-        <label>日期时间</label>
-        <input v-model="dateStr" type="text" placeholder="如 2024-01-01T00:00:00Z" @keyup.enter="convertDateToTs" />
+      <div class="card">
+        <div class="card-header">时间戳 → 日期</div>
+        <div class="card-body">
+          <div class="field">
+            <label class="field-label">时间戳（秒或毫秒，自动识别）</label>
+            <input v-model="tsSeconds" class="dt-input" type="text" placeholder="1700000000" @keyup.enter="convertTsToDate" />
+          </div>
+          <button class="btn-accent" style="margin-top:var(--space-3)" @click="convertTsToDate">转换</button>
+          <pre v-if="dateOutput" class="output-pre">{{ dateOutput }}</pre>
+        </div>
       </div>
-      <button class="btn-primary" @click="convertDateToTs">→ 转换</button>
-      <div v-if="tsOutput" class="output-box"><pre>{{ tsOutput }}</pre></div>
-    </div>
 
-    <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+      <div class="card">
+        <div class="card-header">日期 → 时间戳</div>
+        <div class="card-body">
+          <div class="field">
+            <label class="field-label">日期时间</label>
+            <input v-model="dateStr" class="dt-input" type="text" placeholder="2024-01-01T00:00:00Z" @keyup.enter="convertDateToTs" />
+          </div>
+          <button class="btn-accent" style="margin-top:var(--space-3)" @click="convertDateToTs">转换</button>
+          <pre v-if="tsOutput" class="output-pre">{{ tsOutput }}</pre>
+        </div>
+      </div>
+
+      <div v-if="errorMsg" class="alert-error">{{ errorMsg }}</div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.tool-panel { max-width: var(--content-max-width); margin: 0 auto; }
-.tool-header { margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
-.tool-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-100); margin-bottom: var(--space-1); }
-.tool-desc { color: var(--color-neutral-80); font-size: var(--text-body); }
-.current-time-card {
+.page { max-width: var(--content-max-width); margin: 0 auto; }
+.page-header { margin-bottom: var(--space-6); }
+.page-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-100); margin-bottom: var(--space-1); }
+.page-desc { font-size: var(--text-body); color: var(--color-neutral-80); }
+.page-content { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.time-banner {
   background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-hover));
-  padding: 18px 22px; border-radius: var(--radius-lg); margin-bottom: 28px;
+  padding: 18px 24px; border-radius: var(--radius-lg);
 }
-.time-big { font-size: 22px; font-weight: var(--weight-semibold); color: var(--color-neutral-120); margin-bottom: var(--space-1); }
+.time-big { font-size: 22px; font-weight: var(--weight-semibold); color: #fff; margin-bottom: var(--space-1); }
 .time-meta { font-size: var(--text-caption); color: rgba(255,255,255,.7); font-family: var(--font-mono); }
-.section { margin-bottom: var(--space-6); }
-.section h3 { font-size: var(--text-base); font-weight: var(--weight-medium); color: var(--color-neutral-100); margin-bottom: 10px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-.form-group label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-90); }
-.form-group input {
-  padding: var(--space-2) 10px; border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-md);
-  font-size: var(--text-body); font-family: var(--font-mono); background: var(--color-neutral-20); color: var(--color-neutral-100);
-  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
-}
-.form-group input:focus { outline: none; border-color: var(--border-color-focus); box-shadow: 0 0 0 1px var(--color-accent-moderate); }
-.form-group input::placeholder { color: var(--color-neutral-70); }
-.btn-primary {
-  padding: 9px var(--space-5); background: var(--color-accent-primary); color: var(--color-neutral-120);
-  border: none; border-radius: var(--radius-md); font-size: var(--text-body); font-weight: var(--weight-medium);
-  font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard);
-}
-.btn-primary:hover { background: var(--color-accent-hover); }
-.output-box { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-neutral-10); border: var(--border-width-thin) solid var(--border-color-focus); border-radius: var(--radius-md); }
-.output-box pre { font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100); white-space: pre-wrap; margin: 0; }
-.error-msg {
-  padding: 10px var(--space-3); background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border);
-  border-radius: var(--radius-md); color: var(--color-danger-text); font-size: var(--text-label);
-}
+
+.card { background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+.card-header { padding: 10px var(--space-5); font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
+.card-body { padding: var(--space-4) var(--space-5); }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-90); }
+
+.btn-accent { padding: 9px 24px; background: var(--color-accent-primary); color: #fff; border: none; border-radius: var(--radius-md); font-size: var(--text-body); font-weight: var(--weight-medium); font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard); }
+.btn-accent:hover { background: var(--color-accent-hover); }
+
+.output-pre { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-neutral-10); border: var(--border-width-thin) solid var(--border-color-focus); border-radius: var(--radius-md); font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100); white-space: pre-wrap; }
+
+.alert-error { padding: 10px var(--space-4); background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border); border-radius: var(--radius-md); color: var(--color-danger-text); font-size: var(--text-label); }
 </style>

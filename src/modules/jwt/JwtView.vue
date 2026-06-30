@@ -66,78 +66,62 @@ function base64UrlDecode(str: string): string {
 </script>
 
 <template>
-  <div class="tool-panel">
-    <div class="tool-header">
-      <h2 class="tool-title">JWT 解析</h2>
-      <p class="tool-desc">解析 JWT Token 的 Header、Payload 和 Signature</p>
-    </div>
+  <div class="page">
+    <header class="page-header">
+      <h1 class="page-title">JWT 解析</h1>
+      <p class="page-desc">解析 JWT Token — Header、Payload、Signature，支持过期检测</p>
+    </header>
 
-    <div class="form-group full-width">
-      <label>JWT Token</label>
-      <textarea v-model="token" rows="3" placeholder="粘贴 JWT Token (eyJhbGciOi...)" />
-    </div>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header">JWT Token</div>
+        <div class="card-body">
+          <textarea v-model="token" class="dt-textarea" rows="3" placeholder="粘贴 JWT Token (eyJhbGciOi...)" />
+        </div>
+      </div>
 
-    <div class="action-row">
-      <button class="btn-primary" @click="parseJwt">解析</button>
-    </div>
+      <div class="action-bar">
+        <button class="btn-accent" @click="parseJwt">解析</button>
+      </div>
 
-    <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+      <div v-if="errorMsg" class="alert-error">{{ errorMsg }}</div>
 
-    <div v-if="headerOutput" class="section">
-      <h3>Header</h3>
-      <pre class="json-output">{{ headerOutput }}</pre>
-    </div>
+      <div class="card" v-if="headerOutput">
+        <div class="card-header">Header</div>
+        <div class="card-body"><pre class="code-block">{{ headerOutput }}</pre></div>
+      </div>
 
-    <div v-if="payloadOutput" class="section">
-      <h3>Payload</h3>
-      <pre class="json-output">{{ payloadOutput }}</pre>
-    </div>
+      <div class="card" v-if="payloadOutput">
+        <div class="card-header">Payload</div>
+        <div class="card-body"><pre class="code-block">{{ payloadOutput }}</pre></div>
+      </div>
 
-    <div v-if="signatureOutput" class="section">
-      <h3>Signature</h3>
-      <div class="sig-output">{{ signatureOutput }}</div>
+      <div class="card card-warning" v-if="signatureOutput">
+        <div class="card-header">Signature</div>
+        <div class="card-body"><div class="sig-text">{{ signatureOutput }}</div></div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.tool-panel { max-width: var(--content-max-width); margin: 0 auto; }
-.tool-header { margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
-.tool-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-100); margin-bottom: var(--space-1); }
-.tool-desc { color: var(--color-neutral-80); font-size: var(--text-body); }
-.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: var(--space-3); }
-.form-group.full-width { width: 100%; }
-.form-group label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-90); }
-.form-group textarea {
-  padding: 10px; border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-md);
-  font-size: var(--text-body); font-family: var(--font-mono); background: var(--color-neutral-20);
-  color: var(--color-neutral-100); resize: vertical; width: 100%;
-  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
-}
-.form-group textarea:focus { outline: none; border-color: var(--border-color-focus); box-shadow: 0 0 0 1px var(--color-accent-moderate); }
-.form-group textarea::placeholder { color: var(--color-neutral-70); }
-.action-row { margin: var(--space-4) 0; }
-.btn-primary {
-  padding: 9px var(--space-5); background: var(--color-accent-primary); color: var(--color-neutral-120);
-  border: none; border-radius: var(--radius-md); font-size: var(--text-body); font-weight: var(--weight-medium);
-  font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard);
-}
-.btn-primary:hover { background: var(--color-accent-hover); }
-.section { margin-bottom: var(--space-5); }
-.section h3 { font-size: var(--text-body); font-weight: var(--weight-medium); color: var(--color-neutral-90); margin-bottom: 6px; }
-.json-output {
-  padding: var(--space-3) var(--space-4); background: var(--color-neutral-10);
-  border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-md);
-  font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100);
-  white-space: pre-wrap; overflow-x: auto;
-}
-.sig-output {
-  padding: 10px var(--space-3); background: var(--color-warning-bg); border: var(--border-width-thin) solid rgba(212,168,67,.3);
-  border-radius: var(--radius-md); font-size: var(--text-caption); font-family: var(--font-mono);
-  color: var(--color-warning-text); word-break: break-all;
-}
-.error-msg {
-  padding: 10px var(--space-3); background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border);
-  border-radius: var(--radius-md); color: var(--color-danger-text); font-size: var(--text-label); margin-bottom: var(--space-3);
-}
+.page { max-width: var(--content-max-width); margin: 0 auto; }
+.page-header { margin-bottom: var(--space-6); }
+.page-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-100); margin-bottom: var(--space-1); }
+.page-desc { font-size: var(--text-body); color: var(--color-neutral-80); }
+.page-content { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.card { background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+.card-header { padding: 10px var(--space-5); font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
+.card-body { padding: var(--space-4) var(--space-5); }
+.card-warning .card-body { background: var(--color-warning-bg); }
+
+.code-block { font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100); white-space: pre-wrap; overflow-x: auto; margin: 0; }
+.sig-text { font-size: var(--text-caption); font-family: var(--font-mono); color: var(--color-warning-text); word-break: break-all; }
+
+.action-bar { display: flex; gap: 10px; }
+.btn-accent { padding: 9px 24px; background: var(--color-accent-primary); color: #fff; border: none; border-radius: var(--radius-md); font-size: var(--text-body); font-weight: var(--weight-medium); font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard); }
+.btn-accent:hover { background: var(--color-accent-hover); }
+
+.alert-error { padding: 10px var(--space-4); background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border); border-radius: var(--radius-md); color: var(--color-danger-text); font-size: var(--text-label); }
 </style>

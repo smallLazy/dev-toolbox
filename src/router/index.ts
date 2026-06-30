@@ -5,7 +5,8 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      redirect: "/crypto",
+      name: "home",
+      component: () => import("../modules/home/DashboardView.vue"),
     },
     {
       path: "/crypto",
