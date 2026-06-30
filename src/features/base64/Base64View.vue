@@ -12,143 +12,74 @@
  * ALL UI from Design System. Zero custom components.
  */
 
-import { onMounted, onUnmounted, ref, nextTick } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useBase64 } from './composables'
+import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
 
 const { input, output, error, loading, mode, stats, outputStats, toolbar, execute, init, dispose } = useBase64()
 
-/** IME composition guard: true while IME is actively composing */
-const isComposing = ref(false)
+// ── Generic text-input + execute-button interaction ──────────────────
+const {
+  inputEl,
+  syncInputFromDom,
+  handleCompositionStart,
+  handleCompositionEnd,
+  handleInputBlur,
+  handlePointerDown,
+  handleClick,
+  handleShortcut,
+} = useTextActionTrigger({ model: input, loading, execute })
 
-/** Direct DOM ref to input textarea — used to read real-time value during IME composition */
-const inputTextareaRef = ref<HTMLTextAreaElement | null>(null)
-
-onMounted(() => init())
-onUnmounted(() => dispose())
-
-// ── Debug (DEV only) ─────────────────────────────────────────────────
-const DEBUG: boolean = import.meta.env.DEV
-
-function debugLog(message: string, payload?: unknown) {
-  if (!DEBUG) return
-  console.debug('[base64]', message, ...(payload !== undefined ? [payload] : []))
-}
-
-// ── DOM sync ─────────────────────────────────────────────────────────
-/** Read textarea DOM value directly into the Vue ref. Used before every execute. */
-function syncInputFromDom() {
-  const domValue = inputTextareaRef.value?.value
-  if (typeof domValue === 'string') {
-    input.value = domValue
-  }
-}
-
-// ── Execute (shared core) ────────────────────────────────────────────
+// ── Mode switch (Encode / Decode tabs) ───────────────────────────────
 /**
- * Core execute path. Called by pointerdown, click fallback, and keyboard shortcut.
+ * Switches encode/decode mode.
  *
- * KEY CHANGE: no isComposing guard. The caller is responsible for
- * syncing DOM → ref before calling this.  Empty/illegal input is
- * handled by execute() / validate() producing an error — we never
- * silently drop the user's action.
+ * Problem: with only @click, the first click on a mode tab while the
+ * textarea has focus gets consumed by blur/compositionend/Vue-flush
+ * and the mode never switches. Second click works.
+ *
+ * Fix: @pointerdown (primary, fires BEFORE blur) + @click (keyboard
+ * fallback). The modeTriggeredByPointer flag prevents the subsequent
+ * click from re-triggering (defensive; mode switching is idempotent
+ * but the flag keeps the pattern consistent with the Execute button).
+ *
+ * Also syncs DOM → input ref before switching so IME-committed text
+ * is never lost.
  */
-async function handleExecute() {
+
+type Base64Mode = 'encode' | 'decode'
+
+const modeTriggeredByPointer = ref(false)
+
+function switchMode(newMode: Base64Mode) {
   syncInputFromDom()
-  isComposing.value = false
-  await nextTick()
-  await execute()
+  mode.value = newMode
 }
 
-// ── Pointerdown: PRIMARY execute entry (first click MUST work) ───────
-/**
- * Prevent double-execution when pointerdown already triggered execute
- * and the subsequent click fires on the same button.
- */
-const executeTriggeredByPointer = ref(false)
-
-/**
- * Called on @pointerdown of the Execute button.
- *
- * This is the PRIMARY execution path for mouse/touch clicks.
- * It runs BEFORE blur/click, so the textarea still has focus and
- * the IME hasn't been torn down yet. We force-sync the DOM value,
- * reset the IME flag, and execute immediately.
- *
- * The subsequent @click handler checks executeTriggeredByPointer
- * and skips to avoid double execution.
- */
-async function handleExecutePointerDown(event: PointerEvent) {
+function handleModePointerDown(event: PointerEvent, nextMode: Base64Mode) {
   event.preventDefault()
   event.stopPropagation()
-
-  if (loading.value) {
-    debugLog('handleExecutePointerDown: already loading, skip')
-    return
-  }
-
-  executeTriggeredByPointer.value = true
-  debugLog('pointerdown → execute')
-
-  syncInputFromDom()
-  isComposing.value = false
-  await nextTick()
-  await execute()
-
-  // Reset the flag after the current event loop so the next real click works
-  window.setTimeout(() => {
-    executeTriggeredByPointer.value = false
+  modeTriggeredByPointer.value = true
+  switchMode(nextMode)
+  globalThis.setTimeout(() => {
+    modeTriggeredByPointer.value = false
   }, 0)
 }
 
-// ── Click: keyboard / fallback only ──────────────────────────────────
-/**
- * Called on @click of the Execute button.
- *
- * For mouse clicks: executeTriggeredByPointer is already true
- * (set by pointerdown), so this is a no-op → no double execution.
- *
- * For keyboard-triggered clicks (Enter on focused button): pointerdown
- * may not have fired, so this acts as the fallback path.
- */
-async function handleExecuteClick() {
-  if (executeTriggeredByPointer.value) {
-    debugLog('click → skip (already executed in pointerdown)')
+function handleModeClick(nextMode: Base64Mode) {
+  if (modeTriggeredByPointer.value) {
     return
   }
-  debugLog('click → fallback execute')
-  await handleExecute()
+  switchMode(nextMode)
 }
 
-// ── Textarea event handlers ──────────────────────────────────────────
-function handleInputBlur() {
-  syncInputFromDom()
-  isComposing.value = false
-  debugLog('textarea:blur (synced)')
-}
-
-function handleCompositionStart() {
-  isComposing.value = true
-  debugLog('compositionstart')
-}
-
-function handleCompositionEnd() {
-  syncInputFromDom()
-  isComposing.value = false
-  debugLog('compositionend (synced)')
-}
-
-// ── Keyboard shortcut ────────────────────────────────────────────────
-function onKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-    e.preventDefault()
-    debugLog('keyboard:⌘Enter → execute')
-    void handleExecute()
-  }
-}
+// ── Lifecycle ────────────────────────────────────────────────────────
+onMounted(() => init())
+onUnmounted(() => dispose())
 </script>
 
 <template>
-  <div class="page" @keydown="onKeydown">
+  <div class="page" @keydown="handleShortcut">
     <header class="page-header">
       <h1 class="page-title">Base64</h1>
       <p class="page-desc">Encode and decode text to/from Base64 &mdash; <kbd>⌘Enter</kbd> to execute</p>
@@ -163,12 +94,18 @@ function onKeydown(e: KeyboardEvent) {
             <label class="field-label">Mode</label>
             <div class="segmented-control">
               <button
+                type="button"
                 :class="{ active: mode === 'encode' }"
-                @click="mode = 'encode'"
+                :aria-pressed="mode === 'encode'"
+                @pointerdown="handleModePointerDown($event, 'encode')"
+                @click="handleModeClick('encode')"
               >Encode</button>
               <button
+                type="button"
                 :class="{ active: mode === 'decode' }"
-                @click="mode = 'decode'"
+                :aria-pressed="mode === 'decode'"
+                @pointerdown="handleModePointerDown($event, 'decode')"
+                @click="handleModeClick('decode')"
               >Decode</button>
             </div>
           </div>
@@ -180,7 +117,7 @@ function onKeydown(e: KeyboardEvent) {
         <div class="card-header">Input</div>
         <div class="card-body">
           <textarea
-            ref="inputTextareaRef"
+            ref="inputEl"
             v-model="input"
             class="dt-textarea"
             rows="6"
@@ -202,8 +139,8 @@ function onKeydown(e: KeyboardEvent) {
           class="btn-accent"
           :disabled="loading"
           :aria-label="mode === 'encode' ? 'Encode input to Base64' : 'Decode Base64 input'"
-          @pointerdown="handleExecutePointerDown"
-          @click="handleExecuteClick"
+          @pointerdown="handlePointerDown"
+          @click="handleClick"
         >
           <span v-if="loading" class="spinner"></span>
           {{ loading ? 'Processing...' : (mode === 'encode' ? 'Encode' : 'Decode') }}
