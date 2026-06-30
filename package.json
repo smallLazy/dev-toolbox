@@ -8,7 +8,12 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "create-plugin": "npx tsx scripts/create-plugin.ts"
+    "create-plugin": "npx tsx scripts/create-plugin.ts",
+    "validate": "npx vue-tsc --noEmit && npm test && npx tsx scripts/ci/validate-architecture.ts && npx tsx scripts/ci/validate-design.ts && npx tsx scripts/ci/validate-plugins.ts && npx tsx scripts/ci/validate-ai.ts",
+    "validate:arch": "npx tsx scripts/ci/validate-architecture.ts",
+    "validate:design": "npx tsx scripts/ci/validate-design.ts",
+    "validate:plugins": "npx tsx scripts/ci/validate-plugins.ts",
+    "validate:ai": "npx tsx scripts/ci/validate-ai.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.2.0",
