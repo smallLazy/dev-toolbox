@@ -16,13 +16,13 @@ import Sidebar from "../components/Sidebar.vue";
   display: flex;
   height: 100vh;
   width: 100vw;
-  background: #1E1E1E;
+  background: var(--color-neutral-30);
 }
 
 .main-content {
   flex: 1;
   overflow-y: auto;
-  background: #1E1E1E;
-  padding: 32px 40px;
+  background: var(--color-neutral-30);
+  padding: var(--content-padding-y) var(--content-padding-x);
 }
 </style>

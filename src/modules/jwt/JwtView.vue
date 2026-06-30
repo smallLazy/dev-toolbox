@@ -101,40 +101,43 @@ function base64UrlDecode(str: string): string {
 </template>
 
 <style scoped>
-.tool-panel { max-width: 820px; margin: 0 auto; }
-.tool-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2D2D2D; }
-.tool-title { font-size: 20px; font-weight: 600; color: #E8E8E8; margin-bottom: 4px; }
-.tool-desc { color: #6E6E6E; font-size: 13px; }
-.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.tool-panel { max-width: var(--content-max-width); margin: 0 auto; }
+.tool-header { margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
+.tool-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-100); margin-bottom: var(--space-1); }
+.tool-desc { color: var(--color-neutral-80); font-size: var(--text-body); }
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: var(--space-3); }
 .form-group.full-width { width: 100%; }
-.form-group label { font-size: 12px; font-weight: 500; color: #9D9D9D; }
+.form-group label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-90); }
 .form-group textarea {
-  padding: 10px; border: 1px solid #3D3D3D; border-radius: 4px;
-  font-size: 13px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
-  background: #1A1A1A; color: #E8E8E8; resize: vertical; width: 100%;
+  padding: 10px; border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-md);
+  font-size: var(--text-body); font-family: var(--font-mono); background: var(--color-neutral-20);
+  color: var(--color-neutral-100); resize: vertical; width: 100%;
+  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
 }
-.form-group textarea:focus { outline: none; border-color: #0078D4; box-shadow: 0 0 0 1px rgba(0,120,212,.3); }
-.form-group textarea::placeholder { color: #555; }
-.action-row { margin: 16px 0; }
+.form-group textarea:focus { outline: none; border-color: var(--border-color-focus); box-shadow: 0 0 0 1px var(--color-accent-moderate); }
+.form-group textarea::placeholder { color: var(--color-neutral-70); }
+.action-row { margin: var(--space-4) 0; }
 .btn-primary {
-  padding: 9px 20px; background: #0078D4; color: #FFF; border: none; border-radius: 4px;
-  font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: background 0.15s;
+  padding: 9px var(--space-5); background: var(--color-accent-primary); color: var(--color-neutral-120);
+  border: none; border-radius: var(--radius-md); font-size: var(--text-body); font-weight: var(--weight-medium);
+  font-family: var(--font-sans); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard);
 }
-.btn-primary:hover { background: #1A8FE3; }
-.section { margin-bottom: 20px; }
-.section h3 { font-size: 13px; font-weight: 500; color: #9D9D9D; margin-bottom: 6px; }
+.btn-primary:hover { background: var(--color-accent-hover); }
+.section { margin-bottom: var(--space-5); }
+.section h3 { font-size: var(--text-body); font-weight: var(--weight-medium); color: var(--color-neutral-90); margin-bottom: 6px; }
 .json-output {
-  padding: 12px 16px; background: #111; border: 1px solid #2D2D2D; border-radius: 4px;
-  font-size: 13px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
-  color: #E8E8E8; white-space: pre-wrap; overflow-x: auto;
+  padding: var(--space-3) var(--space-4); background: var(--color-neutral-10);
+  border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-md);
+  font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100);
+  white-space: pre-wrap; overflow-x: auto;
 }
 .sig-output {
-  padding: 10px 14px; background: #2D2210; border: 1px solid #5D4A20; border-radius: 4px;
-  font-size: 11px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
-  color: #D4A843; word-break: break-all;
+  padding: 10px var(--space-3); background: var(--color-warning-bg); border: var(--border-width-thin) solid rgba(212,168,67,.3);
+  border-radius: var(--radius-md); font-size: var(--text-caption); font-family: var(--font-mono);
+  color: var(--color-warning-text); word-break: break-all;
 }
 .error-msg {
-  padding: 10px 14px; background: #3D1F1F; border: 1px solid #CF6679;
-  border-radius: 4px; color: #CF6679; font-size: 12px; margin-bottom: 14px;
+  padding: 10px var(--space-3); background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border);
+  border-radius: var(--radius-md); color: var(--color-danger-text); font-size: var(--text-label); margin-bottom: var(--space-3);
 }
 </style>
