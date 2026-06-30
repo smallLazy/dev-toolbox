@@ -153,32 +153,32 @@
 
   /* ── Sidebar ────────────────────────────────────────────────────────────
      Semantic tokens for the Sidebar navigation component.
-     Calibrated for WCAG AA contrast (≥4.5:1) against --sidebar-bg (#161616).
+     Calibrated for WCAG AA contrast against --sidebar-bg.
      Do NOT use raw neutral-scale tokens in Sidebar styles — use these. */
   --sidebar-bg: var(--color-neutral-15);
 
   /* Text */
-  --sidebar-text: #D6D6D6;
-  --sidebar-text-secondary: #A8A8A8;
-  --sidebar-category: #B8B8B8;
-  --sidebar-muted: #8A8A8A;
+  --sidebar-text: rgb(214, 214, 214);
+  --sidebar-text-secondary: rgb(168, 168, 168);
+  --sidebar-category: rgb(184, 184, 184);
+  --sidebar-muted: rgb(138, 138, 138);
 
   /* Interaction */
   --sidebar-hover-bg: rgba(255, 255, 255, 0.075);
   --sidebar-active-bg: rgba(0, 120, 212, 0.22);
 
   /* Icons */
-  --sidebar-icon: #A8A8A8;
-  --sidebar-icon-hover: #E6E6E6;
-  --sidebar-icon-active: #3BA7F5;
+  --sidebar-icon: rgb(168, 168, 168);
+  --sidebar-icon-hover: rgb(230, 230, 230);
+  --sidebar-icon-active: rgb(59, 167, 245);
 
   /* Text states */
-  --sidebar-text-hover: #FFFFFF;
-  --sidebar-text-active: #FFFFFF;
+  --sidebar-text-hover: var(--color-neutral-120);
+  --sidebar-text-active: var(--color-neutral-120);
 
   /* Badge */
   --sidebar-badge-bg: rgba(255, 255, 255, 0.10);
-  --sidebar-badge-text: #BDBDBD;
+  --sidebar-badge-text: rgb(189, 189, 189);
 
   /* Divider */
   --sidebar-divider: rgba(255, 255, 255, 0.10);
