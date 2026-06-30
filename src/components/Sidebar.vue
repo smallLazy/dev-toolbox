@@ -215,7 +215,7 @@ function isActive(path: string): boolean {
   font-size: var(--text-body); font-family: var(--font-sans); outline: none; height: 30px;
   transition: border-color var(--duration-fast), background var(--duration-fast), box-shadow var(--duration-fast);
 }
-.search-input:hover { background: var(--color-neutral-25); border-color: rgba(255,255,255,0.10); }
+.search-input:hover { background: var(--color-neutral-25); border-color: var(--border-color-hover); }
 .search-input:focus { background: var(--color-neutral-15); border-color: var(--border-color-focus); box-shadow: 0 0 0 2px var(--color-accent-dim); }
 .search-input::placeholder { color: var(--sidebar-text-secondary); }
 .search-kbd { position: absolute; right: 8px; font-size: 10px; padding: 1px 5px; background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--sidebar-divider); border-radius: var(--radius-sm); color: var(--sidebar-text-secondary); font-family: var(--font-sans); }

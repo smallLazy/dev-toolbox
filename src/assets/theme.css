@@ -17,10 +17,12 @@
   --color-neutral-45:  rgb(42, 42, 42);
   --color-neutral-50:  rgb(45, 45, 45);
   --color-neutral-55:  rgb(51, 51, 51);
-  --color-neutral-60:  rgb(61, 61, 61);
-  --color-neutral-70:  rgb(85, 85, 85);
-  --color-neutral-80:  rgb(110, 110, 110);
-  --color-neutral-90:  rgb(157, 157, 157);
+  /* Text-optimized: brightened for ≥4.5:1 contrast on card backgrounds (neutral-35).
+     Lower tokens (0–55) remain background-only; 60+ are foreground/text colors. */
+  --color-neutral-60:  rgb(128, 128, 128);
+  --color-neutral-70:  rgb(150, 150, 150);
+  --color-neutral-80:  rgb(172, 172, 172);
+  --color-neutral-90:  rgb(194, 194, 194);
   --color-neutral-100: rgb(224, 224, 224);
   --color-neutral-110: rgb(243, 243, 243);
   --color-neutral-120: rgb(255, 255, 255);
@@ -67,6 +69,17 @@
   --leading-normal:  1.5;
   --leading-relaxed: 1.65;
 
+  /* ── Semantic Text Colors ────────────────────────────────────────────────
+     Use these for UI roles instead of referencing the neutral scale directly.
+     All values are calibrated for ≥4.5:1 contrast on dark backgrounds.
+     Prefixed --text-color-* to avoid collision with font-size --text-* tokens. */
+  --text-color-primary:     var(--color-neutral-110);
+  --text-color-body:        var(--color-neutral-100);
+  --text-color-label:       var(--color-neutral-80);
+  --text-color-description: var(--color-neutral-70);
+  --text-color-placeholder: var(--color-neutral-70);
+  --text-color-card-header: var(--color-neutral-80);
+
   /* ── Spacing ──────────────────────────────────────────────────────────── */
   --space-0:  0;
   --space-1:  4px;
@@ -102,11 +115,11 @@
   --border-width-thin:   1px;
   --border-width-medium: 2px;
   --border-width-thick:  3px;
-  --border-color-default: rgba(255, 255, 255, 0.08);
-  --border-color-hover:   rgba(255, 255, 255, 0.12);
+  --border-color-default: rgba(255, 255, 255, 0.10);
+  --border-color-hover:   rgba(255, 255, 255, 0.16);
   --border-color-focus:   var(--color-accent-primary);
   --border-color-error:   var(--color-danger-border);
-  --border-color-subtle:  rgba(255, 255, 255, 0.05);
+  --border-color-subtle:  rgba(255, 255, 255, 0.07);
 
   /* ── Shadow ───────────────────────────────────────────────────────────── */
   --shadow-none:     none;
@@ -134,35 +147,35 @@
 
   /* ── Sidebar ────────────────────────────────────────────────────────────
      Semantic tokens for the Sidebar navigation component.
-     Calibrated for WCAG AA contrast (≥4.5:1) against --sidebar-bg (161616).
+     Calibrated for WCAG AA contrast (≥4.5:1) against --sidebar-bg (#161616).
      Do NOT use raw neutral-scale tokens in Sidebar styles — use these. */
-  --sidebar-bg:             var(--color-neutral-15);
+  --sidebar-bg: var(--color-neutral-15);
 
-  /* Text contrast ratios are measured against the sidebar background. */
-  --sidebar-text:           rgb(204, 204, 204);
-  --sidebar-text-secondary: rgb(128, 128, 128);
-  --sidebar-category:       rgb(153, 153, 153);
-  --sidebar-muted:          var(--color-neutral-70);  /* Disabled — exempt from AA */
+  /* Text */
+  --sidebar-text: #D6D6D6;
+  --sidebar-text-secondary: #A8A8A8;
+  --sidebar-category: #B8B8B8;
+  --sidebar-muted: #8A8A8A;
 
   /* Interaction */
-  --sidebar-hover-bg:       rgba(255,255,255,0.06);
-  --sidebar-active-bg:      var(--color-accent-subtle);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.075);
+  --sidebar-active-bg: rgba(0, 120, 212, 0.22);
 
   /* Icons */
-  --sidebar-icon:         var(--sidebar-category);
-  --sidebar-icon-hover:   var(--sidebar-text);
-  --sidebar-icon-active:  var(--color-accent-primary);
+  --sidebar-icon: #A8A8A8;
+  --sidebar-icon-hover: #E6E6E6;
+  --sidebar-icon-active: #3BA7F5;
 
   /* Text states */
-  --sidebar-text-hover:  var(--color-neutral-120);
-  --sidebar-text-active: var(--color-neutral-120);
+  --sidebar-text-hover: #FFFFFF;
+  --sidebar-text-active: #FFFFFF;
 
   /* Badge */
-  --sidebar-badge-bg:   var(--color-neutral-40);
-  --sidebar-badge-text: var(--color-neutral-90);
+  --sidebar-badge-bg: rgba(255, 255, 255, 0.10);
+  --sidebar-badge-text: #BDBDBD;
 
   /* Divider */
-  --sidebar-divider: rgba(255,255,255,0.06);
+  --sidebar-divider: rgba(255, 255, 255, 0.10);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -234,7 +247,7 @@ body {
   box-shadow: 0 0 0 2px var(--color-accent-dim);
 }
 .dt-input::placeholder,
-.dt-textarea::placeholder { color: var(--color-neutral-70); }
+.dt-textarea::placeholder { color: var(--text-color-placeholder); }
 .dt-input:disabled,
 .dt-select:disabled,
 .dt-textarea:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -292,7 +305,7 @@ body {
 .btn-sm {
   padding: var(--space-compact) var(--space-control-x);
   background: var(--color-neutral-45);
-  color: var(--color-neutral-90);
+  color: var(--text-color-label);
   border: var(--border-width-thin) solid var(--border-color-default);
   border-radius: var(--radius-md);
   font-size: var(--text-label);
@@ -314,7 +327,7 @@ body {
   padding: var(--space-tight) var(--space-control-lg-x);
   border: none;
   background: transparent;
-  color: var(--color-neutral-80);
+  color: var(--text-color-label);
   font-size: var(--text-body);
   font-family: var(--font-sans);
   font-weight: var(--weight-regular);

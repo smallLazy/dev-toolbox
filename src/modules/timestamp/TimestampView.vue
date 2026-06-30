@@ -93,10 +93,10 @@ function convertDateToTs() {
   padding: var(--space-button-secondary-x) var(--space-6); border-radius: var(--radius-xl);
 }
 .time-big { font-size: 22px; font-weight: var(--weight-semibold); color: var(--color-neutral-120); margin-bottom: var(--space-1); }
-.time-meta { font-size: var(--text-caption); color: rgba(255,255,255,.7); font-family: var(--font-mono); }
+.time-meta { font-size: var(--text-caption); color: var(--text-color-label); font-family: var(--font-mono); }
 
-.card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
+.card { background: var(--color-neutral-35); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
 .card-body { padding: var(--space-4) var(--space-5); }
 
 .field { display: flex; flex-direction: column; gap: var(--space-compact); }

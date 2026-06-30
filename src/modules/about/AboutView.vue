@@ -289,7 +289,7 @@ async function copyVersion() {
   color: var(--color-neutral-60);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04);
+  border-bottom: var(--border-width-thin) solid var(--border-color-subtle);
 }
 
 .card-body {
@@ -355,7 +355,7 @@ async function copyVersion() {
 
 .divider {
   border: none;
-  border-top: var(--border-width-thin) solid rgba(255,255,255,0.04);
+  border-top: var(--border-width-thin) solid var(--border-color-subtle);
   margin: var(--space-3) 0;
 }
 
@@ -385,7 +385,7 @@ async function copyVersion() {
   padding: var(--space-2) var(--space-4);
   background: var(--color-neutral-40);
   color: var(--color-neutral-100);
-  border: var(--border-width-thin) solid rgba(255,255,255,0.06);
+  border: var(--border-width-thin) solid var(--border-color-default);
   border-radius: var(--radius-md);
   font-size: var(--text-body);
   font-family: var(--font-sans);
