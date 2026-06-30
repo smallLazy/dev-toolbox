@@ -36,11 +36,9 @@ function parseJwt() {
     const payload = JSON.parse(base64UrlDecode(parts[1]));
     payloadOutput.value = JSON.stringify(payload, null, 2);
 
-    // Check expiration
     if (payload.exp) {
       const expDate = new Date(payload.exp * 1000);
-      const now = new Date();
-      if (expDate < now) {
+      if (expDate < new Date()) {
         payloadOutput.value += `\n\n⚠️ Token 已过期 (${expDate.toLocaleString("zh-CN")})`;
       } else {
         payloadOutput.value += `\n\n✅ Token 有效至 ${expDate.toLocaleString("zh-CN")}`;
@@ -48,8 +46,7 @@ function parseJwt() {
     }
 
     if (payload.iat) {
-      const iatDate = new Date(payload.iat * 1000);
-      payloadOutput.value += `\n📅 签发时间: ${iatDate.toLocaleString("zh-CN")}`;
+      payloadOutput.value += `\n📅 签发时间: ${new Date(payload.iat * 1000).toLocaleString("zh-CN")}`;
     }
   } catch {
     payloadOutput.value = "[无法解析 Payload]";
@@ -59,86 +56,85 @@ function parseJwt() {
 }
 
 function base64UrlDecode(str: string): string {
-  // Replace URL-safe chars and pad
   str = str.replace(/-/g, "+").replace(/_/g, "/");
   while (str.length % 4) str += "=";
-
-  // Use TextDecoder for proper UTF-8 support (replaces deprecated escape/decodeURIComponent)
   const binary = atob(str);
   const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return new TextDecoder().decode(bytes);
 }
 </script>
 
 <template>
   <div class="tool-panel">
-    <h2 class="tool-title">🎫 JWT 解析</h2>
-    <p class="tool-desc">解析 JWT Token 的 Header、Payload 和 Signature</p>
+    <div class="tool-header">
+      <h2 class="tool-title">JWT 解析</h2>
+      <p class="tool-desc">解析 JWT Token 的 Header、Payload 和 Signature</p>
+    </div>
 
     <div class="form-group full-width">
       <label>JWT Token</label>
-      <textarea v-model="token" rows="4" placeholder="粘贴 JWT Token (eyJhbGciOi...)" />
+      <textarea v-model="token" rows="3" placeholder="粘贴 JWT Token (eyJhbGciOi...)" />
     </div>
 
     <div class="action-row">
-      <button class="btn-primary" @click="parseJwt">🔍 解析</button>
+      <button class="btn-primary" @click="parseJwt">解析</button>
     </div>
 
     <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
     <div v-if="headerOutput" class="section">
-      <h3>📋 Header</h3>
+      <h3>Header</h3>
       <pre class="json-output">{{ headerOutput }}</pre>
     </div>
 
     <div v-if="payloadOutput" class="section">
-      <h3>📦 Payload</h3>
+      <h3>Payload</h3>
       <pre class="json-output">{{ payloadOutput }}</pre>
     </div>
 
     <div v-if="signatureOutput" class="section">
-      <h3>🔏 Signature</h3>
+      <h3>Signature</h3>
       <div class="sig-output">{{ signatureOutput }}</div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.tool-panel { max-width: 800px; margin: 0 auto; }
-.tool-title { font-size: 22px; margin-bottom: 4px; color: #1e1e2e; }
-.tool-desc { color: #6c7086; margin-bottom: 20px; font-size: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.tool-panel { max-width: 820px; margin: 0 auto; }
+.tool-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2D2D2D; }
+.tool-title { font-size: 20px; font-weight: 600; color: #E8E8E8; margin-bottom: 4px; }
+.tool-desc { color: #6E6E6E; font-size: 13px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
 .form-group.full-width { width: 100%; }
-.form-group label { font-size: 13px; font-weight: 600; color: #45475a; }
+.form-group label { font-size: 12px; font-weight: 500; color: #9D9D9D; }
 .form-group textarea {
-  padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;
-  font-size: 13px; font-family: "Menlo", "Monaco", "Courier New", monospace;
-  background: #fff; resize: vertical; width: 100%;
+  padding: 10px; border: 1px solid #3D3D3D; border-radius: 4px;
+  font-size: 13px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
+  background: #1A1A1A; color: #E8E8E8; resize: vertical; width: 100%;
 }
-.form-group textarea:focus { outline: none; border-color: #cba6f7; box-shadow: 0 0 0 2px rgba(203, 166, 247, 0.2); }
+.form-group textarea:focus { outline: none; border-color: #0078D4; box-shadow: 0 0 0 1px rgba(0,120,212,.3); }
+.form-group textarea::placeholder { color: #555; }
 .action-row { margin: 16px 0; }
 .btn-primary {
-  padding: 10px 24px; background: #cba6f7; color: #1e1e2e;
-  border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 9px 20px; background: #0078D4; color: #FFF; border: none; border-radius: 4px;
+  font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: background 0.15s;
 }
-.btn-primary:hover { opacity: 0.85; }
+.btn-primary:hover { background: #1A8FE3; }
 .section { margin-bottom: 20px; }
-.section h3 { font-size: 15px; color: #1e1e2e; margin-bottom: 8px; }
+.section h3 { font-size: 13px; font-weight: 500; color: #9D9D9D; margin-bottom: 6px; }
 .json-output {
-  padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0;
-  border-radius: 6px; font-size: 13px; font-family: "Menlo", "Monaco", "Courier New", monospace;
-  color: #1e1e2e; white-space: pre-wrap; overflow-x: auto;
+  padding: 12px 16px; background: #111; border: 1px solid #2D2D2D; border-radius: 4px;
+  font-size: 13px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
+  color: #E8E8E8; white-space: pre-wrap; overflow-x: auto;
 }
 .sig-output {
-  padding: 12px 16px; background: #fefce8; border: 1px solid #fef08a;
-  border-radius: 6px; font-size: 11px; font-family: "Menlo", "Monaco", "Courier New", monospace;
-  color: #854d0e; word-break: break-all;
+  padding: 10px 14px; background: #2D2210; border: 1px solid #5D4A20; border-radius: 4px;
+  font-size: 11px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
+  color: #D4A843; word-break: break-all;
 }
 .error-msg {
-  padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca;
-  border-radius: 6px; color: #dc2626; font-size: 13px; margin-bottom: 12px;
+  padding: 10px 14px; background: #3D1F1F; border: 1px solid #CF6679;
+  border-radius: 4px; color: #CF6679; font-size: 12px; margin-bottom: 14px;
 }
 </style>

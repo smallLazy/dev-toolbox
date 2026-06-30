@@ -37,8 +37,10 @@ function copyOutput() {
 
 <template>
   <div class="tool-panel">
-    <h2 class="tool-title">📋 JSON 格式化 / 压缩</h2>
-    <p class="tool-desc">格式化或压缩 JSON 文本</p>
+    <div class="tool-header">
+      <h2 class="tool-title">JSON 格式化</h2>
+      <p class="tool-desc">格式化或压缩 JSON 文本</p>
+    </div>
 
     <div class="form-row">
       <div class="form-group">
@@ -59,13 +61,11 @@ function copyOutput() {
 
     <div class="form-group full-width">
       <label>输入</label>
-      <textarea v-model="input" rows="10" placeholder="粘贴 JSON 文本..." />
+      <textarea v-model="input" rows="8" placeholder="粘贴 JSON 文本..." />
     </div>
 
     <div class="action-row">
-      <button class="btn-primary" @click="execute">
-        {{ mode === 'format' ? '✨ 格式化' : '📦 压缩' }}
-      </button>
+      <button class="btn-primary" @click="execute">{{ mode === 'format' ? '✨ 格式化' : '📦 压缩' }}</button>
     </div>
 
     <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
@@ -73,81 +73,61 @@ function copyOutput() {
     <div class="form-group full-width" v-if="output">
       <div class="output-header">
         <label>输出</label>
-        <button class="btn-sm" @click="copyOutput">📋 复制</button>
+        <button class="btn-sm" @click="copyOutput">复制</button>
       </div>
-      <textarea v-model="output" rows="10" readonly />
+      <textarea v-model="output" rows="8" readonly class="output-area" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.tool-panel { max-width: 800px; margin: 0 auto; }
-.tool-title { font-size: 22px; margin-bottom: 4px; color: #1e1e2e; }
-.tool-desc { color: #6c7086; margin-bottom: 20px; font-size: 14px; }
-
-.form-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-group.full-width { width: 100%; margin-bottom: 16px; }
-.form-group label { font-size: 13px; font-weight: 600; color: #45475a; }
-
+.tool-panel { max-width: 820px; margin: 0 auto; }
+.tool-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2D2D2D; }
+.tool-title { font-size: 20px; font-weight: 600; color: #E8E8E8; margin-bottom: 4px; }
+.tool-desc { color: #6E6E6E; font-size: 13px; }
+.form-row { display: flex; gap: 14px; margin-bottom: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full-width { width: 100%; margin-bottom: 14px; }
+.form-group label { font-size: 12px; font-weight: 500; color: #9D9D9D; }
 .form-group select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  background: #fff;
+  padding: 8px 10px; border: 1px solid #3D3D3D; border-radius: 4px;
+  font-size: 13px; background: #1A1A1A; color: #E8E8E8; cursor: pointer;
+  appearance: none; padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239D9D9D' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
 }
-
+.form-group select:focus { outline: none; border-color: #0078D4; box-shadow: 0 0 0 1px rgba(0,120,212,.3); }
+.form-group select option { background: #2D2D2D; color: #E8E8E8; }
 .form-group textarea {
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: "Menlo", "Monaco", "Courier New", monospace;
-  background: #fff;
-  resize: vertical;
-  width: 100%;
+  padding: 10px; border: 1px solid #3D3D3D; border-radius: 4px;
+  font-size: 13px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
+  background: #1A1A1A; color: #E8E8E8; resize: vertical; width: 100%;
 }
-
-.form-group textarea:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #cba6f7;
-  box-shadow: 0 0 0 2px rgba(203, 166, 247, 0.2);
-}
-
+.form-group textarea:focus { outline: none; border-color: #0078D4; box-shadow: 0 0 0 1px rgba(0,120,212,.3); }
+.form-group textarea::placeholder { color: #555; }
 .mode-switch { display: flex; }
 .mode-switch button {
-  flex: 1; padding: 8px 16px;
-  border: 1px solid #d1d5db; background: #fff;
-  cursor: pointer; font-size: 14px; transition: all 0.15s;
+  flex: 1; padding: 7px 14px; border: 1px solid #3D3D3D; background: #1A1A1A; color: #9D9D9D;
+  cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.15s;
 }
-.mode-switch button:first-child { border-radius: 6px 0 0 6px; }
-.mode-switch button:last-child { border-radius: 0 6px 6px 0; }
-.mode-switch button.active { background: #cba6f7; color: #1e1e2e; border-color: #cba6f7; font-weight: 600; }
-
+.mode-switch button:first-child { border-radius: 4px 0 0 4px; }
+.mode-switch button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+.mode-switch button.active { background: #0078D4; color: #FFF; border-color: #0078D4; font-weight: 500; }
 .action-row { margin: 16px 0; }
 .btn-primary {
-  padding: 10px 24px; background: #cba6f7; color: #1e1e2e;
-  border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 9px 20px; background: #0078D4; color: #FFF; border: none; border-radius: 4px;
+  font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: background 0.15s;
 }
-.btn-primary:hover { opacity: 0.85; }
-
+.btn-primary:hover { background: #1A8FE3; }
 .btn-sm {
-  padding: 4px 12px; background: #e6e6fa; color: #45475a;
-  border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; cursor: pointer;
+  padding: 4px 12px; background: #2D2D2D; color: #E8E8E8; border: 1px solid #3D3D3D;
+  border-radius: 4px; font-size: 12px; font-family: inherit; cursor: pointer;
 }
-.btn-sm:hover { background: #dcdcf0; }
-
-.output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-
+.btn-sm:hover { background: #383838; }
+.output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
 .error-msg {
-  padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca;
-  border-radius: 6px; color: #dc2626; font-size: 13px; margin-bottom: 12px;
+  padding: 10px 14px; background: #3D1F1F; border: 1px solid #CF6679;
+  border-radius: 4px; color: #CF6679; font-size: 12px; margin-bottom: 14px;
 }
+.output-area { background: #111 !important; border-color: #0078D4 !important; }
 </style>

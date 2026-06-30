@@ -17,13 +17,11 @@ function execute() {
 
   try {
     if (mode.value === "encode") {
-      // Use TextEncoder for proper Unicode support (replaces deprecated unescape/encodeURIComponent)
       const bytes = new TextEncoder().encode(input.value);
       let binary = "";
       bytes.forEach((b) => (binary += String.fromCharCode(b)));
       output.value = btoa(binary);
     } else {
-      // Decode Base64 with proper UTF-8 support (replaces deprecated escape/decodeURIComponent)
       const binary = atob(input.value.trim());
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) {
@@ -39,8 +37,10 @@ function execute() {
 
 <template>
   <div class="tool-panel">
-    <h2 class="tool-title">🔤 Base64 编码 / 解码</h2>
-    <p class="tool-desc">Base64 编解码，支持 Unicode 字符</p>
+    <div class="tool-header">
+      <h2 class="tool-title">Base64 编解码</h2>
+      <p class="tool-desc">Base64 编解码，支持 Unicode 字符</p>
+    </div>
 
     <div class="form-group">
       <label>模式</label>
@@ -52,53 +52,54 @@ function execute() {
 
     <div class="form-group full-width">
       <label>输入</label>
-      <textarea v-model="input" rows="8" :placeholder="mode === 'encode' ? '输入要编码的文本...' : '输入 Base64 字符串...'" />
+      <textarea v-model="input" rows="6" :placeholder="mode === 'encode' ? '输入要编码的文本...' : '输入 Base64 字符串...'" />
     </div>
 
     <div class="action-row">
-      <button class="btn-primary" @click="execute">
-        {{ mode === 'encode' ? '→ 编码' : '→ 解码' }}
-      </button>
+      <button class="btn-primary" @click="execute">{{ mode === 'encode' ? '→ 编码' : '→ 解码' }}</button>
     </div>
 
     <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
     <div class="form-group full-width" v-if="output">
       <label>输出</label>
-      <textarea v-model="output" rows="8" readonly />
+      <textarea v-model="output" rows="6" readonly class="output-area" />
     </div>
   </div>
 </template>
 
 <style scoped>
-.tool-panel { max-width: 800px; margin: 0 auto; }
-.tool-title { font-size: 22px; margin-bottom: 4px; color: #1e1e2e; }
-.tool-desc { color: #6c7086; margin-bottom: 20px; font-size: 14px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.tool-panel { max-width: 820px; margin: 0 auto; }
+.tool-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2D2D2D; }
+.tool-title { font-size: 20px; font-weight: 600; color: #E8E8E8; margin-bottom: 4px; }
+.tool-desc { color: #6E6E6E; font-size: 13px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
 .form-group.full-width { width: 100%; }
-.form-group label { font-size: 13px; font-weight: 600; color: #45475a; }
+.form-group label { font-size: 12px; font-weight: 500; color: #9D9D9D; }
 .form-group textarea {
-  padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;
-  font-size: 13px; font-family: "Menlo", "Monaco", "Courier New", monospace;
-  background: #fff; resize: vertical; width: 100%;
+  padding: 10px; border: 1px solid #3D3D3D; border-radius: 4px;
+  font-size: 13px; font-family: "Cascadia Code","Fira Code","Menlo","Monaco","Courier New",monospace;
+  background: #1A1A1A; color: #E8E8E8; resize: vertical; width: 100%;
 }
-.form-group textarea:focus { outline: none; border-color: #cba6f7; box-shadow: 0 0 0 2px rgba(203, 166, 247, 0.2); }
+.form-group textarea:focus { outline: none; border-color: #0078D4; box-shadow: 0 0 0 1px rgba(0,120,212,.3); }
+.form-group textarea::placeholder { color: #555; }
 .mode-switch { display: flex; }
 .mode-switch button {
-  flex: 1; padding: 8px 16px; border: 1px solid #d1d5db; background: #fff;
-  cursor: pointer; font-size: 14px; transition: all 0.15s;
+  flex: 1; padding: 7px 14px; border: 1px solid #3D3D3D; background: #1A1A1A; color: #9D9D9D;
+  cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.15s;
 }
-.mode-switch button:first-child { border-radius: 6px 0 0 6px; }
-.mode-switch button:last-child { border-radius: 0 6px 6px 0; }
-.mode-switch button.active { background: #cba6f7; color: #1e1e2e; border-color: #cba6f7; font-weight: 600; }
+.mode-switch button:first-child { border-radius: 4px 0 0 4px; }
+.mode-switch button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+.mode-switch button.active { background: #0078D4; color: #FFF; border-color: #0078D4; font-weight: 500; }
 .action-row { margin: 16px 0; }
 .btn-primary {
-  padding: 10px 24px; background: #cba6f7; color: #1e1e2e;
-  border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 9px 20px; background: #0078D4; color: #FFF; border: none; border-radius: 4px;
+  font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; transition: background 0.15s;
 }
-.btn-primary:hover { opacity: 0.85; }
+.btn-primary:hover { background: #1A8FE3; }
 .error-msg {
-  padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca;
-  border-radius: 6px; color: #dc2626; font-size: 13px; margin-bottom: 12px;
+  padding: 10px 14px; background: #3D1F1F; border: 1px solid #CF6679;
+  border-radius: 4px; color: #CF6679; font-size: 12px; margin-bottom: 14px;
 }
+.output-area { background: #111 !important; border-color: #0078D4 !important; }
 </style>

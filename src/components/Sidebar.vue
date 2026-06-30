@@ -33,8 +33,13 @@ function isActive(path: string): boolean {
 <template>
   <aside class="sidebar">
     <div class="sidebar-header">
-      <h1>Dev Toolbox</h1>
+      <span class="logo-icon">🛠️</span>
+      <div class="logo-text">
+        <h1>Dev Toolbox</h1>
+        <span class="logo-sub">开发者工具箱</span>
+      </div>
     </div>
+
     <nav class="sidebar-nav">
       <button
         v-for="item in menuItems"
@@ -46,33 +51,50 @@ function isActive(path: string): boolean {
         <span class="nav-label">{{ item.label }}</span>
       </button>
     </nav>
+
     <div class="sidebar-footer">
-      <span class="version">v0.1.0</span>
+      <span class="version">v0.1.0-beta.1</span>
     </div>
   </aside>
 </template>
 
 <style scoped>
 .sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  width: var(--sidebar-width, 240px);
+  min-width: var(--sidebar-width, 240px);
+  background: #171717;
+  color: #E8E8E8;
   display: flex;
   flex-direction: column;
   height: 100vh;
   user-select: none;
+  border-right: 1px solid #2D2D2D;
 }
 
 .sidebar-header {
-  padding: 20px 16px;
-  border-bottom: 1px solid #313244;
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #2D2D2D;
 }
 
-.sidebar-header h1 {
-  font-size: 18px;
+.logo-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.logo-text h1 {
+  font-size: 16px;
   font-weight: 600;
-  color: #cba6f7;
+  color: #E8E8E8;
+  line-height: 1.3;
+}
+
+.logo-sub {
+  font-size: 11px;
+  color: #6E6E6E;
+  font-weight: 400;
 }
 
 .sidebar-nav {
@@ -86,41 +108,48 @@ function isActive(path: string): boolean {
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 16px;
+  padding: 9px 20px;
   border: none;
   background: transparent;
-  color: #cdd6f4;
-  font-size: 14px;
+  color: #9D9D9D;
+  font-size: 13px;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
   text-align: left;
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
-  background: #313244;
+  background: #252525;
+  color: #E8E8E8;
 }
 
 .nav-item.active {
-  background: #45475a;
-  color: #cba6f7;
-  border-right: 3px solid #cba6f7;
+  background: rgba(0, 120, 212, 0.12);
+  color: #0078D4;
+  border-left-color: #0078D4;
 }
 
 .nav-icon {
-  font-size: 18px;
-  width: 24px;
+  font-size: 16px;
+  width: 22px;
   text-align: center;
   flex-shrink: 0;
 }
 
 .nav-label {
   white-space: nowrap;
+  font-weight: 400;
 }
 
 .sidebar-footer {
-  padding: 12px 16px;
-  border-top: 1px solid #313244;
-  font-size: 12px;
-  color: #6c7086;
+  padding: 12px 20px;
+  border-top: 1px solid #2D2D2D;
+}
+
+.version {
+  font-size: 11px;
+  color: #555;
 }
 </style>

@@ -4,7 +4,6 @@ import { useAppStore } from "../../stores/app";
 
 const appStore = useAppStore();
 
-// Form fields
 const key = ref("");
 const iv = ref("");
 const input = ref("");
@@ -12,7 +11,6 @@ const output = ref("");
 const mode = ref<"encrypt" | "decrypt">("encrypt");
 const algorithm = ref<"aes-256-cbc" | "aes-256-ecb">("aes-256-cbc");
 
-// Encoding options - synced with store
 const keyEncoding = computed({
   get: () => appStore.config.crypto.keyEncoding,
   set: (v) => { appStore.config.crypto.keyEncoding = v; appStore.saveConfig(); },
@@ -87,8 +85,10 @@ function swapMode() {
 
 <template>
   <div class="tool-panel">
-    <h2 class="tool-title">🔐 参数加解密</h2>
-    <p class="tool-desc">AES-256 对称加解密，支持 CBC / ECB 模式</p>
+    <div class="tool-header">
+      <h2 class="tool-title">参数加解密</h2>
+      <p class="tool-desc">AES-256 对称加解密，支持 CBC / ECB 模式</p>
+    </div>
 
     <div class="form-grid">
       <div class="form-group">
@@ -155,159 +155,212 @@ function swapMode() {
 
     <div class="form-group full-width">
       <label>输入内容</label>
-      <textarea v-model="input" rows="6" :placeholder="mode === 'encrypt' ? '输入要加密的明文...' : '输入要解密的密文...'" />
+      <textarea v-model="input" rows="5" :placeholder="mode === 'encrypt' ? '输入要加密的明文...' : '输入要解密的密文...'" />
     </div>
 
     <div class="action-row">
       <button class="btn-primary" @click="execute" :disabled="loading">
-        {{ loading ? '处理中...' : (mode === 'encrypt' ? '🔒 加密' : '🔓 解密') }}
+        <span v-if="loading" class="spinner"></span>
+        {{ loading ? '处理中...' : (mode === 'encrypt' ? '加密' : '解密') }}
       </button>
-      <button class="btn-secondary" @click="swapMode">
-        ⇄ 切换加/解密
-      </button>
+      <button class="btn-secondary" @click="swapMode">切换加/解密</button>
     </div>
 
     <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
 
     <div class="form-group full-width" v-if="output">
       <label>输出结果</label>
-      <textarea v-model="output" rows="6" readonly />
+      <textarea v-model="output" rows="5" readonly class="output-area" />
     </div>
   </div>
 </template>
 
 <style scoped>
 .tool-panel {
-  max-width: 800px;
+  max-width: 820px;
   margin: 0 auto;
 }
 
+.tool-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #2D2D2D;
+}
+
 .tool-title {
-  font-size: 22px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #E8E8E8;
   margin-bottom: 4px;
-  color: #1e1e2e;
 }
 
 .tool-desc {
-  color: #6c7086;
-  margin-bottom: 20px;
-  font-size: 14px;
+  color: #6E6E6E;
+  font-size: 13px;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 14px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .form-group.full-width {
   grid-column: 1 / -1;
+  margin-top: 14px;
 }
 
 .form-group label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #45475a;
+  font-size: 12px;
+  font-weight: 500;
+  color: #9D9D9D;
+  text-transform: none;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: "Menlo", "Monaco", "Courier New", monospace;
-  background: #fff;
-  transition: border-color 0.15s;
+  padding: 8px 10px;
+  border: 1px solid #3D3D3D;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: "Cascadia Code", "Fira Code", "Menlo", "Monaco", "Courier New", monospace;
+  background: #1A1A1A;
+  color: #E8E8E8;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #cba6f7;
-  box-shadow: 0 0 0 2px rgba(203, 166, 247, 0.2);
+  border-color: #0078D4;
+  box-shadow: 0 0 0 1px rgba(0, 120, 212, 0.3);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #555;
+}
+
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239D9D9D' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+.form-group select option {
+  background: #2D2D2D;
+  color: #E8E8E8;
 }
 
 .mode-switch {
   display: flex;
-  gap: 0;
 }
 
 .mode-switch button {
   flex: 1;
-  padding: 8px 16px;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  padding: 7px 14px;
+  border: 1px solid #3D3D3D;
+  background: #1A1A1A;
+  color: #9D9D9D;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
+  font-family: inherit;
   transition: all 0.15s;
 }
 
 .mode-switch button:first-child {
-  border-radius: 6px 0 0 6px;
+  border-radius: 4px 0 0 4px;
 }
 
 .mode-switch button:last-child {
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 4px 4px 0;
+  border-left: none;
 }
 
 .mode-switch button.active {
-  background: #cba6f7;
-  color: #1e1e2e;
-  border-color: #cba6f7;
-  font-weight: 600;
+  background: #0078D4;
+  color: #FFF;
+  border-color: #0078D4;
+  font-weight: 500;
 }
 
 .action-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin: 20px 0;
 }
 
 .btn-primary {
-  padding: 10px 24px;
-  background: #cba6f7;
-  color: #1e1e2e;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: #0078D4;
+  color: #FFF;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.btn-primary:hover { opacity: 0.85; }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-secondary {
-  padding: 10px 24px;
-  background: #e6e6fa;
-  color: #45475a;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.btn-secondary:hover { background: #dcdcf0; }
+.btn-primary:hover { background: #1A8FE3; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  padding: 9px 20px;
+  background: #2D2D2D;
+  color: #E8E8E8;
+  border: 1px solid #3D3D3D;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-secondary:hover { background: #383838; }
 
 .error-msg {
   padding: 10px 14px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  color: #dc2626;
-  font-size: 13px;
-  margin-bottom: 12px;
+  background: #3D1F1F;
+  border: 1px solid #CF6679;
+  border-radius: 4px;
+  color: #CF6679;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.output-area {
+  background: #111 !important;
+  border-color: #0078D4 !important;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #FFF;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 textarea {
