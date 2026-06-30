@@ -1,0 +1,121 @@
+name: CI — Quality Gate
+
+on:
+  pull_request:
+    branches: [master, main]
+  push:
+    branches: [master, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Lint & Typecheck ─────────────────────────────────────────────────
+  lint:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with: { components: 'clippy' }
+
+      - run: npm ci
+      - run: npx vue-tsc --noEmit
+      - run: cargo clippy -- -D warnings
+        working-directory: src-tauri
+
+  # ── Unit Tests ───────────────────────────────────────────────────────
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: taiki-e/install-action@v2
+        with: { tool: 'cargo-tarpaulin' }
+
+      - run: npm ci
+      - run: npx vitest run --reporter=verbose
+      - run: cargo test --verbose
+        working-directory: src-tauri
+      - run: cargo tarpaulin --out Xml --output-dir coverage
+        working-directory: src-tauri
+        continue-on-error: true
+
+      - uses: codecov/codecov-action@v5
+        if: always()
+        with: { files: src-tauri/coverage/cobertura.xml }
+        continue-on-error: true
+
+  # ── Plugin Validation ────────────────────────────────────────────────
+  plugin-validation:
+    name: Plugin Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+      - run: npm ci
+      - run: npx tsx scripts/ci/validate-plugins.ts
+
+  # ── Architecture Validation ──────────────────────────────────────────
+  architecture-validation:
+    name: Architecture Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+      - run: npm ci
+      - run: npx tsx scripts/ci/validate-architecture.ts
+
+  # ── Build Check ──────────────────────────────────────────────────────
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: 'npm' }
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux deps
+        run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - run: npm ci
+      - run: npm run build
+      - run: cargo build --release
+        working-directory: src-tauri
+
+  # ── Final Gate ───────────────────────────────────────────────────────
+  gate:
+    name: ✅ Quality Gate
+    needs: [lint, test, plugin-validation, architecture-validation, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          echo "## Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ needs.lint.result }}" != "success" ]]; then echo "❌ Lint" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Lint" >> $GITHUB_STEP_SUMMARY; fi
+          if [[ "${{ needs.test.result }}" != "success" ]]; then echo "❌ Tests" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Tests" >> $GITHUB_STEP_SUMMARY; fi
+          if [[ "${{ needs.plugin-validation.result }}" != "success" ]]; then echo "❌ Plugins" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Plugins" >> $GITHUB_STEP_SUMMARY; fi
+          if [[ "${{ needs.architecture-validation.result }}" != "success" ]]; then echo "❌ Architecture" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Architecture" >> $GITHUB_STEP_SUMMARY; fi
+          if [[ "${{ needs.build.result }}" != "success" ]]; then echo "❌ Build" >> $GITHUB_STEP_SUMMARY; exit 1; else echo "✅ Build" >> $GITHUB_STEP_SUMMARY; fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎉 All gates passed!" >> $GITHUB_STEP_SUMMARY
