@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/nicehash/tauri/dev/crates/tauri-config-schema/schema.json",
   "productName": "Dev Toolbox",
   "version": "0.1.0",
-  "identifier": "com.devtoolbox.app",
+  "identifier": "com.devtoolbox.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -15,13 +15,35 @@
         "title": "Dev Toolbox",
         "width": 1100,
         "height": 720,
+        "minWidth": 800,
+        "minHeight": 600,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "center": true
       }
     ],
     "security": {
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
     }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "copyright": "Copyright © 2026 smallLazy. All rights reserved.",
+    "category": "DeveloperTools",
+    "shortDescription": "A desktop developer toolkit",
+    "longDescription": "Dev Toolbox is a desktop developer toolkit providing crypto, encoding, formatting, conversion, and inspection tools through a Plugin Architecture. Built on Tauri v2, Vue 3, TypeScript, and Rust.",
+    "publisher": "smallLazy",
+    "createUpdaterArtifacts": false,
+    "resources": [],
+    "fileAssociations": []
   },
   "plugins": {}
 }

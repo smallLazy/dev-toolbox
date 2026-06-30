@@ -2,6 +2,24 @@
   "name": "dev-toolbox",
   "private": true,
   "version": "0.1.0",
+  "description": "A desktop developer toolkit — crypto, encoding, formatting, conversion, and inspection tools built on Tauri v2 + Vue 3 + Rust",
+  "author": "smallLazy",
+  "license": "MIT",
+  "homepage": "https://github.com/smallLazy/dev-toolbox",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smallLazy/dev-toolbox.git"
+  },
+  "keywords": [
+    "developer-tools",
+    "desktop-app",
+    "tauri",
+    "vue",
+    "rust",
+    "crypto",
+    "encoding",
+    "toolbox"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +27,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "create-plugin": "npx tsx scripts/create-plugin.ts",
+    "test": "npx vitest run --passWithNoTests",
     "validate": "npx vue-tsc --noEmit && npm test && npx tsx scripts/ci/validate-architecture.ts && npx tsx scripts/ci/validate-design.ts && npx tsx scripts/ci/validate-plugins.ts && npx tsx scripts/ci/validate-ai.ts",
     "validate:arch": "npx tsx scripts/ci/validate-architecture.ts",
     "validate:design": "npx tsx scripts/ci/validate-design.ts",

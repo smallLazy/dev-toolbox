@@ -1,9 +1,12 @@
 [package]
 name = "dev-toolbox"
 version = "0.1.0"
-description = "A developer toolbox desktop application"
-authors = ["dev"]
+description = "A desktop developer toolkit — crypto, encoding, formatting, conversion, and inspection tools"
+authors = ["smallLazy"]
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/smallLazy/dev-toolbox"
+homepage = "https://github.com/smallLazy/dev-toolbox"
 
 [lib]
 name = "dev_toolbox_lib"
