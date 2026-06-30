@@ -55,10 +55,10 @@ function onKeydown(e: KeyboardEvent) {
               <button :class="{ active: mode === 'validate' }" @click="mode = 'validate'">验证</button>
             </div>
             <div class="stats">
-              <span v-if="inputStats" class="stat-item">📥 {{ inputStats }}</span>
-              <span v-if="outputStats" class="stat-item">📤 {{ outputStats }}</span>
-              <span v-if="isValid === true" class="stat-item valid">✅ 有效</span>
-              <span v-else-if="isValid === false" class="stat-item invalid">❌ 无效</span>
+              <span v-if="inputStats" class="stat-item">输入 {{ inputStats }}</span>
+              <span v-if="outputStats" class="stat-item">输出 {{ outputStats }}</span>
+              <span v-if="isValid === true" class="stat-item valid">有效</span>
+              <span v-else-if="isValid === false" class="stat-item invalid">无效</span>
             </div>
           </div>
         </div>
@@ -118,7 +118,7 @@ function onKeydown(e: KeyboardEvent) {
       <!-- Card: Empty State -->
       <div class="card" v-if="!output && !error && !input">
         <div class="card-body empty-hint">
-          <p>📋 粘贴 JSON 文本到输入框，选择操作模式后点击执行</p>
+          <p>粘贴 JSON 文本到输入框，选择操作模式后点击执行</p>
           <p class="hint-desc">支持格式化 (Pretty Print)、压缩 (Minify) 和验证 (Validate)</p>
           <p class="hint-desc"><kbd>⌘Enter</kbd> 快速执行</p>
         </div>
@@ -137,7 +137,7 @@ function onKeydown(e: KeyboardEvent) {
 
 /* Card */
 .card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; }
 .card-body { padding: var(--space-4) var(--space-5); }
 .card-output { border-color: var(--border-color-focus); }
 .card-output .card-body { background: var(--color-neutral-15); }
@@ -153,7 +153,7 @@ function onKeydown(e: KeyboardEvent) {
 .stat-item.invalid { color: var(--color-danger-text); }
 
 /* Action Bar */
-.action-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.action-bar { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
 /* Monaco Editor Placeholder */
 .mono-editor {
@@ -164,7 +164,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 /* Header Actions */
-.header-actions { display: flex; gap: 6px; }
+.header-actions { display: flex; gap: var(--space-tight); }
 
 /* Empty State */
 .empty-hint { text-align: center; padding: var(--space-8) 0; }

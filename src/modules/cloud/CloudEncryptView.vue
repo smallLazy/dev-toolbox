@@ -109,20 +109,20 @@ function swapMode() {
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
 
 .card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
 .card-body { padding: var(--space-4) var(--space-5); }
 .card-output { border-color: var(--border-color-focus); }
 .card-output .card-body { background: var(--color-neutral-15); }
 
-.field { display: flex; flex-direction: column; gap: 3px; }
+.field { display: flex; flex-direction: column; gap: var(--space-compact); }
 .field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
 
-.action-bar { display: flex; gap: 8px; }
+.action-bar { display: flex; gap: var(--space-2); }
 
 .info-card { background: var(--color-info-bg); border: var(--border-width-thin) solid rgba(107,165,231,0.15); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); }
 .info-card h4 { font-size: var(--text-body); color: var(--color-info-text); margin-bottom: var(--space-2); font-weight: var(--weight-medium); }
 .info-card .pipeline { margin-bottom: var(--space-2); }
-.info-card .pipeline code { font-size: var(--text-label); font-family: var(--font-mono); color: var(--color-neutral-100); background: rgba(0,0,0,.3); padding: 3px var(--space-2); border-radius: var(--radius-sm); }
+.info-card .pipeline code { font-size: var(--text-label); font-family: var(--font-mono); color: var(--color-neutral-100); background: rgba(0,0,0,.3); padding: var(--space-compact) var(--space-2); border-radius: var(--radius-sm); }
 .info-card ul { font-size: var(--text-label); color: var(--color-neutral-80); padding-left: var(--space-5); }
 .info-card li { margin-bottom: 2px; }
 .info-card code { font-family: var(--font-mono); background: rgba(0,0,0,.3); padding: 1px 5px; border-radius: var(--radius-sm); font-size: var(--text-caption); color: var(--color-info-text); }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useHelloPlugin } from './composables'
+import { ICON_SIZE, Icons } from '@/design/icons'
 
 const {
   sessionId, version, greeting, loadedAt, activatedAt,
@@ -20,7 +21,9 @@ const {
     <div class="page-content">
       <!-- Status Banner -->
       <div class="status-banner" :class="{ success: summary.allPassed, failed: !summary.allPassed }">
-        <div class="status-banner-icon">{{ summary.allPassed ? '✅' : '⚠️' }}</div>
+        <div class="status-banner-icon">
+          <component :is="summary.allPassed ? Icons.Check : Icons.Alert" :size="ICON_SIZE.xl" />
+        </div>
         <div class="status-banner-body">
           <div class="status-banner-title">
             {{ summary.allPassed ? 'Framework Validation Successful' : 'Framework Validation Incomplete' }}
@@ -70,11 +73,15 @@ const {
         <div class="card-body">
           <div class="registry-grid">
             <div class="registry-item">
-              <div class="registry-value">{{ registered ? '✅' : '❌' }}</div>
+              <div class="registry-value">
+                <component :is="registered ? Icons.Check : Icons.X" :size="ICON_SIZE.xl" />
+              </div>
               <div class="registry-label">Registered</div>
             </div>
             <div class="registry-item">
-              <div class="registry-value">{{ activated ? '✅' : '❌' }}</div>
+              <div class="registry-value">
+                <component :is="activated ? Icons.Check : Icons.X" :size="ICON_SIZE.xl" />
+              </div>
               <div class="registry-label">Activated</div>
             </div>
             <div class="registry-item">
@@ -108,7 +115,9 @@ const {
               class="checklist-item"
               :class="{ pass: item.passed, fail: !item.passed }"
             >
-              <span class="checklist-icon">{{ item.passed ? '✅' : '❌' }}</span>
+              <span class="checklist-icon">
+                <component :is="item.passed ? Icons.Check : Icons.X" :size="ICON_SIZE.md" />
+              </span>
               <div class="checklist-body">
                 <div class="checklist-check">{{ item.check }}</div>
                 <div class="checklist-detail">{{ item.detail }}</div>
@@ -175,7 +184,7 @@ const {
 
 /* Card */
 .card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
 .card-body { padding: var(--space-4) var(--space-5); }
 
 /* Context Grid */
@@ -187,13 +196,13 @@ const {
 
 /* Registry Grid */
 .registry-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-3); text-align: center; }
-.registry-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.registry-item { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
 .registry-value { font-size: var(--text-subtitle); }
 .registry-label { font-size: var(--text-caption); color: var(--color-neutral-70); text-transform: uppercase; letter-spacing: 0.04em; }
 
 /* Checklist */
 .checklist { display: flex; flex-direction: column; gap: 2px; }
-.checklist-item { display: flex; gap: var(--space-3); padding: 8px var(--space-3); border-radius: var(--radius-md); }
+.checklist-item { display: flex; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); }
 .checklist-item.pass { background: rgba(92,187,92,0.04); }
 .checklist-item.fail { background: rgba(224,115,128,0.06); }
 .checklist-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }

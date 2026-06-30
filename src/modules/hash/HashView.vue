@@ -149,13 +149,13 @@ async function md5Hash(data: Uint8Array): Promise<string> {
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
 
 .card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
 .card-body { padding: var(--space-4) var(--space-5); }
 
-.field { display: flex; flex-direction: column; gap: 3px; }
+.field { display: flex; flex-direction: column; gap: var(--space-compact); }
 .field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
 
-.action-bar { display: flex; gap: 8px; }
+.action-bar { display: flex; gap: var(--space-2); }
 
 .hash-output { font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100); word-break: break-all; background: var(--color-neutral-10); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: var(--border-width-thin) solid var(--border-color-focus); }
 </style>

@@ -39,14 +39,14 @@ function parseJwt() {
     if (payload.exp) {
       const expDate = new Date(payload.exp * 1000);
       if (expDate < new Date()) {
-        payloadOutput.value += `\n\n⚠️ Token 已过期 (${expDate.toLocaleString("zh-CN")})`;
+        payloadOutput.value += `\n\nToken 已过期 (${expDate.toLocaleString("zh-CN")})`;
       } else {
-        payloadOutput.value += `\n\n✅ Token 有效至 ${expDate.toLocaleString("zh-CN")}`;
+        payloadOutput.value += `\n\nToken 有效至 ${expDate.toLocaleString("zh-CN")}`;
       }
     }
 
     if (payload.iat) {
-      payloadOutput.value += `\n📅 签发时间: ${new Date(payload.iat * 1000).toLocaleString("zh-CN")}`;
+      payloadOutput.value += `\n签发时间: ${new Date(payload.iat * 1000).toLocaleString("zh-CN")}`;
     }
   } catch {
     payloadOutput.value = "[无法解析 Payload]";
@@ -112,12 +112,12 @@ function base64UrlDecode(str: string): string {
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
 
 .card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
 .card-body { padding: var(--space-4) var(--space-5); }
 .card-warning .card-body { background: var(--color-warning-bg); }
 
 .code-block { font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100); white-space: pre-wrap; overflow-x: auto; margin: 0; }
 .sig-text { font-size: var(--text-caption); font-family: var(--font-mono); color: var(--color-warning-text); word-break: break-all; }
 
-.action-bar { display: flex; gap: 8px; }
+.action-bar { display: flex; gap: var(--space-2); }
 </style>

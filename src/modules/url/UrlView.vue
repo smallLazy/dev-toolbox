@@ -89,15 +89,15 @@ function execute() {
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
 
 .card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
 .card-body { padding: var(--space-4) var(--space-5); }
 .card-output { border-color: var(--border-color-focus); }
 .card-output .card-body { background: var(--color-neutral-15); }
 
 .form-row { display: flex; gap: var(--space-3); }
-.field { display: flex; flex-direction: column; gap: 3px; }
+.field { display: flex; flex-direction: column; gap: var(--space-compact); }
 .field.flex-1 { flex: 1; }
 .field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
 
-.action-bar { display: flex; gap: 8px; }
+.action-bar { display: flex; gap: var(--space-2); }
 </style>

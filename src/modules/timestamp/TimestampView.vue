@@ -90,16 +90,16 @@ function convertDateToTs() {
 
 .time-banner {
   background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-hover));
-  padding: 18px 24px; border-radius: var(--radius-xl);
+  padding: var(--space-button-secondary-x) var(--space-6); border-radius: var(--radius-xl);
 }
-.time-big { font-size: 22px; font-weight: var(--weight-semibold); color: #fff; margin-bottom: var(--space-1); }
+.time-big { font-size: 22px; font-weight: var(--weight-semibold); color: var(--color-neutral-120); margin-bottom: var(--space-1); }
 .time-meta { font-size: var(--text-caption); color: rgba(255,255,255,.7); font-family: var(--font-mono); }
 
 .card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
 .card-body { padding: var(--space-4) var(--space-5); }
 
-.field { display: flex; flex-direction: column; gap: 3px; }
+.field { display: flex; flex-direction: column; gap: var(--space-compact); }
 .field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
 
 .output-pre { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--color-neutral-10); border: var(--border-width-thin) solid var(--border-color-focus); border-radius: var(--radius-md); font-size: var(--text-body); font-family: var(--font-mono); color: var(--color-neutral-100); white-space: pre-wrap; }

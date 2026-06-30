@@ -198,7 +198,7 @@ function isActive(path: string): boolean {
 
 /* Header */
 .sidebar-header {
-  padding: 16px var(--space-5) 12px; display: flex; align-items: center; gap: 10px;
+  padding: var(--space-4) var(--space-5) var(--space-3); display: flex; align-items: center; gap: var(--space-control-x);
   cursor: pointer; flex-shrink: 0; transition: opacity var(--duration-fast);
 }
 .sidebar-header:hover { opacity: 0.8; }
@@ -210,7 +210,7 @@ function isActive(path: string): boolean {
 .search-box { margin: 2px var(--space-3) var(--space-2); position: relative; display: flex; align-items: center; }
 .search-svg { position: absolute; left: 10px; color: var(--sidebar-icon); pointer-events: none; }
 .search-input {
-  width: 100%; padding: 6px 40px 6px 30px; border: var(--border-width-thin) solid var(--sidebar-divider);
+  width: 100%; padding: var(--space-tight) var(--space-10) var(--space-tight) var(--space-control-lg-x); border: var(--border-width-thin) solid var(--sidebar-divider);
   border-radius: var(--radius-md); background: var(--color-neutral-20); color: var(--sidebar-text);
   font-size: var(--text-body); font-family: var(--font-sans); outline: none; height: 30px;
   transition: border-color var(--duration-fast), background var(--duration-fast), box-shadow var(--duration-fast);
@@ -225,7 +225,7 @@ function isActive(path: string): boolean {
 .sidebar-nav { flex: 1; padding: var(--space-1) 0; overflow-y: auto; }
 
 .nav-item {
-  display: flex; align-items: center; gap: 10px; width: 100%; height: 34px;
+  display: flex; align-items: center; gap: var(--space-control-x); width: 100%; height: 34px;
   padding: 0 var(--space-5); margin: 1px 0; border: none; background: transparent;
   color: var(--sidebar-text); font-size: var(--text-body); font-family: var(--font-sans);
   cursor: pointer; text-align: left;
@@ -248,8 +248,8 @@ function isActive(path: string): boolean {
 /* Categories */
 .nav-category { margin: 2px 0; }
 .nav-category-header {
-  display: flex; align-items: center; gap: 6px; width: 100%;
-  padding: 6px var(--space-5) 6px var(--space-3); border: none; background: transparent;
+  display: flex; align-items: center; gap: var(--space-tight); width: 100%;
+  padding: var(--space-tight) var(--space-5) var(--space-tight) var(--space-3); border: none; background: transparent;
   color: var(--sidebar-category); font-size: var(--text-label); font-family: var(--font-sans);
   font-weight: var(--weight-semibold); letter-spacing: 0.08em;
   cursor: pointer; transition: color var(--duration-fast);
@@ -264,6 +264,6 @@ function isActive(path: string): boolean {
 
 /* Footer */
 .sidebar-footer-section { flex-shrink: 0; }
-.sidebar-footer { padding: 10px var(--space-5); border-top: var(--border-width-thin) solid var(--sidebar-divider); flex-shrink: 0; }
+.sidebar-footer { padding: var(--space-control-x) var(--space-5); border-top: var(--border-width-thin) solid var(--sidebar-divider); flex-shrink: 0; }
 .version { font-size: var(--text-caption); color: var(--sidebar-text-secondary); letter-spacing: 0.03em; }
 </style>
