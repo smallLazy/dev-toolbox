@@ -145,6 +145,12 @@
   --content-padding-x: 40px;
   --content-padding-y: 32px;
 
+  /* ── Dashboard Layout ─────────────────────────────────────────────────── */
+  --dashboard-card-width: 280px;
+  --dashboard-card-height: 80px;
+  --dashboard-grid-gap: var(--space-3);
+  --dashboard-grid-max-width: 1200px;
+
   /* ── Sidebar ────────────────────────────────────────────────────────────
      Semantic tokens for the Sidebar navigation component.
      Calibrated for WCAG AA contrast (≥4.5:1) against --sidebar-bg (#161616).

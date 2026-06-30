@@ -54,7 +54,8 @@ const { items, isEmpty } = useFavorites()
 
 .section-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
+  grid-template-columns: repeat(3, var(--dashboard-card-width));
+  gap: var(--dashboard-grid-gap);
+  max-width: var(--dashboard-grid-max-width);
 }
 </style>

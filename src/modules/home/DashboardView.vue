@@ -47,7 +47,7 @@ function openTool(pluginId: string) {
 
 <style scoped>
 .dashboard {
-  max-width: var(--content-max-width);
+  max-width: var(--dashboard-grid-max-width);
   margin: 0 auto;
 }
 

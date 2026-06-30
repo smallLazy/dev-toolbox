@@ -76,7 +76,7 @@ function onCardKeydown(e: KeyboardEvent) {
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  height: 80px;
+  height: var(--dashboard-card-height);
   padding: 0 var(--space-4);
   background: var(--color-neutral-35);
   border: var(--border-width-thin) solid var(--border-color-subtle);
