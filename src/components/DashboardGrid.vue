@@ -10,13 +10,14 @@ const { byCategory } = useTools()
 
 // Display-friendly category labels
 const categoryLabels: Record<string, string> = {
+  encoding: 'Encoding',
   crypto: 'Crypto',
-  encoder: 'Encoding',
   formatter: 'Formatter',
   converter: 'Converter',
   analyzer: 'Analyzer',
-  generator: 'Generator',
+  ai: 'AI Tools',
   network: 'Network',
+  enterprise: 'Integrations',
   utility: 'Utility',
 }
 </script>
@@ -35,6 +36,7 @@ const categoryLabels: Record<string, string> = {
           :description="tool.description"
           :icon="tool.icon"
           :path="tool.path"
+          :status="tool.status"
           @select="$emit('select', $event)"
         />
       </div>

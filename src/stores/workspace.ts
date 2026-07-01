@@ -24,6 +24,8 @@ export interface ToolCommand {
   shortcut?: string
 }
 
+export type PluginStatus = 'active' | 'coming-soon' | 'disabled'
+
 export interface ToolMeta {
   id: string
   name: string
@@ -31,6 +33,7 @@ export interface ToolMeta {
   icon: string
   category: string
   path: string
+  status: PluginStatus
   commands: ToolCommand[]
   searchKeywords: string[]
 }
@@ -55,6 +58,7 @@ function extractMetadata(instance: PluginInstance): ToolMeta {
     icon: def.icon,
     category: def.category ?? 'utility',
     path: routePath,
+    status: def.status ?? 'coming-soon',
     commands,
     searchKeywords,
   }

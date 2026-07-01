@@ -82,6 +82,8 @@ export interface PluginDefinition<
   version?: string
   description?: string
   category?: PluginCategory
+  /** Tool lifecycle status: active (implemented), coming-soon (planned), disabled (off) */
+  status?: 'active' | 'coming-soon' | 'disabled'
 
   // ── Declarative Registrations ──
   commands?: CommandDef[]
