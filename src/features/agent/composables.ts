@@ -7,6 +7,7 @@
 
 import { ref, computed } from 'vue'
 import { createFeatureContext } from '@/sdk/feature'
+import { copyText } from '@/shared/clipboard'
 import { AgentFeature } from './AgentFeature'
 import { createToolbar } from './toolbar'
 import { defaults } from './settings'
@@ -35,7 +36,18 @@ export function useAgent() {
 
   // Toolbar
   const toolbar = createToolbar({
-    onCopy() { feature.copyOutput() },
+    async onCopy() {
+      error.value = null
+      if (!output.value) {
+        error.value = 'No output to copy'
+        return
+      }
+      try {
+        await copyText(output.value)
+      } catch (e) {
+        error.value = e instanceof Error ? e.message : 'Failed to copy output'
+      }
+    },
     onClear() { input.value = ''; output.value = null; error.value = null },
     onSwap() { if (output.value) { input.value = output.value; output.value = null } },
   })

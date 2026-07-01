@@ -160,13 +160,6 @@ export class JsonFeature extends BaseFeature<JsonConfig, string, string> {
 
   // ── Clipboard (via context) ────────────────────────────────────────
 
-  async copyOutput(): Promise<void> {
-    if (this._state.output) {
-      await this.context.clipboard.copy(this._state.output)
-      this.context.notification.success('已复制', '输出已复制到剪贴板')
-    }
-  }
-
   async copyInput(): Promise<void> {
     if (this._state.input) {
       await this.context.clipboard.copy(this._state.input)

@@ -11,6 +11,7 @@
 
 import { onMounted, onUnmounted } from 'vue'
 import { useJsonPlugin } from './composables'
+import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
 
 const {
   input, output, error, loading, mode,
@@ -18,14 +19,13 @@ const {
   toolbar, execute, init, dispose,
 } = useJsonPlugin()
 
+const copyAction = usePointerSafeAction()
+const clearAction = usePointerSafeAction({ disabled: () => loading.value })
+const swapAction = usePointerSafeAction({ disabled: () => loading.value })
+const exportAction = usePointerSafeAction({ disabled: () => loading.value })
+
 onMounted(() => init())
 onUnmounted(() => dispose())
-
-// ── Toolbar Actions ──────────────────────────────────────────────────
-function handleCopyOutput() { toolbar.execute('copy') }
-function handleClear() { toolbar.execute('clear') }
-function handleSwap() { toolbar.execute('swap') }
-function handleExport() { toolbar.execute('export') }
 
 // ── Keyboard Shortcuts ───────────────────────────────────────────────
 function onKeydown(e: KeyboardEvent) {
@@ -69,7 +69,7 @@ function onKeydown(e: KeyboardEvent) {
         <div class="card-header">
           <span>输入</span>
           <span class="header-actions">
-            <button class="btn-sm" @click="handleClear">清空</button>
+            <button class="btn-sm" @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))" @click="clearAction.handleClick(() => toolbar.execute('clear'))">清空</button>
           </span>
         </div>
         <div class="card-body">
@@ -90,9 +90,9 @@ function onKeydown(e: KeyboardEvent) {
           <span v-if="loading" class="spinner"></span>
           {{ loading ? '处理中...' : mode === 'format' ? '格式化' : mode === 'minify' ? '压缩' : '验证' }}
         </button>
-        <button class="btn-secondary" @click="handleSwap">交换输入/输出</button>
-        <button v-if="output" class="btn-secondary" @click="handleCopyOutput">复制输出</button>
-        <button v-if="output" class="btn-secondary" @click="handleExport">导出</button>
+        <button class="btn-secondary" @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))" @click="swapAction.handleClick(() => toolbar.execute('swap'))">交换输入/输出</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))">复制输出</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="exportAction.handlePointerDown($event, () => toolbar.execute('export'))" @click="exportAction.handleClick(() => toolbar.execute('export'))">导出</button>
       </div>
 
       <!-- Error -->
@@ -102,7 +102,7 @@ function onKeydown(e: KeyboardEvent) {
       <div class="card card-output" v-if="output">
         <div class="card-header">
           <span>输出</span>
-          <button v-if="output" class="btn-sm" @click="handleCopyOutput">复制</button>
+          <button v-if="output" class="btn-sm" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))">复制</button>
         </div>
         <div class="card-body">
           <textarea

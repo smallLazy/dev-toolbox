@@ -7,6 +7,7 @@
 
 import { ref, computed, watch } from 'vue'
 import { createFeatureContext, type FeatureContext } from '@/sdk/feature'
+import { copyText } from '@/shared/clipboard'
 import { JsonFeature } from './JsonFeature'
 import { createJsonToolbar } from './toolbar'
 import type { JsonConfig, JsonMode } from './types'
@@ -43,7 +44,18 @@ export function useJsonPlugin() {
 
   // ── Toolbar ───────────────────────────────────────────────────────
   const toolbar = createJsonToolbar({
-    async onCopyOutput() { await feature.copyOutput() },
+    async onCopyOutput() {
+      error.value = null
+      if (!output.value) {
+        error.value = 'No output to copy'
+        return
+      }
+      try {
+        await copyText(output.value)
+      } catch (e) {
+        error.value = e instanceof Error ? e.message : 'Failed to copy output'
+      }
+    },
     async onCopyInput() { await feature.copyInput() },
     async onPaste() {
       await feature.pasteInput()
