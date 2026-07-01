@@ -26,7 +26,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "build:mac": "npx tauri build --bundles dmg",
     "build:linux": "npx tauri build --bundles deb",
-    "build:win": "npx tauri build --bundles msi",
+    "build:win": "npx tauri build --bundles msi,nsis",
     "build:release": "npm run validate && npx tauri build",
     "preview": "vite preview",
     "tauri": "tauri",
