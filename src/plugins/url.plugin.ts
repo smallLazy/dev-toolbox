@@ -10,7 +10,7 @@ export default definePlugin({
   icon: 'Link',
   version: '1.0.0',
   description: 'Encode and decode URLs using URI or component modes',
-  category: 'encoder',
+  category: 'encoding',
 
   route: '/url',
   component: () => import('@/features/url/UrlView.vue'),

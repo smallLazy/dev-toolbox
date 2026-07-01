@@ -12,14 +12,16 @@ import type { RouteRecordRaw } from 'vue-router'
 // ── Plugin Manifest ────────────────────────────────────────────────────
 
 export type PluginCategory =
+  | 'encoding'
   | 'crypto'
-  | 'encoder'
   | 'formatter'
   | 'converter'
   | 'analyzer'
-  | 'generator'
+  | 'ai'
   | 'network'
+  | 'enterprise'
   | 'utility'
+  | 'developer'
 
 export interface ToolPlugin {
   /** Unique identifier, e.g. 'aes', 'jwt', 'json' */

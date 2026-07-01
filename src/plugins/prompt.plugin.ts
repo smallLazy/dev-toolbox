@@ -11,7 +11,7 @@ export default definePlugin({
   icon: '🤖',
   version: '1.0.0',
   description: 'AI 工具 — 对话、补全与生成',
-  category: 'generator',
+  category: 'ai',
 
   route: '/prompt',
   component: () => import('@/features/prompt/PromptView.vue'),

@@ -7,8 +7,9 @@ import type { Component } from 'vue'
 // ── Plugin Category ────────────────────────────────────────────────────
 
 export type PluginCategory =
-  | 'crypto' | 'encoder' | 'formatter' | 'converter'
-  | 'analyzer' | 'generator' | 'network' | 'utility'
+  | 'encoding' | 'crypto' | 'formatter' | 'converter'
+  | 'network' | 'enterprise' | 'ai' | 'analyzer'
+  | 'utility' | 'developer'
 
 // ── Command ─────────────────────────────────────────────────────────────
 

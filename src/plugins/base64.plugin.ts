@@ -10,7 +10,7 @@ export default definePlugin({
   icon: 'CaseSensitive',
   version: '1.0.0',
   description: 'Encode and decode text to/from Base64 with full Unicode support',
-  category: 'encoder',
+  category: 'encoding',
 
   route: '/base64',
   component: () => import('@/features/base64/Base64View.vue'),

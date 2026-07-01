@@ -161,7 +161,7 @@ Generator auto-fills:
 | `converter` | `converter` |
 | `inspector` | `analyzer` |
 | `viewer` | `utility` |
-| `ai` | `generator` |
+| `ai` | `ai` |
 | `network` | `network` |
 | `enterprise` | `utility` |
 

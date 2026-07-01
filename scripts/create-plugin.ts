@@ -131,7 +131,7 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     },
   },
   ai: {
-    icon: '🤖', category: 'generator',
+    icon: '🤖', category: 'ai',
     description: 'AI 工具 — 对话、补全与生成',
     commands: [
       { id: '{name}:chat', label: '{Name}: Chat', description: 'Start AI chat', shortcut: 'Cmd+Enter' },

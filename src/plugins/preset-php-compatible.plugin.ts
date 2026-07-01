@@ -12,10 +12,28 @@ export default definePlugin({
   icon: 'Package',
   version: '1.0.0',
   description: 'Compatible with PHP base_encryption() / filter(): URL Encode(PHP) → Base64(no padding)',
-  category: 'encoder',
+  category: 'encoding',
 
   route: '/preset/php-compatible',
   component: () => import('@/presets/PresetView.vue'),
+
+  commands: [
+    {
+      id: 'preset-php-compatible:execute',
+      label: 'PHP Codec: Execute',
+      description: 'Run the PHP-compatible encode or decode pipeline',
+      shortcut: 'Cmd+Enter',
+    },
+    {
+      id: 'preset-php-compatible:swap',
+      label: 'PHP Codec: Swap I/O',
+      description: 'Swap input and output',
+    },
+  ],
+
+  shortcuts: [
+    { commandId: 'preset-php-compatible:execute', default: 'Ctrl+Enter', mac: 'Cmd+Enter' },
+  ],
 
   keywords: [
     'php',
