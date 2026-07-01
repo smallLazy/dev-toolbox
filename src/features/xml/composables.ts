@@ -18,7 +18,7 @@ export function useXml() {
   const context = createFeatureContext<XmlConfig>({
     id: 'xml',
     name: 'Xml',
-    description: '编辑器工具 — 格式化、压缩与验证',
+    description: 'Editor tool — format, minify, and validate',
     icon: '📝',
     version: '1.0.0',
     category: 'formatter',

@@ -10,19 +10,19 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'mode',
       type: 'select' as const,
-      label: '默认模式',
+      label: 'Default Mode',
       default: "encrypt",
     },
     {
       key: 'inputEncoding',
       type: 'select' as const,
-      label: '输入编码',
+      label: 'Input Encoding',
       default: "utf8",
     },
     {
       key: 'outputEncoding',
       type: 'select' as const,
-      label: '输出编码',
+      label: 'Output Encoding',
       default: "base64",
     },
 ]

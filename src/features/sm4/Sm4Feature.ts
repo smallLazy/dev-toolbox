@@ -38,7 +38,7 @@ export class Sm4Feature extends BaseFeature<Sm4Config, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Sm4', 'Ready — 数据转换工具 — 输入、转换、输出')
+    this.context.notification.info('Sm4', 'Ready — Data conversion tool')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

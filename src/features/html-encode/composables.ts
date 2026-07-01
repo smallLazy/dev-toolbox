@@ -18,7 +18,7 @@ export function useHtmlEncode() {
   const context = createFeatureContext<HtmlEncodeConfig>({
     id: 'html-encode',
     name: 'HtmlEncode',
-    description: '数据转换工具 — 输入、转换、输出',
+    description: 'Data conversion tool — input, convert, output',
     icon: '🔐',
     version: '1.0.0',
     category: 'crypto',

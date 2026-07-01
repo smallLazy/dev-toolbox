@@ -18,7 +18,7 @@ export function useColor() {
   const context = createFeatureContext<ColorConfig>({
     id: 'color',
     name: 'Color',
-    description: '格式互转工具 — 两种格式之间互相转换',
+    description: 'Format converter — convert between formats',
     icon: '🔄',
     version: '1.0.0',
     category: 'converter',

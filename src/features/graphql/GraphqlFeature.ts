@@ -38,7 +38,7 @@ export class GraphqlFeature extends BaseFeature<GraphqlConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Graphql', 'Ready — 网络工具 — HTTP 请求与响应分析')
+    this.context.notification.info('Graphql', 'Ready — Network tool — HTTP request and response analysis')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

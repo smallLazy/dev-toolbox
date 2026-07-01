@@ -44,12 +44,12 @@ export class JsonFeature extends BaseFeature<JsonConfig, string, string> {
   get jsonState(): Readonly<JsonState> { return this._jsonState }
 
   get inputStats(): string {
-    return `${this._jsonState.inputLines} 行 · ${formatSize(this._jsonState.inputSize)}`
+    return `${this._jsonState.inputLines} lines · ${formatSize(this._jsonState.inputSize)}`
   }
 
   get outputStats(): string | null {
     if (!this._jsonState.output) return null
-    return `${this._jsonState.outputLines} 行 · ${formatSize(this._jsonState.outputSize ?? 0)}`
+    return `${this._jsonState.outputLines} lines · ${formatSize(this._jsonState.outputSize ?? 0)}`
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────
@@ -112,7 +112,7 @@ export class JsonFeature extends BaseFeature<JsonConfig, string, string> {
 
   validate(input: string): ValidationResult {
     if (!input.trim()) {
-      return { valid: false, errors: [{ field: 'input', message: '请输入 JSON 文本' }] }
+      return { valid: false, errors: [{ field: 'input', message: 'Please enter JSON text' }] }
     }
     const vr = validateJson(input)
     if (!vr.valid) {
@@ -120,7 +120,7 @@ export class JsonFeature extends BaseFeature<JsonConfig, string, string> {
         valid: false,
         errors: vr.errors.map((e) => ({
           field: 'input',
-          message: `第 ${e.column} 列: ${e.message}`,
+          message: `Column ${e.column}: ${e.message}`,
         })),
       }
     }

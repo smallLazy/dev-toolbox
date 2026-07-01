@@ -38,7 +38,7 @@ export class MarkdownFeature extends BaseFeature<MarkdownConfig, string, string>
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Markdown', 'Ready — 编辑器工具 — 格式化、压缩与验证')
+    this.context.notification.info('Markdown', 'Ready — Editor tool — format, minify, and validate')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

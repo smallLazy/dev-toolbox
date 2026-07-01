@@ -38,7 +38,7 @@ export class AgentFeature extends BaseFeature<AgentConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Agent', 'Ready — AI 工具 — 对话、补全与生成')
+    this.context.notification.info('Agent', 'Ready — AI tools — chat, completion, and generation')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

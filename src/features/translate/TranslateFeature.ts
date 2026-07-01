@@ -38,7 +38,7 @@ export class TranslateFeature extends BaseFeature<TranslateConfig, string, strin
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Translate', 'Ready — AI 工具 — 对话、补全与生成')
+    this.context.notification.info('Translate', 'Ready — AI tools — chat, completion, and generation')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

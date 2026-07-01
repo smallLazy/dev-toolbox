@@ -17,8 +17,8 @@ export function useJsonPlugin() {
   // ── Context & Feature ────────────────────────────────────────────
   const context = createFeatureContext<JsonConfig>({
     id: 'json',
-    name: 'JSON 格式化',
-    description: 'JSON 美化与压缩',
+    name: 'JSON Formatter',
+    description: 'Format, validate, and minify JSON',
     icon: '📋',
     version: '1.0.0',
     category: 'formatter',

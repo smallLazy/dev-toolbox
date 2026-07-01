@@ -38,7 +38,7 @@ export class WecomFeature extends BaseFeature<WecomConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Wecom', 'Ready — 企业工具 — 外部服务集成')
+    this.context.notification.info('Wecom', 'Ready — Enterprise tool — external service integration')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

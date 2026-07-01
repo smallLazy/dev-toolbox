@@ -18,7 +18,7 @@ export function useQrcode() {
   const context = createFeatureContext<QrcodeConfig>({
     id: 'qrcode',
     name: 'Qrcode',
-    description: '查看器工具 — 预览文件和元数据',
+    description: 'Viewer tool — preview files and metadata',
     icon: '👁',
     version: '1.0.0',
     category: 'utility',

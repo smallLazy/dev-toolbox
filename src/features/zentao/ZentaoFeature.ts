@@ -38,7 +38,7 @@ export class ZentaoFeature extends BaseFeature<ZentaoConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Zentao', 'Ready — 企业工具 — 外部服务集成')
+    this.context.notification.info('Zentao', 'Ready — Enterprise tool — external service integration')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

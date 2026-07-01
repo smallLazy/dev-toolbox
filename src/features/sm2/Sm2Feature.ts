@@ -38,7 +38,7 @@ export class Sm2Feature extends BaseFeature<Sm2Config, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Sm2', 'Ready — 数据转换工具 — 输入、转换、输出')
+    this.context.notification.info('Sm2', 'Ready — Data conversion tool')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

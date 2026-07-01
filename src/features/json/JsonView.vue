@@ -39,26 +39,26 @@ function onKeydown(e: KeyboardEvent) {
 <template>
   <div class="page" @keydown="onKeydown">
     <header class="page-header">
-      <h1 class="page-title">JSON 格式化</h1>
-      <p class="page-desc">格式化、压缩与验证 JSON &mdash; <kbd>⌘Enter</kbd> 执行</p>
+      <h1 class="page-title">JSON Formatter</h1>
+      <p class="page-desc">Format, minify, and validate JSON &mdash; <kbd>⌘Enter</kbd> to execute</p>
     </header>
 
     <div class="page-content">
       <!-- Card: Mode + Stats -->
       <div class="card">
-        <div class="card-header">操作</div>
+        <div class="card-header">Mode</div>
         <div class="card-body">
           <div class="mode-row">
             <div class="segmented-control">
-              <button :class="{ active: mode === 'format' }" @click="mode = 'format'">格式化</button>
-              <button :class="{ active: mode === 'minify' }" @click="mode = 'minify'">压缩</button>
-              <button :class="{ active: mode === 'validate' }" @click="mode = 'validate'">验证</button>
+              <button :class="{ active: mode === 'format' }" @click="mode = 'format'">Format</button>
+              <button :class="{ active: mode === 'minify' }" @click="mode = 'minify'">Minify</button>
+              <button :class="{ active: mode === 'validate' }" @click="mode = 'validate'">Validate</button>
             </div>
             <div class="stats">
-              <span v-if="inputStats" class="stat-item">输入 {{ inputStats }}</span>
-              <span v-if="outputStats" class="stat-item">输出 {{ outputStats }}</span>
-              <span v-if="isValid === true" class="stat-item valid">有效</span>
-              <span v-else-if="isValid === false" class="stat-item invalid">无效</span>
+              <span v-if="inputStats" class="stat-item">Input {{ inputStats }}</span>
+              <span v-if="outputStats" class="stat-item">Output {{ outputStats }}</span>
+              <span v-if="isValid === true" class="stat-item valid">Valid</span>
+              <span v-else-if="isValid === false" class="stat-item invalid">Invalid</span>
             </div>
           </div>
         </div>
@@ -67,9 +67,9 @@ function onKeydown(e: KeyboardEvent) {
       <!-- Card: Input -->
       <div class="card">
         <div class="card-header">
-          <span>输入</span>
+          <span>Input</span>
           <span class="header-actions">
-            <button class="btn-sm" @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))" @click="clearAction.handleClick(() => toolbar.execute('clear'))">清空</button>
+            <button class="btn-sm" @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))" @click="clearAction.handleClick(() => toolbar.execute('clear'))">Clear</button>
           </span>
         </div>
         <div class="card-body">
@@ -78,7 +78,7 @@ function onKeydown(e: KeyboardEvent) {
             v-model="input"
             class="dt-textarea mono-editor"
             rows="14"
-            placeholder='粘贴 JSON 文本... 例如: {"name": "Dev Toolbox", "version": "1.0"}'
+            placeholder='Paste JSON text... e.g. {"name": "Dev Toolbox", "version": "1.0"}'
             spellcheck="false"
           />
         </div>
@@ -88,11 +88,11 @@ function onKeydown(e: KeyboardEvent) {
       <div class="action-bar">
         <button class="btn-accent" @click="execute()" :disabled="loading">
           <span v-if="loading" class="spinner"></span>
-          {{ loading ? '处理中...' : mode === 'format' ? '格式化' : mode === 'minify' ? '压缩' : '验证' }}
+          {{ loading ? 'Processing...' : mode === 'format' ? 'Format' : mode === 'minify' ? 'Minify' : 'Validate' }}
         </button>
-        <button class="btn-secondary" @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))" @click="swapAction.handleClick(() => toolbar.execute('swap'))">交换输入/输出</button>
-        <button v-if="output" class="btn-secondary" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))">复制输出</button>
-        <button v-if="output" class="btn-secondary" @pointerdown="exportAction.handlePointerDown($event, () => toolbar.execute('export'))" @click="exportAction.handleClick(() => toolbar.execute('export'))">导出</button>
+        <button class="btn-secondary" @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))" @click="swapAction.handleClick(() => toolbar.execute('swap'))">Swap Input/Output</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))">Copy Output</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="exportAction.handlePointerDown($event, () => toolbar.execute('export'))" @click="exportAction.handleClick(() => toolbar.execute('export'))">Export</button>
       </div>
 
       <!-- Error -->
@@ -101,8 +101,8 @@ function onKeydown(e: KeyboardEvent) {
       <!-- Card: Output -->
       <div class="card card-output" v-if="output">
         <div class="card-header">
-          <span>输出</span>
-          <button v-if="output" class="btn-sm" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))">复制</button>
+          <span>Output</span>
+          <button v-if="output" class="btn-sm" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))">Copy</button>
         </div>
         <div class="card-body">
           <textarea
@@ -118,9 +118,9 @@ function onKeydown(e: KeyboardEvent) {
       <!-- Card: Empty State -->
       <div class="card" v-if="!output && !error && !input">
         <div class="card-body empty-hint">
-          <p>粘贴 JSON 文本到输入框，选择操作模式后点击执行</p>
-          <p class="hint-desc">支持格式化 (Pretty Print)、压缩 (Minify) 和验证 (Validate)</p>
-          <p class="hint-desc"><kbd>⌘Enter</kbd> 快速执行</p>
+          <p>Paste JSON text into the input area, select a mode, then execute.</p>
+          <p class="hint-desc">Supports Format (Pretty Print), Minify, and Validate.</p>
+          <p class="hint-desc"><kbd>⌘Enter</kbd> to execute</p>
         </div>
       </div>
     </div>

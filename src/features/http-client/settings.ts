@@ -10,13 +10,13 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'defaultMethod',
       type: 'select' as const,
-      label: '默认方法',
+      label: 'Default Method',
       default: "GET",
     },
     {
       key: 'timeout',
       type: 'number' as const,
-      label: '超时(ms)',
+      label: 'Timeout (ms)',
       default: 10000,
     },
 ]

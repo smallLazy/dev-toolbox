@@ -38,7 +38,7 @@ export class UuidFeature extends BaseFeature<UuidConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Uuid', 'Ready — 格式互转工具 — 两种格式之间互相转换')
+    this.context.notification.info('Uuid', 'Ready — Format converter')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

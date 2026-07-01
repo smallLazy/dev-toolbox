@@ -38,7 +38,7 @@ export class SentryFeature extends BaseFeature<SentryConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Sentry', 'Ready — 企业工具 — 外部服务集成')
+    this.context.notification.info('Sentry', 'Ready — Enterprise tool — external service integration')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

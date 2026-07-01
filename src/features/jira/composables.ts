@@ -18,7 +18,7 @@ export function useJira() {
   const context = createFeatureContext<JiraConfig>({
     id: 'jira',
     name: 'Jira',
-    description: '企业工具 — 外部服务集成',
+    description: 'Enterprise tool — external service integration',
     icon: '🏢',
     version: '1.0.0',
     category: 'utility',

@@ -38,7 +38,7 @@ export class WebsocketFeature extends BaseFeature<WebsocketConfig, string, strin
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Websocket', 'Ready — 网络工具 — HTTP 请求与响应分析')
+    this.context.notification.info('Websocket', 'Ready — Network tool — HTTP request and response analysis')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

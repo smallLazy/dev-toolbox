@@ -38,7 +38,7 @@ export class HtmlEncodeFeature extends BaseFeature<HtmlEncodeConfig, string, str
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('HtmlEncode', 'Ready — 数据转换工具 — 输入、转换、输出')
+    this.context.notification.info('HtmlEncode', 'Ready — Data conversion tool')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

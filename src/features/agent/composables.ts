@@ -18,7 +18,7 @@ export function useAgent() {
   const context = createFeatureContext<AgentConfig>({
     id: 'agent',
     name: 'Agent',
-    description: 'AI 工具 — 对话、补全与生成',
+    description: 'AI tools — chat, completion, and generation',
     icon: '🤖',
     version: '1.0.0',
     category: 'generator',

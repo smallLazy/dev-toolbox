@@ -18,7 +18,7 @@ export function usePrompt() {
   const context = createFeatureContext<PromptConfig>({
     id: 'prompt',
     name: 'Prompt',
-    description: 'AI 工具 — 对话、补全与生成',
+    description: 'AI tools — chat, completion, and generation',
     icon: '🤖',
     version: '1.0.0',
     category: 'generator',

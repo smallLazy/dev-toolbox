@@ -10,7 +10,7 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'autoParse',
       type: 'toggle' as const,
-      label: '粘贴自动解析',
+      label: 'Auto-parse on Paste',
       default: true,
     },
 ]

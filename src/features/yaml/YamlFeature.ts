@@ -38,7 +38,7 @@ export class YamlFeature extends BaseFeature<YamlConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Yaml', 'Ready — 编辑器工具 — 格式化、压缩与验证')
+    this.context.notification.info('Yaml', 'Ready — Editor tool — format, minify, and validate')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

@@ -18,7 +18,7 @@ export function useSm2() {
   const context = createFeatureContext<Sm2Config>({
     id: 'sm2',
     name: 'Sm2',
-    description: '数据转换工具 — 输入、转换、输出',
+    description: 'Data conversion tool — input, convert, output',
     icon: '🔐',
     version: '1.0.0',
     category: 'crypto',

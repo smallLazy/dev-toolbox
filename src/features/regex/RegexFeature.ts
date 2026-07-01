@@ -38,7 +38,7 @@ export class RegexFeature extends BaseFeature<RegexConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Regex', 'Ready — 检查器工具 — 解析并结构化展示数据')
+    this.context.notification.info('Regex', 'Ready — Inspector tool')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

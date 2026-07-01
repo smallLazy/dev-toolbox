@@ -38,7 +38,7 @@ export class RsaFeature extends BaseFeature<RsaConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Rsa', 'Ready — 数据转换工具 — 输入、转换、输出')
+    this.context.notification.info('Rsa', 'Ready — Data conversion tool')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

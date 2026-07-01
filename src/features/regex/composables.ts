@@ -18,7 +18,7 @@ export function useRegex() {
   const context = createFeatureContext<RegexConfig>({
     id: 'regex',
     name: 'Regex',
-    description: '检查器工具 — 解析并结构化展示数据',
+    description: 'Inspector tool — parse and display structured data',
     icon: '🔍',
     version: '1.0.0',
     category: 'analyzer',

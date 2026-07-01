@@ -10,7 +10,7 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'model',
       type: 'select' as const,
-      label: '模型',
+      label: 'Model',
       default: "default",
     },
     {

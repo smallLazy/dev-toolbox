@@ -10,7 +10,7 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'autoPreview',
       type: 'toggle' as const,
-      label: '自动预览',
+      label: 'Auto Preview',
       default: true,
     },
 ]

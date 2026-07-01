@@ -18,7 +18,7 @@ export function useSm4() {
   const context = createFeatureContext<Sm4Config>({
     id: 'sm4',
     name: 'Sm4',
-    description: '数据转换工具 — 输入、转换、输出',
+    description: 'Data conversion tool — input, convert, output',
     icon: '🔐',
     version: '1.0.0',
     category: 'crypto',

@@ -18,7 +18,7 @@ export function useTranslate() {
   const context = createFeatureContext<TranslateConfig>({
     id: 'translate',
     name: 'Translate',
-    description: 'AI 工具 — 对话、补全与生成',
+    description: 'AI tools — chat, completion, and generation',
     icon: '🤖',
     version: '1.0.0',
     category: 'generator',

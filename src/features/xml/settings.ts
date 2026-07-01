@@ -10,13 +10,13 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'indentSize',
       type: 'select' as const,
-      label: '缩进',
+      label: 'Indent Size',
       default: 2,
     },
     {
       key: 'autoFormat',
       type: 'toggle' as const,
-      label: '自动格式化',
+      label: 'Auto Format',
       default: true,
     },
 ]

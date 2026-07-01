@@ -22,7 +22,7 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'autoConnect',
       type: 'toggle' as const,
-      label: '自动连接',
+      label: 'Auto Connect',
       default: false,
     },
 ]

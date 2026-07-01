@@ -18,7 +18,7 @@ export function useYaml() {
   const context = createFeatureContext<YamlConfig>({
     id: 'yaml',
     name: 'Yaml',
-    description: '编辑器工具 — 格式化、压缩与验证',
+    description: 'Editor tool — format, minify, and validate',
     icon: '📝',
     version: '1.0.0',
     category: 'formatter',

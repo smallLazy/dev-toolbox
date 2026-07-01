@@ -38,7 +38,7 @@ export class QrcodeFeature extends BaseFeature<QrcodeConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Qrcode', 'Ready — 查看器工具 — 预览文件和元数据')
+    this.context.notification.info('Qrcode', 'Ready — Viewer tool')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

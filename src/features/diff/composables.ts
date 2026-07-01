@@ -18,7 +18,7 @@ export function useDiff() {
   const context = createFeatureContext<DiffConfig>({
     id: 'diff',
     name: 'Diff',
-    description: '编辑器工具 — 格式化、压缩与验证',
+    description: 'Editor tool — format, minify, and validate',
     icon: '📝',
     version: '1.0.0',
     category: 'formatter',

@@ -38,7 +38,7 @@ export class ExplainFeature extends BaseFeature<ExplainConfig, string, string> {
 
   async activate(): Promise<void> {
     this.lifecycle.transition('active')
-    this.context.notification.info('Explain', 'Ready — AI 工具 — 对话、补全与生成')
+    this.context.notification.info('Explain', 'Ready — AI tools — chat, completion, and generation')
   }
 
   async deactivate(): Promise<void> { this.saveState(); this.lifecycle.transition('inactive') }

@@ -10,7 +10,7 @@ export const settingsSchema: SettingField[] = [
     {
       key: 'defaultDirection',
       type: 'select' as const,
-      label: '默认方向',
+      label: 'Default Direction',
       default: "forward",
     },
 ]

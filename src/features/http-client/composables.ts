@@ -18,7 +18,7 @@ export function useHttpClient() {
   const context = createFeatureContext<HttpClientConfig>({
     id: 'http-client',
     name: 'HttpClient',
-    description: '网络工具 — HTTP 请求与响应分析',
+    description: 'Network tool — HTTP request and response analysis',
     icon: '🌐',
     version: '1.0.0',
     category: 'network',
