@@ -46,7 +46,7 @@ interface CategorySection {
 // ── Legacy items (TODO: remove once migrated to plugins) ─────────────
 
 /** Tools still living in src/modules/ without a plugin manifest.
- *  TODO: remove JWT/AES/SQL IN once migrated to features. */
+ *  TODO: remove JWT/AES once migrated to features. */
 const LEGACY_ITEMS: MenuItem[] = [
   {
     path: '/jwt',
@@ -61,13 +61,6 @@ const LEGACY_ITEMS: MenuItem[] = [
     icon: 'Lock',
     keywords: 'aes crypto encrypt decrypt cbc ecb',
     category: 'crypto',
-  },
-  {
-    path: '/sql-in',
-    label: 'SQL IN',
-    icon: 'Database',
-    keywords: 'sql in mysql list quote',
-    category: 'formatter',
   },
 ]
 

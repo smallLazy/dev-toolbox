@@ -1,11 +1,38 @@
-/** Sql Plugin — Type Definitions */
+/** SQL Plugin — Type Definitions */
 
-import type { FeatureConfig } from '@/sdk/feature'
+export type SqlMode = 'in-builder'
+// TODO: add 'format' mode when SQL Formatter is implemented
 
-export interface SqlConfig extends FeatureConfig {
-  // Add your config fields here
-  mode?: string
+export type SqlInValueType = 'string' | 'number'
+export type SqlInLineMode = 'single' | 'multi'
+
+export interface SqlInConfig {
+  valueType: SqlInValueType
+  lineMode: SqlInLineMode
+  wrapWithParentheses: boolean
+  dedupe: boolean
 }
+
+export interface SqlConfig {
+  mode: SqlMode
+  inConfig: SqlInConfig
+}
+
+export interface SqlResult {
+  input: string
+  output: string
+  config: SqlConfig
+}
+
+export interface SqlValidationError {
+  field: string
+  code: string
+  message: string
+}
+
+export type SqlValidationResult =
+  | { valid: true }
+  | { valid: false; errors: SqlValidationError[] }
 
 export interface SqlState {
   input: string

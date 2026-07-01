@@ -1,35 +1,90 @@
 /**
- * Sql Plugin — Pure Logic
+ * SQL Plugin — Pure Logic
  *
- * ALL business logic is here. Pure functions. Zero side effects.
- * Directly unit-testable. No Vue, no Tauri, no context access.
+ * SQL IN Builder: batch values → SQL IN list.
+ * TODO: add formatSql() for SQL Formatter mode.
  */
 
-import type { SqlConfig } from './types'
+import type {
+  SqlConfig,
+  SqlInConfig,
+  SqlResult,
+  SqlValidationResult,
+} from './types'
 
-/**
- * Core transformation logic.
- * Replace this with your actual business logic.
- */
-export function process(input: string, config: SqlConfig): string {
-  // TODO: Implement your transformation here
-  // Example: return input.toUpperCase()
-  return input
+// ── SQL IN Builder ───────────────────────────────────────────────────
+
+/** Parse batch input into individual items */
+export function parseSqlInItems(text: string, dedupe: boolean): string[] {
+  const raw = text
+    .split(/[\s,，;；]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  if (!dedupe) return raw
+
+  const seen = new Set<string>()
+  return raw.filter((item) => {
+    if (seen.has(item)) return false
+    seen.add(item)
+    return true
+  })
 }
 
-/**
- * Validate input before processing.
- */
-export function validate(input: string): { valid: boolean; message?: string } {
-  if (!input || !input.trim()) {
-    return { valid: false, message: 'Input is empty' }
+/** Format a single item for SQL IN list */
+export function formatSqlInItem(
+  item: string,
+  valueType: 'string' | 'number',
+): string {
+  if (valueType === 'number') return item
+  // String: wrap in single quotes, escape internal single quotes SQL-style
+  return `'${item.replace(/'/g, "''")}'`
+}
+
+/** Build the full SQL IN list string */
+export function buildSqlInList(input: string, config: SqlInConfig): string {
+  const items = parseSqlInItems(input, config.dedupe)
+  if (items.length === 0) {
+    throw new Error('No valid items found in input')
+  }
+
+  const separator = config.lineMode === 'single' ? ',' : ',\n'
+  const body = items.map((item) => formatSqlInItem(item, config.valueType)).join(separator)
+  return config.wrapWithParentheses ? `(${body})` : body
+}
+
+// ── Dispatch ─────────────────────────────────────────────────────────
+
+export function transformSql(input: string, config: SqlConfig): SqlResult {
+  // Future: if config.mode === 'format' → formatSql(...)
+  const output = buildSqlInList(input, config.inConfig)
+  return { input, output, config }
+}
+
+// ── Validation ──────────────────────────────────────────────────────
+
+export function validateSqlInput(
+  input: string,
+  _config: SqlConfig,
+): SqlValidationResult {
+  const items = parseSqlInItems(input, false)
+  if (items.length === 0) {
+    return {
+      valid: false,
+      errors: [
+        {
+          field: 'input',
+          code: 'EMPTY_INPUT',
+          message: 'No valid items found in input',
+        },
+      ],
+    }
   }
   return { valid: true }
 }
 
-/**
- * Get statistics about the input.
- */
+// ── Statistics ──────────────────────────────────────────────────────
+
 export function getStats(input: string): { lines: number; size: number } {
   return {
     lines: input.split('\n').length,
@@ -37,9 +92,6 @@ export function getStats(input: string): { lines: number; size: number } {
   }
 }
 
-/**
- * Format size for display.
- */
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`

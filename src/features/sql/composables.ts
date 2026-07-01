@@ -1,40 +1,36 @@
 /**
- * Sql Plugin — Vue Composable
- *
- * Bridges SqlFeature to Vue reactivity.
- * No Core/Registry/Service access.
+ * SQL Plugin — Vue Composable
  */
 
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { createFeatureContext } from '@/sdk/feature'
 import { copyText } from '@/shared/clipboard'
 import { SqlFeature } from './SqlFeature'
 import { createToolbar } from './toolbar'
-import { defaults } from './settings'
-import type { SqlConfig } from './types'
+import { defaults, defaultInConfig } from './settings'
+import { transformSql, validateSqlInput } from './logic'
+import type { SqlConfig, SqlMode, SqlInConfig } from './types'
 
 export function useSql() {
-  // Context & Feature
   const context = createFeatureContext<SqlConfig>({
     id: 'sql',
-    name: 'Sql',
-    description: '编辑器工具 — 格式化、压缩与验证',
-    icon: '📝',
+    name: 'SQL',
+    description: 'SQL IN Builder and Formatter',
+    icon: 'Database',
     version: '1.0.0',
     category: 'formatter',
   })
   const feature = new SqlFeature(context)
 
-  // Reactive State
   const input = ref('')
   const output = ref<string | null>(null)
   const error = ref<string | null>(null)
   const loading = ref(false)
+  const mode = ref<SqlMode>('in-builder')
+  const inConfig = reactive<SqlInConfig>({ ...defaultInConfig })
 
-  // Derived
   const stats = computed(() => feature.toolState)
 
-  // Toolbar
   const toolbar = createToolbar({
     async onCopy() {
       error.value = null
@@ -48,30 +44,44 @@ export function useSql() {
         error.value = e instanceof Error ? e.message : 'Failed to copy output'
       }
     },
-    onClear() { input.value = ''; output.value = null; error.value = null },
-    onSwap() { if (output.value) { input.value = output.value; output.value = null } },
+    onClear() {
+      input.value = ''
+      output.value = null
+      error.value = null
+    },
   })
 
-  // Actions
   async function execute() {
-    error.value = null; output.value = null
-    const v = feature.validate(input.value)
-    if (!v.valid) { error.value = v.errors[0].message; return }
+    error.value = null
+    output.value = null
+
+    const config: SqlConfig = { mode: mode.value, inConfig: { ...inConfig } }
+    const v = validateSqlInput(input.value, config)
+    if (!v.valid) {
+      error.value = v.errors[0].message
+      return
+    }
+
     loading.value = true
     try {
-      const result = await feature.run(input.value, defaults)
-      output.value = result
+      const result = transformSql(input.value, config)
+      output.value = result.output
       feature.recordHistory()
     } catch (e) {
       error.value = (e as Error).message
-    } finally { loading.value = false }
+    } finally {
+      loading.value = false
+    }
   }
 
   async function init() {
     await feature.initialize()
     await feature.activate()
   }
-  function dispose() { feature.deactivate() }
 
-  return { input, output, error, loading, stats, toolbar, execute, init, dispose }
+  function dispose() {
+    feature.deactivate()
+  }
+
+  return { input, output, error, loading, mode, inConfig, stats, toolbar, execute, init, dispose }
 }

@@ -35,8 +35,7 @@ const router = createRouter({
     },
     {
       path: "/sql-in",
-      name: "sql-in",
-      component: () => import("../modules/sql/SqlInView.vue"),
+      redirect: { path: "/sql", query: { mode: "in-builder" } },
     },
     {
       path: "/base64",
