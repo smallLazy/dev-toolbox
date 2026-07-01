@@ -20,8 +20,13 @@ const router = createRouter({
     },
     {
       path: "/cloud-encrypt",
-      name: "cloud-encrypt",
-      component: () => import("../modules/cloud/CloudEncryptView.vue"),
+      redirect: "/preset/php-compatible",
+    },
+    {
+      path: "/preset/php-compatible",
+      name: "preset-php-compatible",
+      component: () => import("@/presets/PresetView.vue"),
+      meta: { preset: "php-compatible" },
     },
     {
       path: "/json",

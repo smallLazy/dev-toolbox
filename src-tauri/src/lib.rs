@@ -2,7 +2,7 @@ mod commands;
 mod models;
 mod services;
 
-use commands::{aes_cmd, cloud_cmd};
+use commands::aes_cmd;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -10,7 +10,6 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             aes_cmd::aes_crypt,
-            cloud_cmd::cloud_encrypt,
         ])
         .run(tauri::generate_context!())
     {

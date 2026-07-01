@@ -3,7 +3,7 @@
 import type { FeatureConfig } from '@/sdk/feature'
 
 export type UrlMode = 'encode' | 'decode'
-export type UrlVariant = 'component' | 'uri'
+export type UrlVariant = 'component' | 'uri' | 'php'
 
 export interface UrlConfig extends FeatureConfig {
   mode: UrlMode

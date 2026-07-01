@@ -2,8 +2,12 @@
 
 import type { FeatureConfig } from '@/sdk/feature'
 
+export type Base64Padding = 'standard' | 'none'
+
 export interface Base64Config extends FeatureConfig {
   mode: 'encode' | 'decode'
+  /** Padding mode: 'standard' (RFC 4648 with =) or 'none' (strip = padding). Default: 'standard'. */
+  padding?: Base64Padding
 }
 
 export interface Base64State {

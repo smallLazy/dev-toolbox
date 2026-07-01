@@ -64,7 +64,8 @@ export class Base64Feature extends BaseFeature<Base64Config, string, Base64Resul
       }
       output = decode(input)
     } else {
-      output = encode(input)
+      const padding = config.padding ?? 'standard'
+      output = encode(input, { padding })
     }
 
     const stats = getStats(output)

@@ -15,8 +15,16 @@ export const settingsSchema: SettingField[] = [
     label: 'Default Mode',
     default: 'encode',
   },
+  {
+    key: 'defaultPadding',
+    type: 'select' as const,
+    label: 'Default Padding',
+    default: 'standard',
+    options: ['standard', 'none'],
+  },
 ]
 
 export const defaults: Base64Config = {
   mode: 'encode',
+  padding: 'standard',
 }

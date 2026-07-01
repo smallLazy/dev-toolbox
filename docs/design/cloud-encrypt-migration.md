@@ -10,6 +10,7 @@
 
 ## 目录
 
+0. [架构调整：Pipeline 放在 src/shared/pipeline/](#0-架构调整pipeline-放在-srcsharedpipeline)
 1. [当前 Cloud Encrypt 实现路径和依赖关系](#1-当前-cloud-encrypt-实现路径和依赖关系)
 2. [URL Feature 是否支持 PHP urlencode](#2-url-feature-是否支持-php-urlencode)
 3. [Base64 Feature 是否支持 no-padding/auto-padding](#3-base64-feature-是否支持-no-paddingauto-padding)
@@ -23,6 +24,65 @@
 11. [测试清单](#11-测试清单)
 12. [分阶段实施计划](#12-分阶段实施计划)
 13. [每个阶段的风险和回滚方式](#13-每个阶段的风险和回滚方式)
+
+---
+
+## 0. 架构调整：Pipeline 放在 `src/shared/pipeline/`
+
+### 0.1 调整原因
+
+`src/sdk/` 是 Frozen 层。本次 Cloud Encrypt 迁移不应引入 SDK 级变更。Pipeline 第一版只是应用层共享 runner，用于执行内置 Preset，不是稳定的 Feature SDK 契约。因此 Pipeline 代码放在 `src/shared/pipeline/`。
+
+### 0.2 调整后的目录结构
+
+```
+src/
+├── shared/                          ← 已有目录（当前含 clipboard.ts）
+│   └── pipeline/                    ← ★ 新增：应用层共享管道执行器
+│       ├── index.ts
+│       ├── types.ts                 ← PipelineStep, PipelinePreset, PipelineResult, PipelineError
+│       ├── pipelineRunner.ts        ← runPipeline()
+│       └── __tests__/
+│           └── pipelineRunner.test.ts
+│
+├── presets/                         ← ★ 新增：内置 Preset + 通用视图
+│   ├── index.ts                     ← barrel export
+│   ├── php-compatible.preset.ts     ← 第一个 Preset（替代 CloudEncrypt）
+│   ├── PresetView.vue               ← 通用 Preset 视图组件
+│   └── composables.ts              ← usePreset()
+│
+├── features/                        ← 已有：仅扩展变体，不新增 Feature
+│   ├── url/                         ← 扩展：增加 PHP variant
+│   └── base64/                      ← 扩展：增加 no-padding / auto-pad
+│
+├── modules/cloud/                   ← Phase 3 删除（标记 deprecated）
+│   └── CloudEncryptView.vue
+│
+└── sdk/                             ← ★ 零修改：不新增目录，不修改任何文件
+```
+
+### 0.3 Import 路径一览
+
+| 导入方 | 导入内容 | 路径 |
+|--------|----------|------|
+| `php-compatible.preset.ts` | `PipelinePreset` 类型 | `@/shared/pipeline/types` |
+| `php-compatible.preset.ts` | `encodeUrl`, `decodeUrl` | `@/features/url/logic` |
+| `php-compatible.preset.ts` | `encode`, `decode` (base64) | `@/features/base64/logic` |
+| `composables.ts` | `runPipeline`, `PipelineResult` | `@/shared/pipeline` |
+| `PresetView.vue` | `usePreset` | `@/presets/composables` |
+| `PresetView.vue` | `PipelinePreset` | `@/shared/pipeline/types` |
+
+**注意**：以下 import 路径**不会出现**：
+- ❌ `from '@/sdk/pipeline/...'` — 不存在
+- ❌ `from '@/sdk/feature'` re-export pipeline — 不修改 SDK barrel
+
+### 0.4 未来升格路径
+
+当 Pipeline 满足以下条件时，通过独立 RFC/ADR 从 `src/shared/pipeline/` 升格至 `src/sdk/pipeline/`：
+1. ≥ 3 个 Preset 稳定运行 ≥ 2 个版本周期
+2. API 签名无破坏性变更需求
+3. 类型被多个 Feature 引用
+4. 有独立 RFC 文档记录升格理由和契约承诺
 
 ---
 
@@ -453,18 +513,20 @@ export { phpCompatiblePreset } from './php-compatible.preset'
 ### 6.1 模块位置
 
 ```
-src/sdk/pipeline/
+src/shared/pipeline/
   index.ts              ← barrel export
-  types.ts              ← 类型定义（PipelineStep, PipelinePreset, PipelineResult）
+  types.ts              ← 类型定义（PipelineStep, PipelinePreset, PipelineResult, PipelineError）
   pipelineRunner.ts      ← 核心执行函数
   __tests__/
     pipelineRunner.test.ts
 ```
 
+> **为什么是 `src/shared/` 而非 `src/sdk/`**：`src/sdk/` 是 Frozen 层，本次迁移不引入 SDK 级变更。Pipeline 第一版是应用层共享工具，仅服务于内置 Preset，不是稳定的 Feature SDK 契约。待稳定后通过独立 RFC/ADR 升格。
+
 ### 6.2 pipelineRunner 签名与行为
 
 ```typescript
-// src/sdk/pipeline/pipelineRunner.ts
+// src/shared/pipeline/pipelineRunner.ts
 
 import type { PipelineStep, PipelinePreset } from './types'
 
@@ -538,7 +600,7 @@ runPipeline(preset, mode, input):
 | 无异步支持 | v1 不同步 | Base64/URL/JSON 等编码操作无 I/O，引入 async 增加不必要的复杂度 |
 | 中间结果暴露 | 全部暴露在 `steps[]` | 方便前端展示「管道调试」视图（未来 P3） |
 | 错误传播 | 包装 + 抛出 | 保留 stepId 用于 UI 精准报错 |
-| 放在 `src/sdk/` 下 | ✅ | 不是 Core（Core 是 Frozen），但属于 SDK 能力扩展 |
+| 放在 `src/shared/pipeline/` 下 | ✅ | 不在 Frozen 层，属于应用层共享工具；未来通过 RFC/ADR 升格至 SDK |
 
 ---
 
@@ -773,15 +835,14 @@ grep -r "base64" src-tauri/src --include="*.rs"
 | `src/features/base64/Base64Feature.ts` | 修改 | `run()` 将 `config.padding` 传入 logic 函数 |
 | `src/features/base64/__tests__/logic.test.ts` | 修改 | 增加 no-padding encode / auto-pad decode / fixSpaces decode / roundtrip 测试 |
 
-### Phase 2: 建设 Pipeline SDK + Preset + 迁移
+### Phase 2: 建设 Pipeline (shared) + Preset + 迁移
 
 | 文件 | 操作 | 说明 |
 |------|------|------|
-| `src/sdk/pipeline/types.ts` | **新建** | `PipelineStep`, `PipelinePreset`, `PipelineResult`, `PipelineError` |
-| `src/sdk/pipeline/pipelineRunner.ts` | **新建** | `runPipeline()` 核心执行函数 |
-| `src/sdk/pipeline/index.ts` | **新建** | Barrel export |
-| `src/sdk/pipeline/__tests__/pipelineRunner.test.ts` | **新建** | Pipeline 执行/错误传播/空输入/单步/多步 测试 |
-| `src/sdk/feature/index.ts` | 修改 | 增加 `export * from '../pipeline'` (或独立 import path) |
+| `src/shared/pipeline/types.ts` | **新建** | `PipelineStep`, `PipelinePreset`, `PipelineResult`, `PipelineError` |
+| `src/shared/pipeline/pipelineRunner.ts` | **新建** | `runPipeline()` 核心执行函数 |
+| `src/shared/pipeline/index.ts` | **新建** | Barrel export |
+| `src/shared/pipeline/__tests__/pipelineRunner.test.ts` | **新建** | Pipeline 执行/错误传播/空输入/单步/多步 测试 |
 | `src/presets/php-compatible.preset.ts` | **新建** | PHP Compatible Preset 定义 |
 | `src/presets/PresetView.vue` | **新建** | 通用 Preset 视图组件 |
 | `src/presets/composables.ts` | **新建** | `usePreset()` composable |
@@ -789,9 +850,11 @@ grep -r "base64" src-tauri/src --include="*.rs"
 | `src/router/index.ts` | 修改 | 新增 `/preset/php-compatible` 路由；`/cloud-encrypt` 改为 redirect |
 | `src/components/Sidebar.vue` | 修改 | Cloud Encrypt 条目替换为 PHP Compatible |
 | `src/modules/cloud/CloudEncryptView.vue` | 标记 | 添加注释 `@deprecated since vX.X — migrated to /preset/php-compatible` |
-| `src/plugins/` | **新建** | `preset-php-compatible.plugin.ts` — 让 workspaceStore 发现此 Preset（或扩展 workspaceStore 支持 preset barrel） |
+| `src/plugins/preset-php-compatible.plugin.ts` | **新建** | 让 workspaceStore 发现此 Preset |
 | `docs/design/cloud-encrypt-migration.md` | **新建** | 本文档 |
 | `CHANGELOG.md` | 修改 | 记录迁移 |
+
+> **注意**: Phase 2 不修改 `src/sdk/feature/index.ts` 或任何 SDK 文件。Preset 和 PresetView 直接 `import ... from '@/shared/pipeline'`。
 
 ### Phase 3: 清理 Rust 后端 + 移除旧代码
 
@@ -810,13 +873,11 @@ grep -r "base64" src-tauri/src --include="*.rs"
 | 文件 | 原因 |
 |------|------|
 | `src/core/**` | Frozen — Prime Directive |
-| `src/sdk/feature/BaseFeature.ts` | Frozen — 不修改 SDK 基类 |
-| `src/sdk/feature/FeatureContext.ts` | Frozen |
-| `src/sdk/feature/types.ts` | Frozen |
-| `src/sdk/plugin/**` | Frozen |
+| `src/sdk/**` (所有现有文件) | Frozen — 不在 SDK 下新增目录或修改任何文件 |
+| `src/sdk/feature/index.ts` | Frozen — 不在此次迁移中增加 re-export |
 | `src/components/**` (除 Sidebar.vue) | Frozen — 设计系统组件 |
 | `src/design/icons/index.ts` | 保留 Package 图标映射（Preset 继续使用） |
-| `src/stores/workspace.ts` | 不改动 — Preset 通过 plugin 文件注册或扩展 store |
+| `src/stores/workspace.ts` | 不改动 — Preset 通过 plugin 文件注册 |
 | `src/layouts/**` | Frozen |
 | `src/patterns/**` | Frozen |
 
@@ -937,16 +998,16 @@ grep -r "base64" src-tauri/src --include="*.rs"
 
 ---
 
-### Phase 2 — Pipeline SDK + PHP Compatible Preset + 迁移（M 工作量，3-4 天）
+### Phase 2 — Pipeline (shared) + PHP Compatible Preset + 迁移（M 工作量，3-4 天）
 
-**目标**: Pipeline 基础设施就绪，PHP Compatible Preset 上线，Cloud Encrypt 路由重定向。
+**目标**: Pipeline 基础设施就绪（在 `src/shared/pipeline/` 下），PHP Compatible Preset 上线，Cloud Encrypt 路由重定向。不修改 SDK。
 
 | 任务 | 估时 | 前置 |
 |------|------|------|
-| 2.1 `src/sdk/pipeline/types.ts` | 30min | - |
-| 2.2 `src/sdk/pipeline/pipelineRunner.ts` | 60min | 2.1 |
-| 2.3 `src/sdk/pipeline/index.ts` barrel | 5min | 2.2 |
-| 2.4 pipelineRunner 单元测试 | 60min | 2.2 |
+| 2.1 `src/shared/pipeline/types.ts` | 30min | - |
+| 2.2 `src/shared/pipeline/pipelineRunner.ts` | 60min | 2.1 |
+| 2.3 `src/shared/pipeline/index.ts` barrel | 5min | 2.2 |
+| 2.4 `src/shared/pipeline/__tests__/pipelineRunner.test.ts` | 60min | 2.2 |
 | 2.5 `src/presets/php-compatible.preset.ts` | 30min | Phase 1, 2.1 |
 | 2.6 `src/presets/composables.ts` (`usePreset`) | 45min | 2.2, 2.5 |
 | 2.7 `src/presets/PresetView.vue` (通用 UI) | 90min | 2.6 |
@@ -1048,22 +1109,65 @@ grep -r "base64" src-tauri/src --include="*.rs"
 
 ---
 
-## 附录 B: 与现有架构的一致性检查
+## 附录 B: Frozen 层合规说明
 
-| CLAUDE.md 规则 | 是否遵守 |
+### B.1 `src/sdk/` 是 Frozen 层
+
+CLAUDE.md 明确标记 `src/sdk/` 为 Never Modify 层：
+
+```
+❌ src/sdk/            ← Feature SDK + Plugin SDK (Frozen)
+```
+
+本次迁移严格遵循此规则：
+
+| 检查项 | 状态 | 说明 |
+|--------|------|------|
+| 修改 `src/sdk/**` 现有文件 | ❌ 不做 | 零修改 |
+| 在 `src/sdk/` 下新增子目录 | ❌ 不做 | 不在 Frozen 层新增 `src/sdk/pipeline/` |
+| 在 `src/sdk/feature/index.ts` 增加 re-export | ❌ 不做 | 不修改任何 SDK barrel |
+| Pipeline 代码位置 | `src/shared/pipeline/` | 应用层共享工具，非 SDK 契约 |
+
+### B.2 `src/shared/` 定位
+
+`src/shared/` 是项目已有的应用层共享目录（当前含 `clipboard.ts`）。其定位：
+
+- **不是 Core** — 不提供框架级抽象
+- **不是 SDK** — 不提供 Feature/Plugin 契约
+- **是应用层共享工具** — 供 features、presets、composables 等应用层代码 import
+
+`src/shared/pipeline/` 继承这一层级定位：它是应用层共享的管道执行工具，仅服务于内置 Preset。
+
+### B.3 未来升格路径
+
+当以下条件全部满足时，通过独立 RFC/ADR 将 Pipeline 从 `src/shared/pipeline/` 升格至 `src/sdk/pipeline/`：
+
+1. Pipeline 在 ≥ 3 个 Preset 中稳定运行 ≥ 2 个版本周期
+2. pipelineRunner 的 API 签名经过实际使用验证无需破坏性变更
+3. PipelineStep/PipelinePreset 类型被多个 Feature 引用
+4. 有独立的 RFC 文档记录升格理由和契约承诺
+
+升格操作：
+```
+src/shared/pipeline/*  →  src/sdk/pipeline/*
+```
+同时更新 `src/sdk/index.ts` barrel，所有 `import ... from '@/shared/pipeline'` 替换为 `import ... from '@/sdk/pipeline'`。
+
+### B.4 与 CLAUDE.md 规则对照
+
+| CLAUDE.md 规则 | 遵守情况 |
 |----------------|----------|
-| 不修改 `src/core/` | ✅ Pipeline SDK 在 `src/sdk/` |
-| 不修改 `src/sdk/` (Frozen) | ⚠️ `src/sdk/pipeline/` 是新增子目录，不修改现有 SDK 文件 |
-| 不修改 `src/components/` | ✅ 仅修改 `Sidebar.vue`（非设计系统组件） |
+| 不修改 `src/core/` | ✅ 零修改 |
+| 不修改 `src/sdk/` | ✅ 零修改（不在其下新增目录或文件） |
+| 不修改 `src/components/` (设计系统) | ✅ 仅修改 `Sidebar.vue`（非设计系统组件） |
 | 不修改 `src/layouts/` `src/patterns/` | ✅ |
-| Features 不互相导入 | ✅ Preset 从 logic.ts 导入纯函数是允许的（logic.ts 是纯函数库，非 Feature 类） |
+| Features 不互相导入 | ✅ Preset 从 `logic.ts` 导入纯函数（允许，logic.ts 是纯函数库） |
 | 使用 Design Tokens | ✅ PresetView.vue 使用 `var(--*-*)` |
 | 不硬编码颜色/间距/字号 | ✅ |
 | logic.ts 纯函数 | ✅ pipelineRunner + logic.ts 函数均为纯函数 |
 | 写 5+ 单元测试 | ✅ 每个扩展点都有测试规划 |
-
-**关于 `src/sdk/` 写入的说明**: CLAUDE.md 标记 `src/sdk/` 为 Frozen，但 Pipeline SDK 是**新增子目录** `src/sdk/pipeline/`，不修改任何现有 SDK 文件。这属于 SDK **扩展**（新增能力模块），而非对 Frozen 层的**修改**。如果严格禁止任何 `src/sdk/` 下的新增，则 Pipeline 代码可以放在 `src/shared/pipeline/`。
+| 不在 Frozen 层新增代码 | ✅ Pipeline 放在 `src/shared/pipeline/` |
 
 ---
 
-> **下一步**: 请审阅本设计，确认后按 Phase 1 → 2 → 3 顺序实施。各 Phase 之间应有充分的验证窗口。
+> **下一步**: 请审阅本设计。确认 Pipeline 放在 `src/shared/pipeline/` 且不修改 `src/sdk/` 的架构决策，以及 Phase 1 → 2 → 3 的分阶段计划。各 Phase 之间应有充分的验证窗口。

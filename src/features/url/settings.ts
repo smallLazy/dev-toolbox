@@ -17,6 +17,7 @@ export const settingsSchema: SettingField[] = [
     type: 'select' as const,
     label: 'Default Variant',
     default: 'component',
+    options: ['component', 'uri', 'php'],
   },
 ]
 

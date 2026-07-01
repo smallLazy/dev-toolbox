@@ -31,7 +31,7 @@ const categories: CategorySection[] = [
       { path: '/base64', label: 'Base64', icon: 'CaseSensitive', keywords: 'base64 encode decode', category: 'encoding', pluginId: 'base64' },
       { path: '/url', label: 'URL', icon: 'Link', keywords: 'url encode decode uri', category: 'encoding', pluginId: 'url' },
       { path: '/jwt', label: 'JWT', icon: 'Shield', keywords: 'jwt token decode', category: 'encoding', pluginId: 'jwt' },
-      { path: '/cloud-encrypt', label: 'Cloud Encrypt', icon: 'Package', keywords: 'base_encryption filter urlencode', category: 'encoding', pluginId: 'cloud-encrypt' },
+      { path: '/preset/php-compatible', label: 'PHP Compatible', icon: 'Package', keywords: 'php base_encryption filter urlencode base64 cloud encrypt 参数编码 兼容编码', category: 'encoding', pluginId: 'preset-php-compatible' },
     ],
   },
   {

@@ -130,6 +130,7 @@ export const TOOL_ICONS = {
   hash: Icons.Hash,
   jwt: Icons.Shield,
   ['cloud-encrypt']: Icons.Package,
+  ['preset-php-compatible']: Icons.Package,
   ['sql-in']: Icons.Database,
   config: Icons.Settings,
   settings: Icons.Settings,

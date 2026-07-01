@@ -4,26 +4,51 @@
  * ALL business logic is here. Pure functions. Zero side effects.
  * Directly unit-testable. No Vue, no Tauri, no context access.
  *
- * Scope: RFC 4648 Standard Base64 only.
+ * Scope: RFC 4648 Standard Base64, plus optional no-padding / auto-pad variants.
  */
 
-import type { Base64ValidationResult, TextStats } from './types'
+import type { Base64Padding, Base64ValidationResult, TextStats } from './types'
 
 /**
- * Encode plain text to Base64 (RFC 4648 Standard).
+ * Encode plain text to Base64.
+ *
+ * @param input   - Plain text to encode
+ * @param options - Optional encoding options
+ * @param options.padding - 'standard' (default, RFC 4648 with =) or 'none' (strip trailing =)
  */
-export function encode(input: string): string {
+export function encode(input: string, options?: { padding?: Base64Padding }): string {
   const bytes = new TextEncoder().encode(input)
   let binary = ''
   bytes.forEach((b) => (binary += String.fromCharCode(b)))
-  return btoa(binary)
+  const b64 = btoa(binary)
+  if (options?.padding === 'none') {
+    return b64.replace(/=+$/, '')
+  }
+  return b64
 }
 
 /**
- * Decode Base64 to plain text (RFC 4648 Standard).
+ * Decode Base64 to plain text.
+ *
+ * @param input   - Base64-encoded string
+ * @param options - Optional decoding options
+ * @param options.autoPad   - If true, auto-pad with '=' to reach a multiple-of-4 length before decoding
+ * @param options.fixSpaces - If true, replace spaces with '+' before decoding (for URL-transported Base64)
  */
-export function decode(input: string): string {
-  const binary = atob(input)
+export function decode(input: string, options?: { autoPad?: boolean; fixSpaces?: boolean }): string {
+  let fixed = input
+
+  if (options?.fixSpaces) {
+    fixed = fixed.replace(/ /g, '+')
+  }
+
+  if (options?.autoPad) {
+    while (fixed.length % 4 !== 0) {
+      fixed += '='
+    }
+  }
+
+  const binary = atob(fixed)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i)
@@ -52,10 +77,15 @@ export function validate(input: string): { valid: true } | { valid: false; error
 
 /**
  * Base64-specific validation.
+ *
  * Checks: alphabet, length (multiple of 4), padding, invalid character position.
  * Does NOT check empty input or max size — those are handled by validate().
+ *
+ * @param input   - Base64 string to validate
+ * @param options - Optional validation options
+ * @param options.lenientPadding - If true, skip length/padding checks (for no-padding / auto-pad scenarios)
  */
-export function validateBase64(input: string): Base64ValidationResult {
+export function validateBase64(input: string, options?: { lenientPadding?: boolean }): Base64ValidationResult {
   // Check for invalid characters
   for (let i = 0; i < input.length; i++) {
     const ch = input[i]
@@ -69,6 +99,22 @@ export function validateBase64(input: string): Base64ValidationResult {
         },
       }
     }
+  }
+
+  if (options?.lenientPadding) {
+    // In lenient mode, only check for valid alphabet — skip length and padding checks.
+    // Padding still cannot exceed 2 chars.
+    const paddingMatch = input.match(/=+$/)
+    if (paddingMatch && paddingMatch[0].length > 2) {
+      return {
+        valid: false,
+        error: {
+          type: 'invalid_padding',
+          message: 'Invalid Base64: incorrect padding (max 2 = chars)',
+        },
+      }
+    }
+    return { valid: true }
   }
 
   // Check length (must be multiple of 4)
