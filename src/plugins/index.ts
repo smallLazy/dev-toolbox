@@ -11,6 +11,7 @@
 export { default as agent } from './agent.plugin'
 export { default as base64 } from './base64.plugin'
 export { default as color } from './color.plugin'
+export { default as crypto } from './crypto.plugin'
 export { default as curl } from './curl.plugin'
 export { default as diff } from './diff.plugin'
 export { default as explain } from './explain.plugin'

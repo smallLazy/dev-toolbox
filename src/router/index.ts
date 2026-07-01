@@ -16,7 +16,7 @@ const router = createRouter({
     {
       path: "/crypto",
       name: "crypto",
-      component: () => import("../modules/crypto/CryptoView.vue"),
+      component: () => import("../features/crypto/CryptoView.vue"),
     },
     {
       path: "/cloud-encrypt",
