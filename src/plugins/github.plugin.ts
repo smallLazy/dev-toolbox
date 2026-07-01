@@ -7,11 +7,12 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'github',
-  name: 'Github',
+  name: 'GitHub',
   icon: 'GitBranch',
   version: '1.0.0',
   description: 'Enterprise tool — external service integration',
-  category: 'utility',
+  category: 'enterprise',
+  status: 'coming-soon',
 
   route: '/github',
   component: () => import('@/features/github/GithubView.vue'),
@@ -40,7 +41,7 @@ export default definePlugin({
   settings: {
     apiEndpoint: { key: 'apiEndpoint', type: 'input' as const, label: 'API Endpoint', default: "" },
     apiKey: { key: 'apiKey', type: 'input' as const, label: 'API Key', default: "" },
-    autoConnect: { key: 'autoConnect', type: 'toggle' as const, label: '自动连接', default: false },
+    autoConnect: { key: 'autoConnect', type: 'toggle' as const, label: 'Auto Connect', default: false },
   },
 
   history: { enabled: true, maxItems: 20 },

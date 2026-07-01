@@ -11,7 +11,8 @@ export default definePlugin({
   icon: 'CaseSensitive',
   version: '1.0.0',
   description: 'Data conversion tool — input, convert, output',
-  category: 'crypto',
+  category: 'encoding',
+  status: 'coming-soon',
 
   route: '/unicode',
   component: () => import('@/features/unicode/UnicodeView.vue'),
@@ -39,9 +40,9 @@ export default definePlugin({
   permissions: ['clipboard:read', 'clipboard:write'],
 
   settings: {
-    mode: { key: 'mode', type: 'select' as const, label: '默认模式', default: "encrypt" },
-    inputEncoding: { key: 'inputEncoding', type: 'select' as const, label: '输入编码', default: "utf8" },
-    outputEncoding: { key: 'outputEncoding', type: 'select' as const, label: '输出编码', default: "base64" },
+    mode: { key: 'mode', type: 'select' as const, label: 'Default Mode', default: "encrypt" },
+    inputEncoding: { key: 'inputEncoding', type: 'select' as const, label: 'Input Encoding', default: "utf8" },
+    outputEncoding: { key: 'outputEncoding', type: 'select' as const, label: 'Output Encoding', default: "base64" },
   },
 
   history: { enabled: true, maxItems: 20 },

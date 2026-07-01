@@ -12,6 +12,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Inspector tool — parse and display structured data',
   category: 'analyzer',
+  status: 'coming-soon',
 
   route: '/regex',
   component: () => import('@/features/regex/RegexView.vue'),
@@ -34,7 +35,7 @@ export default definePlugin({
   permissions: ['clipboard:read', 'clipboard:write'],
 
   settings: {
-    autoParse: { key: 'autoParse', type: 'toggle' as const, label: '粘贴自动解析', default: true },
+    autoParse: { key: 'autoParse', type: 'toggle' as const, label: 'Auto-parse on Paste', default: true },
   },
 
   history: { enabled: true, maxItems: 20 },

@@ -11,6 +11,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Generate MD5 and SHA-256 hashes',
   category: 'crypto',
+  status: 'active',
 
   route: '/hash',
   component: () => import('@/features/hash/HashView.vue'),

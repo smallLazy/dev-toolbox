@@ -11,6 +11,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'AES-256 symmetric encryption using CBC or ECB mode',
   category: 'crypto',
+  status: 'active',
 
   route: '/crypto',
   component: () => import('@/features/crypto/CryptoView.vue'),

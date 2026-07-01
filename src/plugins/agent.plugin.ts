@@ -12,6 +12,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'AI tools — chat, completion, and generation',
   category: 'ai',
+  status: 'coming-soon',
 
   route: '/agent',
   component: () => import('@/features/agent/AgentView.vue'),
@@ -39,7 +40,7 @@ export default definePlugin({
   permissions: ['ai:chat', 'network'],
 
   settings: {
-    model: { key: 'model', type: 'select' as const, label: '模型', default: "default" },
+    model: { key: 'model', type: 'select' as const, label: 'Model', default: "default" },
     temperature: { key: 'temperature', type: 'number' as const, label: 'Temperature', default: 0.7 },
   },
 

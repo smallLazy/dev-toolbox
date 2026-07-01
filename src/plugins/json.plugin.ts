@@ -15,6 +15,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Format, validate, and minify JSON',
   category: 'formatter',
+  status: 'active',
 
   route: '/json',
   component: () => import('@/features/json/JsonView.vue'),

@@ -11,6 +11,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'SQL IN Builder and Formatter',
   category: 'formatter',
+  status: 'active',
 
   route: '/sql',
   component: () => import('@/features/sql/SqlView.vue'),

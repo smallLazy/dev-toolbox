@@ -11,6 +11,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Convert Unix timestamps and date strings',
   category: 'converter',
+  status: 'active',
 
   route: '/timestamp',
   component: () => import('@/features/timestamp/TimestampView.vue'),

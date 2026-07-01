@@ -13,6 +13,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Compatible with PHP base_encryption() / filter(): URL Encode(PHP) → Base64(no padding)',
   category: 'encoding',
+  status: 'active',
 
   route: '/preset/php-compatible',
   component: () => import('@/presets/PresetView.vue'),

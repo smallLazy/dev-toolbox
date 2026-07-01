@@ -11,6 +11,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Encode and decode URLs using URI or component modes',
   category: 'encoding',
+  status: 'active',
 
   route: '/url',
   component: () => import('@/features/url/UrlView.vue'),

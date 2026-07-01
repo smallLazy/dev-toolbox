@@ -7,11 +7,12 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'qrcode',
-  name: 'Qrcode',
+  name: 'QR Code',
   icon: 'QrCode',
   version: '1.0.0',
   description: 'Viewer tool — preview files and metadata',
   category: 'utility',
+  status: 'coming-soon',
 
   route: '/qrcode',
   component: () => import('@/features/qrcode/QrcodeView.vue'),
@@ -34,7 +35,7 @@ export default definePlugin({
   permissions: ['file:read'],
 
   settings: {
-    autoPreview: { key: 'autoPreview', type: 'toggle' as const, label: '自动预览', default: true },
+    autoPreview: { key: 'autoPreview', type: 'toggle' as const, label: 'Auto Preview', default: true },
   },
 
   history: { enabled: true, maxItems: 20 },

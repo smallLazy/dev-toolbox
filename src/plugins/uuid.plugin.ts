@@ -7,11 +7,12 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'uuid',
-  name: 'Uuid',
+  name: 'UUID',
   icon: 'Hash',
   version: '1.0.0',
   description: 'Format converter — convert between formats',
   category: 'converter',
+  status: 'coming-soon',
 
   route: '/uuid',
   component: () => import('@/features/uuid/UuidView.vue'),
@@ -39,7 +40,7 @@ export default definePlugin({
   permissions: ['clipboard:read', 'clipboard:write'],
 
   settings: {
-    defaultDirection: { key: 'defaultDirection', type: 'select' as const, label: '默认方向', default: "forward" },
+    defaultDirection: { key: 'defaultDirection', type: 'select' as const, label: 'Default Direction', default: "forward" },
   },
 
   history: { enabled: true, maxItems: 20 },

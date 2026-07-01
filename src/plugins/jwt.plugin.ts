@@ -11,6 +11,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Decode JSON Web Tokens locally',
   category: 'encoding',
+  status: 'active',
 
   route: '/jwt',
   component: () => import('@/features/jwt/JwtView.vue'),

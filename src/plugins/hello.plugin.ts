@@ -19,6 +19,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Framework Validation — verify Workspace Core is running correctly',
   category: 'utility',
+  status: 'active',
 
   // Route: string path + lazy component
   route: '/hello',

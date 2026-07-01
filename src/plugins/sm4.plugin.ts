@@ -7,11 +7,12 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'sm4',
-  name: 'Sm4',
+  name: 'SM4',
   icon: 'Lock',
   version: '1.0.0',
   description: 'Data conversion tool — input, convert, output',
   category: 'crypto',
+  status: 'coming-soon',
 
   route: '/sm4',
   component: () => import('@/features/sm4/Sm4View.vue'),
@@ -39,9 +40,9 @@ export default definePlugin({
   permissions: ['clipboard:read', 'clipboard:write'],
 
   settings: {
-    mode: { key: 'mode', type: 'select' as const, label: '默认模式', default: "encrypt" },
-    inputEncoding: { key: 'inputEncoding', type: 'select' as const, label: '输入编码', default: "utf8" },
-    outputEncoding: { key: 'outputEncoding', type: 'select' as const, label: '输出编码', default: "base64" },
+    mode: { key: 'mode', type: 'select' as const, label: 'Default Mode', default: "encrypt" },
+    inputEncoding: { key: 'inputEncoding', type: 'select' as const, label: 'Input Encoding', default: "utf8" },
+    outputEncoding: { key: 'outputEncoding', type: 'select' as const, label: 'Output Encoding', default: "base64" },
   },
 
   history: { enabled: true, maxItems: 20 },

@@ -7,11 +7,12 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'request-decoder',
-  name: 'RequestDecoder',
+  name: 'Request Decoder',
   icon: 'Globe',
   version: '1.0.0',
   description: 'Network tool — HTTP request and response analysis',
   category: 'network',
+  status: 'coming-soon',
 
   route: '/request-decoder',
   component: () => import('@/features/request-decoder/RequestDecoderView.vue'),
@@ -34,8 +35,8 @@ export default definePlugin({
   permissions: ['network', 'clipboard:write'],
 
   settings: {
-    defaultMethod: { key: 'defaultMethod', type: 'select' as const, label: '默认方法', default: "GET" },
-    timeout: { key: 'timeout', type: 'number' as const, label: '超时(ms)', default: 10000 },
+    defaultMethod: { key: 'defaultMethod', type: 'select' as const, label: 'Default Method', default: "GET" },
+    timeout: { key: 'timeout', type: 'number' as const, label: 'Timeout (ms)', default: 10000 },
   },
 
   history: { enabled: true, maxItems: 20 },

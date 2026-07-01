@@ -7,11 +7,12 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'http-client',
-  name: 'HttpClient',
+  name: 'HTTP Client',
   icon: 'Globe',
   version: '1.0.0',
   description: 'Network tool — HTTP request and response analysis',
   category: 'network',
+  status: 'coming-soon',
 
   route: '/http-client',
   component: () => import('@/features/http-client/HttpClientView.vue'),
@@ -34,8 +35,8 @@ export default definePlugin({
   permissions: ['network', 'clipboard:write'],
 
   settings: {
-    defaultMethod: { key: 'defaultMethod', type: 'select' as const, label: '默认方法', default: "GET" },
-    timeout: { key: 'timeout', type: 'number' as const, label: '超时(ms)', default: 10000 },
+    defaultMethod: { key: 'defaultMethod', type: 'select' as const, label: 'Default Method', default: "GET" },
+    timeout: { key: 'timeout', type: 'number' as const, label: 'Timeout (ms)', default: 10000 },
   },
 
   history: { enabled: true, maxItems: 20 },

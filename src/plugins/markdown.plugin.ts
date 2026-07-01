@@ -12,6 +12,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Editor tool — format, minify, and validate',
   category: 'formatter',
+  status: 'coming-soon',
 
   route: '/markdown',
   component: () => import('@/features/markdown/MarkdownView.vue'),
@@ -44,8 +45,8 @@ export default definePlugin({
   permissions: ['clipboard:read', 'clipboard:write', 'file:export'],
 
   settings: {
-    indentSize: { key: 'indentSize', type: 'select' as const, label: '缩进', default: 2 },
-    autoFormat: { key: 'autoFormat', type: 'toggle' as const, label: '自动格式化', default: true },
+    indentSize: { key: 'indentSize', type: 'select' as const, label: 'Indent Size', default: 2 },
+    autoFormat: { key: 'autoFormat', type: 'toggle' as const, label: 'Auto Format', default: true },
   },
 
   history: { enabled: true, maxItems: 20 },
