@@ -51,7 +51,7 @@ const router = createRouter({
     {
       path: "/hash",
       name: "hash",
-      component: () => import("../modules/hash/HashView.vue"),
+      component: () => import("../features/hash/HashView.vue"),
     },
     {
       path: "/jwt",
