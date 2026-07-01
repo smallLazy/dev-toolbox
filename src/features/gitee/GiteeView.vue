@@ -8,8 +8,13 @@
 
 import { onMounted, onUnmounted } from 'vue'
 import { useGitee } from './composables'
+import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
 
 const { input, output, error, loading, stats, toolbar, execute, init, dispose } = useGitee()
+
+const copyAction = usePointerSafeAction()
+const clearAction = usePointerSafeAction({ disabled: () => loading.value })
+const swapAction = usePointerSafeAction({ disabled: () => loading.value })
 
 onMounted(() => init())
 onUnmounted(() => dispose())
@@ -47,9 +52,9 @@ function onKeydown(e: KeyboardEvent) {
           <span v-if="loading" class="spinner"></span>
           {{ loading ? '处理中...' : '连接' }}
         </button>
-        <button class="btn-secondary" @click="toolbar.execute('clear')">清空</button>
-        <button v-if="output" class="btn-secondary" @click="toolbar.execute('copy')">复制输出</button>
-        <button v-if="output" class="btn-secondary" @click="toolbar.execute('swap')">交换</button>
+        <button class="btn-secondary" @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))" @click="clearAction.handleClick(() => toolbar.execute('clear'))">清空</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))">复制输出</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))" @click="swapAction.handleClick(() => toolbar.execute('swap'))">交换</button>
       </div>
 
       <!-- Error -->

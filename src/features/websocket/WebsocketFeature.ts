@@ -75,14 +75,6 @@ export class WebsocketFeature extends BaseFeature<WebsocketConfig, string, strin
     this._toolState = { input: '', output: null, inputSize: 0, outputSize: null }
   }
 
-  // ── Clipboard ─────────────────────────────────────────────────────
-  async copyOutput(): Promise<void> {
-    if (this._state.output) {
-      await this.context.clipboard.copy(this._state.output)
-      this.context.notification.success('Copied', 'Output copied to clipboard')
-    }
-  }
-
   // ── History ───────────────────────────────────────────────────────
   recordHistory(): void {
     this.context.history.add({
