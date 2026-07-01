@@ -18,6 +18,7 @@ const {
 } = useCommandPalette()
 
 const searchInput = ref<HTMLInputElement | null>(null)
+const palettePanel = ref<HTMLElement | null>(null)
 
 // ── Auto-focus search when opened ────────────────────────────────────
 
@@ -69,11 +70,13 @@ onUnmounted(() => {
   window.removeEventListener('workspace:open-palette', onExternalOpen)
 })
 
-// ── Scroll selected item into view ───────────────────────────────────
+// ── Focus-out handler — close when focus leaves the palette panel ──
 
-function selectItem(index: number) {
-  // The parent composable handles selectedIndex changes
-  // Scrolling is handled via the move functions
+function onFocusOut(e: FocusEvent) {
+  // If focus moves to an element still inside the palette panel, keep open.
+  const related = e.relatedTarget as HTMLElement | null
+  if (related && palettePanel.value?.contains(related)) return
+  close()
 }
 </script>
 
@@ -81,7 +84,7 @@ function selectItem(index: number) {
   <Teleport to="body">
     <Transition name="palette">
       <div v-if="isOpen" class="palette-overlay" @click.self="close">
-        <div class="palette-panel" role="dialog" aria-label="Command Palette">
+        <div ref="palettePanel" class="palette-panel" role="dialog" aria-label="Command Palette" @focusout="onFocusOut">
           <!-- Search -->
           <div class="palette-search">
             <Icons.Search class="palette-search-icon" :size="14" />
@@ -107,6 +110,7 @@ function selectItem(index: number) {
               :item="item"
               :active="index === selectedIndex"
               @select="selectedIndex = index; execute()"
+              @hover="selectedIndex = index"
             />
             <PluginEmptyState
               v-if="paletteItems.length === 0"

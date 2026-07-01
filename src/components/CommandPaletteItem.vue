@@ -10,9 +10,16 @@ const props = defineProps<{
   active: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   select: []
+  hover: []
 }>()
+
+function onPointerDown(event: PointerEvent) {
+  if (event.button !== 0) return
+  event.preventDefault()
+  emit('select')
+}
 
 const iconComponent = computed<Component>(() => {
   if (props.item.id === 'about') return Icons.Info
@@ -23,12 +30,13 @@ const iconComponent = computed<Component>(() => {
 
 <template>
   <button
+    type="button"
     class="palette-item"
     :class="{ 'palette-item-active': active }"
     role="option"
     :aria-selected="active"
-    @click="$emit('select')"
-    @mouseenter="$emit('select')"
+    @pointerdown="onPointerDown"
+    @mouseenter="$emit('hover')"
   >
     <div class="palette-item-icon">
       <component :is="iconComponent" :size="ICON_SIZE.lg" />
