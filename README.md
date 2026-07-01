@@ -194,15 +194,17 @@ dev-toolbox/
 │   │   ├── ToolSegmentedControl.vue # Mode toggle control
 │   │   └── PluginEmptyState.vue  # Empty state placeholder
 │   │
+│   ├── modules/                  # Built-in app pages (home, about, config, sql)
 │   ├── presets/                  # Codec presets (e.g., PHP-compatible)
 │   ├── layouts/                  # App layouts ❄ Frozen
 │   ├── router/                   # Vue Router config (auto-managed)
 │   ├── stores/                   # Pinia stores (app, workspace)
 │   ├── composables/              # Vue composables (tools, favorites, recent, etc.)
 │   ├── design/                   # Design System
-│   │   ├── icons/index.ts        # Centralized SVG icon registry
-│   │   └── tokens/               # Design tokens
-│   └── shared/                   # Shared utilities (clipboard, etc.)
+│   │   └── icons/index.ts        # Centralized SVG icon registry
+│   ├── assets/                   # Static assets (theme.css)
+│   ├── shared/                   # Shared utilities (clipboard, pipeline, etc.)
+│   ├── playground/               # Development playground
 │
 ├── src-tauri/                    # Rust backend
 │   ├── Cargo.toml                # Rust dependencies

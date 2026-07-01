@@ -179,7 +179,7 @@ Full specification: [`../sdk/feature-sdk-v1.md`](../sdk/feature-sdk-v1.md)
 | Modify `src/core/` | ❌ Forbidden |
 | Modify `src/components/` | ❌ Forbidden (Design System frozen) |
 | Modify `src/layouts/` | ❌ Forbidden |
-| Modify `src/patterns/` | ❌ Forbidden |
+| Modify `src/templates/` | ❌ Forbidden |
 | Import from another Feature | ❌ Forbidden |
 | Hardcode CSS values | ❌ Forbidden |
 | Bypass Plugin Generator | ❌ Forbidden |

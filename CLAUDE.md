@@ -46,9 +46,8 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ❌ src/sdk/            ← Feature SDK + Plugin SDK (Frozen)
 ❌ src/components/     ← Design System components (Frozen)
 ❌ src/layouts/        ← App layouts (Frozen)
-❌ src/patterns/       ← Page patterns (Frozen)
+❌ src/templates/      ← Page templates (Frozen)
 ❌ src/router/         ← Router setup (auto-managed by Plugin system)
-❌ src/app/            ← App lifecycle (Frozen)
 ```
 
 #### Never Do

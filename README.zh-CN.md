@@ -194,15 +194,17 @@ dev-toolbox/
 │   │   ├── ToolSegmentedControl.vue # 模式切换控件
 │   │   └── PluginEmptyState.vue  # 空状态占位
 │   │
+│   ├── modules/                  # 内置应用页（首页、关于、设置、SQL）
 │   ├── presets/                  # Codec 预设（如 PHP 兼容管道）
 │   ├── layouts/                  # 应用布局 ❄ 冻结层
 │   ├── router/                   # Vue Router 配置（插件系统自动管理）
 │   ├── stores/                   # Pinia 状态（app、workspace）
 │   ├── composables/              # Vue 组合式函数
 │   ├── design/                   # 设计系统
-│   │   ├── icons/index.ts        # 集中式 SVG 图标注册中心
-│   │   └── tokens/               # 设计令牌
-│   └── shared/                   # 共享工具（剪贴板等）
+│   │   └── icons/index.ts        # 集中式 SVG 图标注册中心
+│   ├── assets/                   # 静态资源（theme.css）
+│   ├── shared/                   # 共享工具（剪贴板、管道等）
+│   ├── playground/               # 开发试验场
 │
 ├── src-tauri/                    # Rust 后端
 │   ├── Cargo.toml                # Rust 依赖
