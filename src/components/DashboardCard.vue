@@ -10,6 +10,7 @@ const props = defineProps<{
   description: string
   icon: string
   path: string
+  status?: string
   variant?: 'default' | 'recent' | 'favorite'
 }>()
 
@@ -58,6 +59,7 @@ function onCardKeydown(e: KeyboardEvent) {
       <span class="card-title">{{ name }}</span>
       <span class="card-desc">{{ description }}</span>
     </div>
+    <span v-if="status === 'coming-soon'" class="card-status-badge">Coming soon</span>
     <button
       class="card-favorite"
       :class="{ 'card-favorite-active': favorited }"
@@ -169,5 +171,20 @@ function onCardKeydown(e: KeyboardEvent) {
 
 .card-favorite-active:hover {
   color: var(--color-accent-hover);
+}
+
+/* ── Status Badge ─────────────────────────────────────────────────── */
+
+.card-status-badge {
+  position: absolute;
+  bottom: var(--space-tight);
+  right: var(--space-3);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  padding: var(--space-compact) var(--space-tight);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
 }
 </style>

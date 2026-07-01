@@ -15,14 +15,15 @@ const appVersion = `v${__APP_VERSION__}`
 // ── Category Metadata ────────────────────────────────────────────────
 
 const CATEGORY_META: Record<string, { label: string; icon: IconName; order: number }> = {
-  encoding:  { label: 'Encoding',   icon: 'CaseSensitive', order: 1 },
-  crypto:    { label: 'Crypto',     icon: 'Lock',          order: 2 },
-  formatter: { label: 'Formatter',  icon: 'FileJson',      order: 3 },
-  converter: { label: 'Converter',  icon: 'Clock',         order: 4 },
-  analyzer:  { label: 'Analyzer',   icon: 'Search',        order: 5 },
-  ai:        { label: 'AI Tools',   icon: 'Zap',           order: 6 },
-  network:   { label: 'Network',    icon: 'Globe',         order: 7 },
-  utility:   { label: 'Utility',    icon: 'Package',       order: 8 },
+  encoding:    { label: 'Encoding',     icon: 'CaseSensitive', order: 1 },
+  crypto:      { label: 'Crypto',       icon: 'Lock',          order: 2 },
+  formatter:   { label: 'Formatter',    icon: 'FileJson',      order: 3 },
+  converter:   { label: 'Converter',    icon: 'Clock',         order: 4 },
+  analyzer:    { label: 'Analyzer',     icon: 'Search',        order: 5 },
+  ai:          { label: 'AI Tools',     icon: 'Zap',           order: 6 },
+  network:     { label: 'Network',      icon: 'Globe',         order: 7 },
+  enterprise:  { label: 'Integrations', icon: 'Package',       order: 8 },
+  utility:     { label: 'Utility',      icon: 'Package',       order: 9 },
 }
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ interface MenuItem {
   keywords: string
   category?: string
   pluginId?: string
+  status?: string
 }
 
 interface CategorySection {
@@ -70,6 +72,7 @@ const sidebarCategories = computed<CategorySection[]>(() => {
         keywords: tool.searchKeywords.join(' '),
         category: tool.category,
         pluginId: tool.id,
+        status: tool.status,
       })
     }
 
@@ -189,10 +192,12 @@ function isActive(path: string): boolean {
           v-for="item in filteredSections"
           :key="item.path"
           :class="['nav-item', { active: isActive(item.path) }]"
+          :title="item.status === 'coming-soon' ? 'Coming soon' : undefined"
           @click="navigate(item.path, item.pluginId)"
         >
           <component :is="Icons[item.icon]" class="nav-svg" :size="18" />
           <span class="nav-label">{{ item.label }}</span>
+          <span v-if="item.status === 'coming-soon'" class="nav-status-badge">Soon</span>
           <span class="nav-badge">{{ item.category }}</span>
         </button>
         <PluginEmptyState
@@ -220,10 +225,12 @@ function isActive(path: string): boolean {
               v-for="item in cat.items"
               :key="item.path"
               :class="['nav-item nav-item-sub', { active: isActive(item.path) }]"
+              :title="item.status === 'coming-soon' ? 'Coming soon' : undefined"
               @click="navigate(item.path, item.pluginId)"
             >
               <component :is="Icons[item.icon]" class="nav-svg" :size="18" />
               <span class="nav-label">{{ item.label }}</span>
+              <span v-if="item.status === 'coming-soon'" class="nav-status-badge">Soon</span>
             </button>
           </div>
         </div>
@@ -305,13 +312,13 @@ function isActive(path: string): boolean {
 }
 .search-svg {
   position: absolute;
-  left: 10px;
+  left: var(--space-control-x);
   color: var(--sidebar-icon);
   pointer-events: none;
 }
 .search-input {
   width: 100%;
-  padding: var(--space-tight) var(--space-10) var(--space-tight) var(--space-control-lg-x);
+  padding: var(--space-tight) var(--space-10) var(--space-tight) var(--space-6);
   border: var(--border-width-thin) solid var(--sidebar-divider);
   border-radius: var(--radius-md);
   background: var(--color-neutral-20);
@@ -417,8 +424,18 @@ function isActive(path: string): boolean {
   font-size: var(--text-caption);
   color: var(--sidebar-badge-text);
   background: var(--sidebar-badge-bg);
-  padding: 1px 6px;
+  padding: var(--space-compact) var(--space-tight);
   border-radius: var(--radius-full);
+}
+.nav-status-badge {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  padding: var(--space-compact) var(--space-tight);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 .nav-empty {
   padding: var(--space-5);
