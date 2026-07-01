@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Icons, APP_ICONS } from '@/design/icons'
+import { Icons, APP_ICONS, type IconName } from '@/design/icons'
 import { useWorkspaceStore } from '@/stores/workspace'
 import PluginEmptyState from '@/templates/PluginEmptyState.vue'
 
@@ -12,91 +12,192 @@ const searchQuery = ref('')
 
 const appVersion = `v${__APP_VERSION__}`
 
-// ── Categories with collapsible state ────────────────────────────────
+// ── Category Metadata ────────────────────────────────────────────────
 
-interface MenuItem { path: string; label: string; icon: keyof typeof Icons; keywords: string; category?: string; pluginId?: string }
-interface CategorySection { id: string; label: string; icon: keyof typeof Icons; items: MenuItem[] }
+const CATEGORY_META: Record<string, { label: string; icon: IconName; order: number }> = {
+  encoder:   { label: 'Encoding',   icon: 'CaseSensitive', order: 1 },
+  crypto:    { label: 'Crypto',     icon: 'Lock',          order: 2 },
+  formatter: { label: 'Formatter',  icon: 'FileJson',      order: 3 },
+  converter: { label: 'Converter',  icon: 'Clock',         order: 4 },
+  analyzer:  { label: 'Analyzer',   icon: 'Search',        order: 5 },
+  generator: { label: 'AI Tools',   icon: 'Zap',           order: 6 },
+  network:   { label: 'Network',    icon: 'Globe',         order: 7 },
+  utility:   { label: 'Utility',    icon: 'Package',       order: 8 },
+}
+
+// ── Types ────────────────────────────────────────────────────────────
+
+interface MenuItem {
+  path: string
+  label: string
+  icon: IconName
+  keywords: string
+  category?: string
+  pluginId?: string
+}
+
+interface CategorySection {
+  id: string
+  label: string
+  icon: IconName
+  items: MenuItem[]
+}
+
+// ── Legacy items (TODO: remove once migrated to plugins) ─────────────
+
+/** Tools still living in src/modules/ without a plugin manifest.
+ *  Remove these when crypto/jwt/sql-in/timestamp are migrated to features. */
+const LEGACY_ITEMS: MenuItem[] = [
+  {
+    path: '/jwt',
+    label: 'JWT',
+    icon: 'Shield',
+    keywords: 'jwt token json web token encode decode',
+    category: 'encoder',
+  },
+  {
+    path: '/crypto',
+    label: 'AES',
+    icon: 'Lock',
+    keywords: 'aes crypto encrypt decrypt cbc ecb',
+    category: 'crypto',
+  },
+  {
+    path: '/sql-in',
+    label: 'SQL IN',
+    icon: 'Database',
+    keywords: 'sql in mysql list quote',
+    category: 'formatter',
+  },
+  {
+    path: '/timestamp',
+    label: 'Timestamp',
+    icon: 'Clock',
+    keywords: 'timestamp unix time date converter',
+    category: 'converter',
+  },
+]
+
+// ── Dynamic sidebar categories from workspace store ──────────────────
+
+const sidebarCategories = computed<CategorySection[]>(() => {
+  const sections = new Map<string, CategorySection>()
+  const seenPluginIds = new Set<string>()
+  const seenPaths = new Set<string>()
+
+  // 1. Load plugin tools from workspaceStore.toolsByCategory
+  //    Each tool inherits its category icon — no emoji, all Design System.
+  //    Dedup by pluginId AND path to guarantee no duplicates across categories.
+  for (const [categoryId, tools] of workspaceStore.toolsByCategory.entries()) {
+    const meta = CATEGORY_META[categoryId]
+    if (!meta) continue
+
+    const categoryItems: MenuItem[] = []
+    for (const tool of tools) {
+      if (seenPluginIds.has(tool.id)) continue
+      if (seenPaths.has(tool.path)) continue
+      seenPluginIds.add(tool.id)
+      seenPaths.add(tool.path)
+      categoryItems.push({
+        path: tool.path,
+        label: tool.name,
+        icon: meta.icon,
+        keywords: tool.searchKeywords.join(' '),
+        category: tool.category,
+        pluginId: tool.id,
+      })
+    }
+
+    if (categoryItems.length > 0) {
+      sections.set(categoryId, {
+        id: categoryId,
+        label: meta.label,
+        icon: meta.icon,
+        items: categoryItems,
+      })
+    }
+  }
+
+  // 2. Supplement legacy (non-plugin) items — only if path not already seen
+  for (const item of LEGACY_ITEMS) {
+    const categoryId = item.category
+    if (!categoryId) continue
+
+    const meta = CATEGORY_META[categoryId]
+    if (!meta) continue
+
+    if (seenPaths.has(item.path)) continue
+    seenPaths.add(item.path)
+
+    if (!sections.has(categoryId)) {
+      sections.set(categoryId, {
+        id: categoryId,
+        label: meta.label,
+        icon: meta.icon,
+        items: [],
+      })
+    }
+
+    sections.get(categoryId)!.items.push(item)
+  }
+
+  // 3. Sort categories by order, items alphabetically
+  return Array.from(sections.values())
+    .map((section) => ({
+      ...section,
+      items: section.items.sort((a, b) => a.label.localeCompare(b.label)),
+    }))
+    .sort((a, b) => (CATEGORY_META[a.id]?.order ?? 99) - (CATEGORY_META[b.id]?.order ?? 99))
+})
+
+// ── Categories with collapsible state ────────────────────────────────
 
 const collapsed = ref<Set<string>>(new Set())
 
 function toggleCategory(id: string) {
   if (collapsed.value.has(id)) collapsed.value.delete(id)
   else collapsed.value.add(id)
-  collapsed.value = new Set(collapsed.value) // trigger reactivity
+  collapsed.value = new Set(collapsed.value)
 }
-
-const categories: CategorySection[] = [
-  {
-    id: 'encoding', label: 'Encoding', icon: 'CaseSensitive', items: [
-      { path: '/base64', label: 'Base64', icon: 'CaseSensitive', keywords: 'base64 encode decode', category: 'encoding', pluginId: 'base64' },
-      { path: '/url', label: 'URL', icon: 'Link', keywords: 'url encode decode uri', category: 'encoding', pluginId: 'url' },
-      { path: '/jwt', label: 'JWT', icon: 'Shield', keywords: 'jwt token decode', category: 'encoding', pluginId: 'jwt' },
-      { path: '/preset/php-compatible', label: 'PHP Compatible', icon: 'Package', keywords: 'php base_encryption filter urlencode base64 cloud encrypt 参数编码 兼容编码', category: 'encoding', pluginId: 'preset-php-compatible' },
-    ],
-  },
-  {
-    id: 'crypto', label: 'Crypto', icon: 'Lock', items: [
-      { path: '/crypto', label: 'AES', icon: 'Lock', keywords: 'aes encrypt decrypt cbc ecb', category: 'crypto', pluginId: 'crypto' },
-      { path: '/hash', label: 'Hash', icon: 'Hash', keywords: 'md5 sha256 hash', category: 'crypto', pluginId: 'hash' },
-    ],
-  },
-  {
-    id: 'formatter', label: 'Formatter', icon: 'FileJson', items: [
-      { path: '/json', label: 'JSON', icon: 'FileJson', keywords: 'json format compact', category: 'formatter', pluginId: 'json' },
-      { path: '/sql-in', label: 'SQL IN', icon: 'Database', keywords: 'sql in list', category: 'formatter', pluginId: 'sql-in' },
-    ],
-  },
-  {
-    id: 'converter', label: 'Converter', icon: 'Clock', items: [
-      { path: '/timestamp', label: 'Timestamp', icon: 'Clock', keywords: 'timestamp unix date', category: 'converter', pluginId: 'timestamp' },
-    ],
-  },
-  {
-    id: 'developer', label: 'Developer', icon: 'Beaker', items: [
-      { path: '/hello', label: 'Hello', icon: 'Beaker', keywords: 'hello framework validation', category: 'developer', pluginId: 'hello' },
-    ],
-  },
-]
 
 // ── Workspace section (always visible, not collapsible) ───────────────
 
 const workspaceItems: MenuItem[] = [
-  { path: '/', label: 'Home', icon: 'Home', keywords: 'home dashboard', pluginId: 'home' },
+  { path: '/', label: 'Home', icon: 'Home', keywords: 'home dashboard' },
 ]
 
 // ── Search → Command Palette ──────────────────────────────────────────
 
 function onSearchFocus() {
-  // Open Command Palette instead of filtering sidebar (VSCode-style)
   window.dispatchEvent(new CustomEvent('workspace:open-palette'))
 }
 
 const filteredSections = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
   if (!q) return null
-  return allItems.value.filter(item =>
-    item.label.toLowerCase().includes(q) || item.keywords.toLowerCase().includes(q)
+  return allItems.value.filter(
+    (item) =>
+      item.label.toLowerCase().includes(q) ||
+      item.keywords.toLowerCase().includes(q),
   )
 })
 
-const allItems = computed(() => categories.flatMap(c => c.items))
+const allItems = computed(() => sidebarCategories.value.flatMap((c) => c.items))
 
 // ── Navigation — single code path, always touches recent ─────────────
 
 function navigate(path: string, pluginId?: string) {
   if (pluginId) {
     workspaceStore.touchRecent(pluginId)
-  } else {
-    // Fallback: look up plugin by path in workspace store
-    const tool = workspaceStore.tools.find(t => t.path === path)
-    if (tool) workspaceStore.touchRecent(tool.id)
   }
   router.push(path)
 }
 
 function isActive(path: string): boolean {
   if (path === '/') return route.path === '/'
-  return route.path.startsWith(path)
+  // route.path === path || startsWith(path + '/') avoids prefix
+  // collisions (e.g. /sql matching /sql-in)
+  return route.path === path || route.path.startsWith(`${path}/`)
 }
 </script>
 
@@ -114,7 +215,13 @@ function isActive(path: string): boolean {
     <!-- Search -->
     <div class="search-box">
       <Icons.Search class="search-svg" :size="14" />
-      <input v-model="searchQuery" type="text" class="search-input" placeholder="Search tools..." @focus="onSearchFocus" />
+      <input
+        v-model="searchQuery"
+        type="text"
+        class="search-input"
+        placeholder="Search tools..."
+        @focus="onSearchFocus"
+      />
       <kbd v-if="!searchQuery" class="search-kbd">⌘K</kbd>
       <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">&times;</button>
     </div>
@@ -122,8 +229,12 @@ function isActive(path: string): boolean {
     <nav class="sidebar-nav">
       <!-- Workspace (always visible) -->
       <template v-if="!searchQuery">
-        <button v-for="item in workspaceItems" :key="item.path"
-          :class="['nav-item', { active: isActive(item.path) }]" @click="navigate(item.path, item.pluginId)">
+        <button
+          v-for="item in workspaceItems"
+          :key="item.path"
+          :class="['nav-item', { active: isActive(item.path) }]"
+          @click="navigate(item.path, item.pluginId)"
+        >
           <component :is="Icons[item.icon]" class="nav-svg" :size="18" />
           <span class="nav-label">{{ item.label }}</span>
         </button>
@@ -132,8 +243,12 @@ function isActive(path: string): boolean {
 
       <!-- Search results (flat list) -->
       <template v-if="searchQuery">
-        <button v-for="item in filteredSections" :key="item.path"
-          :class="['nav-item', { active: isActive(item.path) }]" @click="navigate(item.path, item.pluginId)">
+        <button
+          v-for="item in filteredSections"
+          :key="item.path"
+          :class="['nav-item', { active: isActive(item.path) }]"
+          @click="navigate(item.path, item.pluginId)"
+        >
           <component :is="Icons[item.icon]" class="nav-svg" :size="18" />
           <span class="nav-label">{{ item.label }}</span>
           <span class="nav-badge">{{ item.category }}</span>
@@ -146,9 +261,9 @@ function isActive(path: string): boolean {
         />
       </template>
 
-      <!-- Categories (collapsible) -->
+      <!-- Categories (collapsible, dynamic from workspaceStore) -->
       <template v-if="!searchQuery">
-        <div v-for="cat in categories" :key="cat.id" class="nav-category">
+        <div v-for="cat in sidebarCategories" :key="cat.id" class="nav-category">
           <button class="nav-category-header" @click="toggleCategory(cat.id)">
             <Icons.ChevronRight
               :class="['category-chevron', { expanded: !collapsed.has(cat.id) }]"
@@ -159,9 +274,13 @@ function isActive(path: string): boolean {
             <span class="category-count">{{ cat.items.length }}</span>
           </button>
           <div v-if="!collapsed.has(cat.id)" class="nav-category-items">
-            <button v-for="item in cat.items" :key="item.path"
+            <button
+              v-for="item in cat.items"
+              :key="item.path"
               :class="['nav-item nav-item-sub', { active: isActive(item.path) }]"
-              @click="navigate(item.path, item.pluginId)">
+              @click="navigate(item.path, item.pluginId)"
+            >
+              <component :is="Icons[item.icon]" class="nav-svg" :size="18" />
               <span class="nav-label">{{ item.label }}</span>
             </button>
           </div>
@@ -172,11 +291,17 @@ function isActive(path: string): boolean {
     <!-- App Section -->
     <div class="sidebar-footer-section">
       <div class="nav-divider" />
-      <button :class="['nav-item', { active: isActive('/settings') }]" @click="navigate('/settings', 'settings')">
+      <button
+        :class="['nav-item', { active: isActive('/settings') }]"
+        @click="navigate('/settings', 'settings')"
+      >
         <Icons.Settings class="nav-svg" :size="18" />
         <span class="nav-label">Settings</span>
       </button>
-      <button :class="['nav-item', { active: isActive('/about') }]" @click="navigate('/about')">
+      <button
+        :class="['nav-item', { active: isActive('/about') }]"
+        @click="navigate('/about')"
+      >
         <Icons.Info class="nav-svg" :size="18" />
         <span class="nav-label">About</span>
       </button>
@@ -190,80 +315,244 @@ function isActive(path: string): boolean {
 
 <style scoped>
 .sidebar {
-  width: var(--sidebar-width); min-width: var(--sidebar-width);
-  background: var(--sidebar-bg); color: var(--sidebar-text);
-  display: flex; flex-direction: column; height: 100vh; user-select: none;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  user-select: none;
   border-right: var(--border-width-thin) solid var(--sidebar-divider);
 }
 
 /* Header */
 .sidebar-header {
-  padding: var(--space-4) var(--space-5) var(--space-3); display: flex; align-items: center; gap: var(--space-control-x);
-  cursor: pointer; flex-shrink: 0; transition: opacity var(--duration-fast);
+  padding: var(--space-4) var(--space-5) var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-control-x);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity var(--duration-fast);
 }
-.sidebar-header:hover { opacity: 0.8; }
-.logo-icon { color: var(--color-accent-primary); flex-shrink: 0; }
-.logo-text h1 { font-size: var(--text-subtitle); font-weight: var(--weight-semibold); color: var(--color-neutral-110); line-height: 1.2; }
-.logo-sub { font-size: var(--text-caption); color: var(--sidebar-text-secondary); }
+.sidebar-header:hover {
+  opacity: 0.8;
+}
+.logo-icon {
+  color: var(--color-accent-primary);
+  flex-shrink: 0;
+}
+.logo-text h1 {
+  font-size: var(--text-subtitle);
+  font-weight: var(--weight-semibold);
+  color: var(--color-neutral-110);
+  line-height: 1.2;
+}
+.logo-sub {
+  font-size: var(--text-caption);
+  color: var(--sidebar-text-secondary);
+}
 
 /* Search */
-.search-box { margin: 2px var(--space-3) var(--space-2); position: relative; display: flex; align-items: center; }
-.search-svg { position: absolute; left: 10px; color: var(--sidebar-icon); pointer-events: none; }
+.search-box {
+  margin: 2px var(--space-3) var(--space-2);
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-svg {
+  position: absolute;
+  left: 10px;
+  color: var(--sidebar-icon);
+  pointer-events: none;
+}
 .search-input {
-  width: 100%; padding: var(--space-tight) var(--space-10) var(--space-tight) var(--space-control-lg-x); border: var(--border-width-thin) solid var(--sidebar-divider);
-  border-radius: var(--radius-md); background: var(--color-neutral-20); color: var(--sidebar-text);
-  font-size: var(--text-body); font-family: var(--font-sans); outline: none; height: 30px;
+  width: 100%;
+  padding: var(--space-tight) var(--space-10) var(--space-tight) var(--space-control-lg-x);
+  border: var(--border-width-thin) solid var(--sidebar-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-20);
+  color: var(--sidebar-text);
+  font-size: var(--text-body);
+  font-family: var(--font-sans);
+  outline: none;
+  height: 30px;
   transition: border-color var(--duration-fast), background var(--duration-fast), box-shadow var(--duration-fast);
 }
-.search-input:hover { background: var(--color-neutral-25); border-color: var(--border-color-hover); }
-.search-input:focus { background: var(--color-neutral-15); border-color: var(--border-color-focus); box-shadow: 0 0 0 2px var(--color-accent-dim); }
-.search-input::placeholder { color: var(--sidebar-text-secondary); }
-.search-kbd { position: absolute; right: 8px; font-size: 10px; padding: 1px 5px; background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--sidebar-divider); border-radius: var(--radius-sm); color: var(--sidebar-text-secondary); font-family: var(--font-sans); }
-.search-clear { position: absolute; right: 6px; background: none; border: none; color: var(--sidebar-text-secondary); cursor: pointer; font-size: 14px; padding: 2px 4px; }
+.search-input:hover {
+  background: var(--color-neutral-25);
+  border-color: var(--border-color-hover);
+}
+.search-input:focus {
+  background: var(--color-neutral-15);
+  border-color: var(--border-color-focus);
+  box-shadow: 0 0 0 2px var(--color-accent-dim);
+}
+.search-input::placeholder {
+  color: var(--sidebar-text-secondary);
+}
+.search-kbd {
+  position: absolute;
+  right: 8px;
+  font-size: 10px;
+  padding: 1px 5px;
+  background: var(--color-neutral-40);
+  border: var(--border-width-thin) solid var(--sidebar-divider);
+  border-radius: var(--radius-sm);
+  color: var(--sidebar-text-secondary);
+  font-family: var(--font-sans);
+}
+.search-clear {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--sidebar-text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+}
 
 /* Nav */
-.sidebar-nav { flex: 1; padding: var(--space-1) 0; overflow-y: auto; }
+.sidebar-nav {
+  flex: 1;
+  padding: var(--space-1) 0;
+  overflow-y: auto;
+}
 
 .nav-item {
-  display: flex; align-items: center; gap: var(--space-control-x); width: 100%; height: 34px;
-  padding: 0 var(--space-5); margin: 1px 0; border: none; background: transparent;
-  color: var(--sidebar-text); font-size: var(--text-body); font-family: var(--font-sans);
-  cursor: pointer; text-align: left;
+  display: flex;
+  align-items: center;
+  gap: var(--space-control-x);
+  width: 100%;
+  height: 34px;
+  padding: 0 var(--space-5);
+  margin: 1px 0;
+  border: none;
+  background: transparent;
+  color: var(--sidebar-text);
+  font-size: var(--text-body);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-align: left;
   border-left: var(--border-width-thick) solid transparent;
   transition: color var(--duration-fast), background var(--duration-fast), border-color var(--duration-fast);
 }
-.nav-item:hover { background: var(--sidebar-hover-bg); color: var(--sidebar-text-hover); }
-.nav-item.active { background: var(--sidebar-active-bg); color: var(--color-accent-primary); border-left-color: var(--color-accent-primary); }
+.nav-item:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-text-hover);
+}
+.nav-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--color-accent-primary);
+  border-left-color: var(--color-accent-primary);
+}
 
-.nav-item-sub { padding-left: 40px; height: 30px; font-size: var(--text-body); }
+.nav-item-sub {
+  padding-left: 40px;
+  height: 30px;
+  font-size: var(--text-body);
+}
 
-.nav-svg { flex-shrink: 0; color: var(--sidebar-icon); transition: color var(--duration-fast); }
-.nav-item:hover .nav-svg { color: var(--sidebar-icon-hover); }
-.nav-item.active .nav-svg { color: var(--sidebar-icon-active); }
-.nav-label { white-space: nowrap; font-weight: var(--weight-regular); flex: 1; }
-.nav-badge { font-size: var(--text-caption); color: var(--sidebar-badge-text); background: var(--sidebar-badge-bg); padding: 1px 6px; border-radius: var(--radius-full); }
-.nav-empty { padding: var(--space-5); text-align: center; color: var(--sidebar-text-secondary); font-size: var(--text-body); }
-.nav-divider { height: 1px; background: var(--sidebar-divider); margin: var(--space-1) var(--space-3); }
+.nav-svg {
+  flex-shrink: 0;
+  color: var(--sidebar-icon);
+  transition: color var(--duration-fast);
+}
+.nav-item:hover .nav-svg {
+  color: var(--sidebar-icon-hover);
+}
+.nav-item.active .nav-svg {
+  color: var(--sidebar-icon-active);
+}
+.nav-label {
+  white-space: nowrap;
+  font-weight: var(--weight-regular);
+  flex: 1;
+}
+.nav-badge {
+  font-size: var(--text-caption);
+  color: var(--sidebar-badge-text);
+  background: var(--sidebar-badge-bg);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+.nav-empty {
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--sidebar-text-secondary);
+  font-size: var(--text-body);
+}
+.nav-divider {
+  height: 1px;
+  background: var(--sidebar-divider);
+  margin: var(--space-1) var(--space-3);
+}
 
 /* Categories */
-.nav-category { margin: 2px 0; }
-.nav-category-header {
-  display: flex; align-items: center; gap: var(--space-tight); width: 100%;
-  padding: var(--space-tight) var(--space-5) var(--space-tight) var(--space-3); border: none; background: transparent;
-  color: var(--sidebar-category); font-size: var(--text-label); font-family: var(--font-sans);
-  font-weight: var(--weight-semibold); letter-spacing: 0.08em;
-  cursor: pointer; transition: color var(--duration-fast);
+.nav-category {
+  margin: 2px 0;
 }
-.nav-category-header:hover { color: var(--sidebar-text); }
-.category-chevron { flex-shrink: 0; color: var(--sidebar-category); transition: transform var(--duration-fast); }
-.category-chevron.expanded { transform: rotate(90deg); }
-.category-svg { flex-shrink: 0; }
-.category-label { flex: 1; text-align: left; }
-.category-count { font-size: 10px; color: var(--sidebar-badge-text); background: var(--sidebar-badge-bg); padding: 1px 5px; border-radius: var(--radius-full); font-weight: var(--weight-regular); letter-spacing: 0; }
-.nav-category-items { overflow: hidden; }
+.nav-category-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-tight);
+  width: 100%;
+  padding: var(--space-tight) var(--space-5) var(--space-tight) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--sidebar-category);
+  font-size: var(--text-label);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color var(--duration-fast);
+}
+.nav-category-header:hover {
+  color: var(--sidebar-text);
+}
+.category-chevron {
+  flex-shrink: 0;
+  color: var(--sidebar-category);
+  transition: transform var(--duration-fast);
+}
+.category-chevron.expanded {
+  transform: rotate(90deg);
+}
+.category-svg {
+  flex-shrink: 0;
+}
+.category-label {
+  flex: 1;
+  text-align: left;
+}
+.category-count {
+  font-size: 10px;
+  color: var(--sidebar-badge-text);
+  background: var(--sidebar-badge-bg);
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0;
+}
+.nav-category-items {
+  overflow: hidden;
+}
 
 /* Footer */
-.sidebar-footer-section { flex-shrink: 0; }
-.sidebar-footer { padding: var(--space-control-x) var(--space-5); border-top: var(--border-width-thin) solid var(--sidebar-divider); flex-shrink: 0; }
-.version { font-size: var(--text-caption); color: var(--sidebar-text-secondary); letter-spacing: 0.03em; }
+.sidebar-footer-section {
+  flex-shrink: 0;
+}
+.sidebar-footer {
+  padding: var(--space-control-x) var(--space-5);
+  border-top: var(--border-width-thin) solid var(--sidebar-divider);
+  flex-shrink: 0;
+}
+.version {
+  font-size: var(--text-caption);
+  color: var(--sidebar-text-secondary);
+  letter-spacing: 0.03em;
+}
 </style>
