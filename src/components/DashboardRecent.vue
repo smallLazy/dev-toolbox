@@ -23,6 +23,7 @@ const { items, isEmpty } = useRecent(6)
         :description="tool.description"
         :icon="tool.icon"
         :path="tool.path"
+        :status="tool.status"
         variant="recent"
         @select="$emit('select', $event)"
       />

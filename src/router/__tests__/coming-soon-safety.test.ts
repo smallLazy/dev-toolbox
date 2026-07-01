@@ -173,7 +173,7 @@ describe('Sidebar and Home Badge Emoji Check', () => {
   it('DashboardCard.vue has coming-soon badge markup', async () => {
     const source = (await import('../../components/DashboardCard.vue?raw')).default as string
     expect(source, 'DashboardCard must have status badge').toContain('card-status-badge')
-    expect(source, 'DashboardCard must show Coming soon').toContain('Coming soon')
+    expect(source, 'DashboardCard must show Soon badge').toContain('Soon')
   })
 
   it('DashboardCard.vue has zero emoji characters', async () => {

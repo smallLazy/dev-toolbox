@@ -23,6 +23,7 @@ const { items, isEmpty } = useFavorites()
         :description="tool.description"
         :icon="tool.icon"
         :path="tool.path"
+        :status="tool.status"
         variant="favorite"
         @select="$emit('select', $event)"
       />
