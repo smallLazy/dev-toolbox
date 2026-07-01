@@ -2,15 +2,19 @@
  * Base64 Plugin — Vue Composable
  *
  * Bridges Base64Feature to Vue reactivity.
+ * Uses shared useCodecTransform for mode-switching state machine.
  * No Core/Registry/Service access.
  */
 
 import { ref, computed } from 'vue'
 import { createFeatureContext } from '@/sdk/feature'
 import { copyText } from '@/shared/clipboard'
+import { useCodecTransform } from '@/composables/useCodecTransform'
+import type { CodecMode } from '@/composables/useCodecTransform'
 import { Base64Feature } from './Base64Feature'
 import { createToolbar } from './toolbar'
 import { defaults } from './settings'
+import { encode, decode, getStats } from './logic'
 import type { Base64Config } from './types'
 
 export function useBase64() {
@@ -25,61 +29,111 @@ export function useBase64() {
   })
   const feature = new Base64Feature(context)
 
-  // Reactive State
-  const input = ref('')
-  const output = ref<string | null>(null)
-  const error = ref<string | null>(null)
+  // ── Shared encode/decode state machine ─────────────────────────────
+  const codec = useCodecTransform({
+    encode: (input: string) => encode(input),
+    decode: (input: string) => decode(input),
+    defaultMode: 'encode',
+  })
+
+  // ── Feature-specific state ─────────────────────────────────────────
   const loading = ref(false)
-  const mode = ref<'encode' | 'decode'>('encode')
   const outputStats = ref<{ chars: number; lines: number; bytes: number } | null>(null)
 
   // Derived
   const stats = computed(() => feature.toolState)
 
-  // Toolbar
+  // ── Mode switching (wraps shared codec + feature stats) ────────────
+  function selectMode(nextMode: CodecMode): void {
+    outputStats.value = null
+    codec.selectMode(nextMode)
+    // Recompute stats for the new output (codec.transform already ran)
+    if (codec.output.value) {
+      outputStats.value = getStats(codec.output.value)
+    }
+  }
+
+  // ── Toolbar ────────────────────────────────────────────────────────
   const toolbar = createToolbar({
     async onCopy() {
-      error.value = null
+      codec.error.value = null
 
-      if (!output.value) {
-        error.value = 'No output to copy'
+      if (!codec.output.value) {
+        codec.error.value = 'No output to copy'
         return
       }
 
       try {
-        await copyText(output.value)
+        await copyText(codec.output.value)
       } catch (e) {
-        error.value = e instanceof Error ? e.message : 'Failed to copy output'
+        codec.error.value = e instanceof Error ? e.message : 'Failed to copy output'
       }
     },
-    onClear() { input.value = ''; output.value = null; outputStats.value = null; error.value = null },
-    onSwap() { if (output.value) { input.value = output.value; output.value = null; outputStats.value = null } },
+    onClear() {
+      codec.clear()
+      outputStats.value = null
+    },
+    onSwap() {
+      if (codec.output.value) {
+        codec.input.value = codec.output.value
+        codec.output.value = null
+        outputStats.value = null
+      }
+    },
   })
 
-  // Actions
+  // ── Full execute pipeline (validate + run + stats + history) ──────
   async function execute() {
-    error.value = null; output.value = null; outputStats.value = null
+    codec.error.value = null
+    codec.output.value = null
+    outputStats.value = null
 
-    const v = feature.validate(input.value)
-    if (!v.valid) { error.value = v.errors![0].message; return }
+    const v = feature.validate(codec.input.value)
+    if (!v.valid) {
+      codec.error.value = v.errors![0].message
+      return
+    }
 
     loading.value = true
     try {
-      const config: Base64Config = { mode: mode.value }
-      const result = await feature.run(input.value, config)
-      output.value = result.output
+      const config: Base64Config = { mode: codec.mode.value }
+      const result = await feature.run(codec.input.value, config)
+      codec.output.value = result.output
       outputStats.value = result.stats
       feature.recordHistory()
     } catch (e) {
-      error.value = (e as Error).message
-    } finally { loading.value = false }
+      codec.error.value = (e as Error).message
+    } finally {
+      loading.value = false
+    }
   }
 
+  // ── Lifecycle ──────────────────────────────────────────────────────
   async function init() {
     await feature.initialize()
     await feature.activate()
   }
-  function dispose() { feature.deactivate() }
 
-  return { input, output, error, loading, mode, stats, outputStats, toolbar, execute, init, dispose }
+  function dispose() {
+    feature.deactivate()
+  }
+
+  return {
+    // From shared codec
+    input: codec.input,
+    output: codec.output,
+    error: codec.error,
+    mode: codec.mode,
+    selectMode,
+    transform: codec.transform,
+    clear: codec.clear,
+    // Feature-specific
+    loading,
+    stats,
+    outputStats,
+    toolbar,
+    execute,
+    init,
+    dispose,
+  }
 }

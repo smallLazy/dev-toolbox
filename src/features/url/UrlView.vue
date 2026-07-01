@@ -2,22 +2,26 @@
 /**
  * URL Plugin — Main View
  *
- * Spec-aligned layout:
- *   Card: Configuration (Mode Encode|Decode + Variant Component|URI)
- *   Card: Input (textarea + char count)
- *   Action Bar (Execute, Copy, Clear, Swap I/O)
- *   Card: Output (conditional, readonly textarea + char count)
+ * Layout uses shared ToolPage components for consistent visual spec:
+ *   ToolPage > ToolHeader > ToolSection(Config: Mode + Variant) > ToolSection(Input)
+ *   > ToolActions > ToolSection(Output)
  *
  * ALL UI from Design System. Zero custom components.
  */
 
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useUrl } from './composables'
 import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
 import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
+import ToolPage from '@/templates/ToolPage.vue'
+import ToolHeader from '@/templates/ToolHeader.vue'
+import ToolSection from '@/templates/ToolSection.vue'
+import ToolActions from '@/templates/ToolActions.vue'
+import ToolOutputPanel from '@/templates/ToolOutputPanel.vue'
+import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
 import type { UrlMode, UrlVariant } from './types'
 
-const { input, output, error, loading, mode, variant, outputStats, toolbar, execute, init, dispose } =
+const { input, output, error, loading, mode, variant, outputStats, toolbar, selectMode, execute, init, dispose } =
   useUrl()
 
 // ── Generic text-input + execute-button interaction ──────────────────
@@ -32,54 +36,26 @@ const {
   handleShortcut,
 } = useTextActionTrigger({ model: input, loading, execute })
 
-// ── Mode switch (Encode / Decode tabs) ───────────────────────────────
-const modeTriggeredByPointer = ref(false)
+// ── Mode switch (Encode / Decode) ────────────────────────────────────
+const modeOptions = [
+  { label: 'Encode', value: 'encode' },
+  { label: 'Decode', value: 'decode' },
+]
 
-function switchMode(newMode: UrlMode) {
+function handleModeChange(newMode: string) {
   syncInputFromDom()
-  mode.value = newMode
+  selectMode(newMode as UrlMode)
 }
 
-function handleModePointerDown(event: PointerEvent, nextMode: UrlMode) {
-  event.preventDefault()
-  event.stopPropagation()
-  modeTriggeredByPointer.value = true
-  switchMode(nextMode)
-  globalThis.setTimeout(() => {
-    modeTriggeredByPointer.value = false
-  }, 0)
-}
+// ── Variant switch (Component / URI) ─────────────────────────────────
+const variantOptions = [
+  { label: 'Component', value: 'component' },
+  { label: 'URI', value: 'uri' },
+]
 
-function handleModeClick(nextMode: UrlMode) {
-  if (modeTriggeredByPointer.value) {
-    return
-  }
-  switchMode(nextMode)
-}
-
-// ── Variant switch (Component / URI tabs) ────────────────────────────
-const variantTriggeredByPointer = ref(false)
-
-function switchVariant(newVariant: UrlVariant) {
+function handleVariantChange(newVariant: string) {
   syncInputFromDom()
-  variant.value = newVariant
-}
-
-function handleVariantPointerDown(event: PointerEvent, nextVariant: UrlVariant) {
-  event.preventDefault()
-  event.stopPropagation()
-  variantTriggeredByPointer.value = true
-  switchVariant(nextVariant)
-  globalThis.setTimeout(() => {
-    variantTriggeredByPointer.value = false
-  }, 0)
-}
-
-function handleVariantClick(nextVariant: UrlVariant) {
-  if (variantTriggeredByPointer.value) {
-    return
-  }
-  switchVariant(nextVariant)
+  variant.value = newVariant as UrlVariant
 }
 
 // ── Pointer-safe toolbar actions (Copy, Clear, Swap) ──────────────
@@ -93,101 +69,67 @@ onUnmounted(() => dispose())
 </script>
 
 <template>
-  <div class="page" @keydown="handleShortcut">
-    <header class="page-header">
-      <h1 class="page-title">URL Encode / Decode</h1>
-      <p class="page-desc">
+  <ToolPage @keydown="handleShortcut">
+    <ToolHeader
+      title="URL Encode / Decode"
+      description="Encode and decode URLs using URI or component modes —"
+    >
+      <template #default>
         Encode and decode URLs using URI or component modes &mdash;
         <kbd>⌘Enter</kbd> to execute
-      </p>
-    </header>
+      </template>
+    </ToolHeader>
 
     <div class="page-content">
-      <!-- Card: Configuration -->
-      <div class="card">
-        <div class="card-header">Configuration</div>
-        <div class="card-body">
-          <div class="form-row">
-            <div class="field flex-1">
-              <label class="field-label">Mode</label>
-              <div class="segmented-control">
-                <button
-                  type="button"
-                  :class="{ active: mode === 'encode' }"
-                  :aria-pressed="mode === 'encode'"
-                  @pointerdown="handleModePointerDown($event, 'encode')"
-                  @click="handleModeClick('encode')"
-                >
-                  Encode
-                </button>
-                <button
-                  type="button"
-                  :class="{ active: mode === 'decode' }"
-                  :aria-pressed="mode === 'decode'"
-                  @pointerdown="handleModePointerDown($event, 'decode')"
-                  @click="handleModeClick('decode')"
-                >
-                  Decode
-                </button>
-              </div>
-            </div>
-            <div class="field flex-1">
-              <label class="field-label">Variant</label>
-              <div class="segmented-control">
-                <button
-                  type="button"
-                  :class="{ active: variant === 'component' }"
-                  :aria-pressed="variant === 'component'"
-                  @pointerdown="handleVariantPointerDown($event, 'component')"
-                  @click="handleVariantClick('component')"
-                >
-                  Component
-                </button>
-                <button
-                  type="button"
-                  :class="{ active: variant === 'uri' }"
-                  :aria-pressed="variant === 'uri'"
-                  @pointerdown="handleVariantPointerDown($event, 'uri')"
-                  @click="handleVariantClick('uri')"
-                >
-                  URI
-                </button>
-              </div>
-            </div>
+      <!-- Configuration: Mode + Variant side by side -->
+      <ToolSection title="Configuration">
+        <div class="form-row">
+          <div class="field flex-1">
+            <label class="field-label">Mode</label>
+            <ToolSegmentedControl
+              :model-value="mode"
+              :options="modeOptions"
+              @update:model-value="handleModeChange"
+            />
+          </div>
+          <div class="field flex-1">
+            <label class="field-label">Variant</label>
+            <ToolSegmentedControl
+              :model-value="variant"
+              :options="variantOptions"
+              @update:model-value="handleVariantChange"
+            />
           </div>
         </div>
-      </div>
+      </ToolSection>
 
-      <!-- Card: Input -->
-      <div class="card">
-        <div class="card-header">Input</div>
-        <div class="card-body">
-          <textarea
-            ref="inputEl"
-            v-model="input"
-            class="dt-textarea"
-            rows="6"
-            :aria-label="
-              mode === 'encode'
-                ? 'Plain URL or text input'
-                : 'Encoded URL input'
-            "
-            :placeholder="
-              mode === 'encode'
-                ? 'Enter URL or text to encode...'
-                : 'Enter encoded URL to decode...'
-            "
-            spellcheck="false"
-            @blur="handleInputBlur"
-            @compositionstart="handleCompositionStart"
-            @compositionend="handleCompositionEnd"
-          />
-          <div class="char-count">chars: {{ input.length }}</div>
-        </div>
-      </div>
+      <!-- Input -->
+      <ToolSection title="Input">
+        <textarea
+          ref="inputEl"
+          v-model="input"
+          class="dt-textarea"
+          rows="6"
+          :aria-label="
+            mode === 'encode'
+              ? 'Plain URL or text input'
+              : 'Encoded URL input'
+          "
+          :placeholder="
+            mode === 'encode'
+              ? 'Enter URL or text to encode...'
+              : 'Enter encoded URL to decode...'
+          "
+          spellcheck="false"
+          @blur="handleInputBlur"
+          @compositionstart="handleCompositionStart"
+          @compositionend="handleCompositionEnd"
+        />
+        <div class="char-count">chars: {{ input.length }}</div>
+      </ToolSection>
 
       <!-- Action Bar -->
-      <div class="action-bar">
+      <ToolActions>
         <button
           type="button"
           class="btn-accent"
@@ -198,6 +140,7 @@ onUnmounted(() => dispose())
           @pointerdown="handlePointerDown"
           @click="handleClick"
         >
+          <span v-if="loading" class="spinner"></span>
           {{ loading ? 'Processing...' : mode === 'encode' ? 'Encode' : 'Decode' }}
         </button>
         <button
@@ -226,151 +169,62 @@ onUnmounted(() => dispose())
         >
           Swap I/O
         </button>
-      </div>
+      </ToolActions>
 
       <!-- Error -->
       <div v-if="error" class="alert-error" role="alert">{{ error }}</div>
 
-      <!-- Card: Output (conditional) -->
-      <div class="card card-output" v-if="output">
-        <div class="card-header" role="status" aria-live="assertive">Output</div>
-        <div class="card-body">
-          <textarea
-            :value="output"
-            class="dt-textarea"
-            rows="6"
-            readonly
-            spellcheck="false"
-            :aria-label="
-              mode === 'encode' ? 'URL-encoded output' : 'Decoded text output'
-            "
-            aria-live="polite"
-          />
-          <div class="char-count" v-if="outputStats">chars: {{ outputStats.chars }}</div>
-        </div>
-      </div>
+      <!-- Output -->
+      <ToolSection v-if="output" title="Output" variant="output">
+        <ToolOutputPanel
+          :value="output"
+          :stats="outputStats"
+          :aria-label="
+            mode === 'encode' ? 'URL-encoded output' : 'Decoded text output'
+          "
+        />
+      </ToolSection>
 
       <!-- Empty State -->
-      <div class="card" v-if="!output && !error && !input">
-        <div class="card-body empty-hint">
+      <ToolSection v-if="!output && !error && !input" title="">
+        <div class="empty-hint">
           <p>URL Encode / Decode</p>
           <p class="hint-desc">
             Enter URL or text above and click <strong>{{ mode === 'encode' ? 'Encode' : 'Decode' }}</strong>
             or press <kbd>⌘Enter</kbd>
           </p>
         </div>
-      </div>
+      </ToolSection>
     </div>
-  </div>
+  </ToolPage>
 </template>
 
 <style scoped>
-.page {
-  max-width: var(--content-max-width);
-  margin: 0 auto;
-}
-.page-header {
-  margin-bottom: var(--space-6);
-}
-.page-title {
-  font-size: var(--text-title);
-  font-weight: var(--weight-semibold);
-  color: var(--color-neutral-110);
-  margin-bottom: var(--space-1);
-  letter-spacing: -0.01em;
-}
-.page-desc {
-  font-size: var(--text-body);
-  color: var(--color-neutral-70);
-}
-.page-desc kbd {
-  font-size: var(--text-caption);
-  padding: 1px 5px;
-  background: var(--color-neutral-40);
-  border: var(--border-width-thin) solid var(--border-color-default);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-}
 .page-content {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-.card {
-  background: var(--color-neutral-35);
-  border: var(--border-width-thin) solid var(--border-color-subtle);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-}
-.card-header {
-  padding: var(--space-card-header-y) var(--space-5);
-  font-size: var(--text-caption);
-  font-weight: var(--weight-medium);
-  color: var(--color-neutral-60);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: var(--border-width-thin) solid var(--border-color-subtle);
-}
-.card-body {
-  padding: var(--space-4) var(--space-5);
-}
-.card-output {
-  border-color: var(--border-color-focus);
-}
-.card-output .card-body {
-  background: var(--color-neutral-15);
-}
-
 .form-row {
   display: flex;
   gap: var(--space-3);
 }
+
 .field {
   display: flex;
   flex-direction: column;
   gap: var(--space-compact);
 }
+
 .field.flex-1 {
   flex: 1;
 }
+
 .field-label {
   font-size: var(--text-label);
   font-weight: var(--weight-medium);
   color: var(--color-neutral-80);
-}
-
-.segmented-control {
-  display: flex;
-  gap: 0;
-}
-.segmented-control button {
-  flex: 1;
-  padding: var(--space-1) var(--space-4);
-  font-size: var(--text-body);
-  font-weight: var(--weight-medium);
-  background: var(--color-neutral-25);
-  color: var(--color-neutral-70);
-  border: var(--border-width-thin) solid var(--border-color-default);
-  cursor: pointer;
-  transition: all var(--duration-fast);
-}
-.segmented-control button:first-child {
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
-}
-.segmented-control button:last-child {
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-}
-.segmented-control button.active {
-  background: var(--accent-primary);
-  color: var(--color-neutral-120);
-  border-color: var(--accent-primary);
-}
-
-.action-bar {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
 }
 
 .char-count {
@@ -384,15 +238,18 @@ onUnmounted(() => dispose())
   text-align: center;
   padding: var(--space-8) 0;
 }
+
 .empty-hint p {
   font-size: var(--text-base);
   color: var(--color-neutral-90);
 }
+
 .empty-hint .hint-desc {
   font-size: var(--text-body);
   color: var(--color-neutral-70);
   margin-top: var(--space-1);
 }
+
 .empty-hint kbd {
   font-size: var(--text-caption);
   padding: 1px 5px;

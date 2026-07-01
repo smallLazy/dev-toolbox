@@ -2,22 +2,25 @@
 /**
  * Base64 Plugin — Main View
  *
- * Spec-aligned layout:
- *   Card: Configuration (Encode | Decode toggle)
- *   Card: Input (textarea + char count)
- *   Action Bar (Execute, Copy, Clear, Swap I/O)
- *   Card: Output (conditional, readonly textarea + char count)
- *   Card: History (conditional, when history has items)
+ * Layout uses shared ToolPage components for consistent visual spec:
+ *   ToolPage > ToolHeader > ToolSection(Config) > ToolSection(Input)
+ *   > ToolActions > ToolSection(Output)
  *
  * ALL UI from Design System. Zero custom components.
  */
 
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useBase64 } from './composables'
 import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
 import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
+import ToolPage from '@/templates/ToolPage.vue'
+import ToolHeader from '@/templates/ToolHeader.vue'
+import ToolSection from '@/templates/ToolSection.vue'
+import ToolActions from '@/templates/ToolActions.vue'
+import ToolOutputPanel from '@/templates/ToolOutputPanel.vue'
+import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
 
-const { input, output, error, loading, mode, stats, outputStats, toolbar, execute, init, dispose } = useBase64()
+const { input, output, error, loading, mode, stats, outputStats, toolbar, selectMode, execute, init, dispose } = useBase64()
 
 // ── Generic text-input + execute-button interaction ──────────────────
 const {
@@ -31,47 +34,16 @@ const {
   handleShortcut,
 } = useTextActionTrigger({ model: input, loading, execute })
 
-// ── Mode switch (Encode / Decode tabs) ───────────────────────────────
-/**
- * Switches encode/decode mode.
- *
- * Problem: with only @click, the first click on a mode tab while the
- * textarea has focus gets consumed by blur/compositionend/Vue-flush
- * and the mode never switches. Second click works.
- *
- * Fix: @pointerdown (primary, fires BEFORE blur) + @click (keyboard
- * fallback). The modeTriggeredByPointer flag prevents the subsequent
- * click from re-triggering (defensive; mode switching is idempotent
- * but the flag keeps the pattern consistent with the Execute button).
- *
- * Also syncs DOM → input ref before switching so IME-committed text
- * is never lost.
- */
-
+// ── Mode switch (Encode / Decode) via ToolSegmentedControl ───────────
 type Base64Mode = 'encode' | 'decode'
+const modeOptions = [
+  { label: 'Encode', value: 'encode' },
+  { label: 'Decode', value: 'decode' },
+]
 
-const modeTriggeredByPointer = ref(false)
-
-function switchMode(newMode: Base64Mode) {
+function handleModeChange(newMode: string) {
   syncInputFromDom()
-  mode.value = newMode
-}
-
-function handleModePointerDown(event: PointerEvent, nextMode: Base64Mode) {
-  event.preventDefault()
-  event.stopPropagation()
-  modeTriggeredByPointer.value = true
-  switchMode(nextMode)
-  globalThis.setTimeout(() => {
-    modeTriggeredByPointer.value = false
-  }, 0)
-}
-
-function handleModeClick(nextMode: Base64Mode) {
-  if (modeTriggeredByPointer.value) {
-    return
-  }
-  switchMode(nextMode)
+  selectMode(newMode as Base64Mode)
 }
 
 // ── Pointer-safe toolbar actions (Copy, Clear, Swap) ──────────────
@@ -85,61 +57,49 @@ onUnmounted(() => dispose())
 </script>
 
 <template>
-  <div class="page" @keydown="handleShortcut">
-    <header class="page-header">
-      <h1 class="page-title">Base64</h1>
-      <p class="page-desc">Encode and decode text to/from Base64 &mdash; <kbd>⌘Enter</kbd> to execute</p>
-    </header>
+  <ToolPage @keydown="handleShortcut">
+    <ToolHeader
+      title="Base64"
+      description="Encode and decode text to/from Base64 —"
+    >
+      <template #default>
+        Encode and decode text to/from Base64 &mdash;
+        <kbd>⌘Enter</kbd> to execute
+      </template>
+    </ToolHeader>
 
     <div class="page-content">
-      <!-- Card: Configuration -->
-      <div class="card">
-        <div class="card-header">Configuration</div>
-        <div class="card-body">
-          <div class="field">
-            <label class="field-label">Mode</label>
-            <div class="segmented-control">
-              <button
-                type="button"
-                :class="{ active: mode === 'encode' }"
-                :aria-pressed="mode === 'encode'"
-                @pointerdown="handleModePointerDown($event, 'encode')"
-                @click="handleModeClick('encode')"
-              >Encode</button>
-              <button
-                type="button"
-                :class="{ active: mode === 'decode' }"
-                :aria-pressed="mode === 'decode'"
-                @pointerdown="handleModePointerDown($event, 'decode')"
-                @click="handleModeClick('decode')"
-              >Decode</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card: Input -->
-      <div class="card">
-        <div class="card-header">Input</div>
-        <div class="card-body">
-          <textarea
-            ref="inputEl"
-            v-model="input"
-            class="dt-textarea"
-            rows="6"
-            :aria-label="mode === 'encode' ? 'Plain text input' : 'Base64 input'"
-            :placeholder="mode === 'encode' ? 'Enter text to encode...' : 'Enter Base64 string to decode...'"
-            spellcheck="false"
-            @blur="handleInputBlur"
-            @compositionstart="handleCompositionStart"
-            @compositionend="handleCompositionEnd"
+      <!-- Configuration -->
+      <ToolSection title="Configuration">
+        <div class="field">
+          <label class="field-label">Mode</label>
+          <ToolSegmentedControl
+            :model-value="mode"
+            :options="modeOptions"
+            @update:model-value="handleModeChange"
           />
-          <div class="char-count">chars: {{ input.length }}</div>
         </div>
-      </div>
+      </ToolSection>
+
+      <!-- Input -->
+      <ToolSection title="Input">
+        <textarea
+          ref="inputEl"
+          v-model="input"
+          class="dt-textarea"
+          rows="6"
+          :aria-label="mode === 'encode' ? 'Plain text input' : 'Base64 input'"
+          :placeholder="mode === 'encode' ? 'Enter text to encode...' : 'Enter Base64 string to decode...'"
+          spellcheck="false"
+          @blur="handleInputBlur"
+          @compositionstart="handleCompositionStart"
+          @compositionend="handleCompositionEnd"
+        />
+        <div class="char-count">chars: {{ input.length }}</div>
+      </ToolSection>
 
       <!-- Action Bar -->
-      <div class="action-bar">
+      <ToolActions>
         <button
           type="button"
           class="btn-accent"
@@ -154,72 +114,39 @@ onUnmounted(() => dispose())
         <button v-if="output" class="btn-secondary" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))" aria-label="Copy output to clipboard">Copy Output</button>
         <button class="btn-secondary" @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))" @click="clearAction.handleClick(() => toolbar.execute('clear'))" aria-label="Clear input and output">Clear</button>
         <button v-if="output" class="btn-secondary" @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))" @click="swapAction.handleClick(() => toolbar.execute('swap'))" aria-label="Swap input and output">Swap I/O</button>
-      </div>
+      </ToolActions>
 
       <!-- Error -->
       <div v-if="error" class="alert-error" role="alert">{{ error }}</div>
 
-      <!-- Card: Output (conditional) -->
-      <div class="card card-output" v-if="output">
-        <div class="card-header" role="status" aria-live="assertive">Output</div>
-        <div class="card-body">
-          <textarea
-            :value="output"
-            class="dt-textarea"
-            rows="6"
-            readonly
-            spellcheck="false"
-            :aria-label="mode === 'encode' ? 'Base64 output' : 'Decoded text output'"
-            aria-live="polite"
-          />
-          <div class="char-count" v-if="outputStats">chars: {{ outputStats.chars }}</div>
-        </div>
-      </div>
+      <!-- Output -->
+      <ToolSection v-if="output" title="Output" variant="output">
+        <template #header-actions>
+          <span v-if="output" role="status" aria-live="assertive" class="sr-only">Output available</span>
+        </template>
+        <ToolOutputPanel
+          :value="output"
+          :stats="outputStats"
+          :aria-label="mode === 'encode' ? 'Base64 output' : 'Decoded text output'"
+        />
+      </ToolSection>
 
       <!-- Empty State -->
-      <div class="card" v-if="!output && !error && !input">
-        <div class="card-body empty-hint">
+      <ToolSection v-if="!output && !error && !input" title="">
+        <div class="empty-hint">
           <p>Base64 Encode / Decode</p>
           <p class="hint-desc">Enter text above and click <strong>Encode</strong> or press <kbd>⌘Enter</kbd></p>
         </div>
-      </div>
+      </ToolSection>
     </div>
-  </div>
+  </ToolPage>
 </template>
 
 <style scoped>
-.page { max-width: var(--content-max-width); margin: 0 auto; }
-.page-header { margin-bottom: var(--space-6); }
-.page-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-110); margin-bottom: var(--space-1); letter-spacing: -0.01em; }
-.page-desc { font-size: var(--text-body); color: var(--color-neutral-70); }
-.page-desc kbd { font-size: var(--text-caption); padding: 1px 5px; background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-sm); font-family: var(--font-mono); }
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
-
-.card { background: var(--color-neutral-35); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
-.card-body { padding: var(--space-4) var(--space-5); }
-.card-output { border-color: var(--border-color-focus); }
-.card-output .card-body { background: var(--color-neutral-15); }
 
 .field { display: flex; flex-direction: column; gap: var(--space-compact); }
 .field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
-
-.segmented-control { display: flex; gap: 0; }
-.segmented-control button {
-  flex: 1; padding: var(--space-1) var(--space-4);
-  font-size: var(--text-body); font-weight: var(--weight-medium);
-  background: var(--color-neutral-25); color: var(--color-neutral-70);
-  border: var(--border-width-thin) solid var(--border-color-default);
-  cursor: pointer; transition: all var(--duration-fast);
-}
-.segmented-control button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
-.segmented-control button:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
-.segmented-control button.active {
-  background: var(--accent-primary); color: var(--color-neutral-120);
-  border-color: var(--accent-primary);
-}
-
-.action-bar { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
 .char-count { font-size: var(--text-caption); color: var(--color-neutral-50); margin-top: var(--space-1); text-align: right; }
 
@@ -227,4 +154,6 @@ onUnmounted(() => dispose())
 .empty-hint p { font-size: var(--text-base); color: var(--color-neutral-90); }
 .empty-hint .hint-desc { font-size: var(--text-body); color: var(--color-neutral-70); margin-top: var(--space-1); }
 .empty-hint kbd { font-size: var(--text-caption); padding: 1px 5px; background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-sm); font-family: var(--font-mono); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
 </style>

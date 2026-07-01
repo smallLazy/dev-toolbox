@@ -2,15 +2,19 @@
  * URL Plugin — Vue Composable
  *
  * Bridges UrlFeature to Vue reactivity.
+ * Uses shared useCodecTransform for mode-switching state machine.
  * No Core/Registry/Service access.
  */
 
 import { ref, computed } from 'vue'
 import { createFeatureContext } from '@/sdk/feature'
 import { copyText } from '@/shared/clipboard'
+import { useCodecTransform } from '@/composables/useCodecTransform'
+import type { CodecMode } from '@/composables/useCodecTransform'
 import { UrlFeature } from './UrlFeature'
 import { createToolbar } from './toolbar'
 import { defaults } from './settings'
+import { encodeUrl, decodeUrl, getStats } from './logic'
 import type { UrlConfig, UrlMode, UrlVariant } from './types'
 
 export function useUrl() {
@@ -25,66 +29,81 @@ export function useUrl() {
   })
   const feature = new UrlFeature(context)
 
-  // Reactive State
-  const input = ref('')
-  const output = ref<string | null>(null)
-  const error = ref<string | null>(null)
-  const loading = ref(false)
-  const mode = ref<UrlMode>('encode')
+  // Variant is specific to URL feature (component / uri / php)
   const variant = ref<UrlVariant>('component')
+
+  // ── Shared encode/decode state machine ─────────────────────────────
+  // Encode/decode functions close over variant ref — variant.value is
+  // evaluated at call time, so changing variant immediately affects
+  // subsequent transforms.
+  const codec = useCodecTransform({
+    encode: (input: string) => encodeUrl(input, variant.value),
+    decode: (input: string) => decodeUrl(input, variant.value),
+    defaultMode: 'encode',
+  })
+
+  // ── Feature-specific state ─────────────────────────────────────────
+  const loading = ref(false)
   const outputStats = ref<{ chars: number; lines: number; bytes: number } | null>(null)
 
   // Derived
   const stats = computed(() => feature.toolState)
 
-  // Toolbar
+  // ── Mode switching (wraps shared codec + feature stats) ────────────
+  function selectMode(nextMode: CodecMode): void {
+    outputStats.value = null
+    codec.selectMode(nextMode)
+    if (codec.output.value) {
+      outputStats.value = getStats(codec.output.value)
+    }
+  }
+
+  // ── Toolbar ────────────────────────────────────────────────────────
   const toolbar = createToolbar({
     async onCopy() {
-      error.value = null
+      codec.error.value = null
 
-      if (!output.value) {
-        error.value = 'No output to copy'
+      if (!codec.output.value) {
+        codec.error.value = 'No output to copy'
         return
       }
 
       try {
-        await copyText(output.value)
+        await copyText(codec.output.value)
       } catch (e) {
-        error.value = e instanceof Error ? e.message : 'Failed to copy output'
+        codec.error.value = e instanceof Error ? e.message : 'Failed to copy output'
       }
     },
     onClear() {
-      input.value = ''
-      output.value = null
+      codec.clear()
       outputStats.value = null
-      error.value = null
     },
     onSwap() {
-      if (output.value) {
-        input.value = output.value
-        output.value = null
+      if (codec.output.value) {
+        codec.input.value = codec.output.value
+        codec.output.value = null
         outputStats.value = null
       }
     },
   })
 
-  // Actions
+  // ── Full execute pipeline (validate + run + stats + history) ──────
   async function execute() {
-    error.value = null
-    output.value = null
+    codec.error.value = null
+    codec.output.value = null
     outputStats.value = null
 
-    const v = feature.validate(input.value)
+    const v = feature.validate(codec.input.value)
     if (!v.valid) {
-      error.value = v.errors![0].message
+      codec.error.value = v.errors![0].message
       return
     }
 
     loading.value = true
     try {
-      const config: UrlConfig = { mode: mode.value, variant: variant.value }
-      const result = await feature.run(input.value, config)
-      output.value = result.output
+      const config: UrlConfig = { mode: codec.mode.value, variant: variant.value }
+      const result = await feature.run(codec.input.value, config)
+      codec.output.value = result.output
       outputStats.value = {
         chars: result.output.length,
         lines: result.output.split('\n').length,
@@ -92,12 +111,13 @@ export function useUrl() {
       }
       feature.recordHistory()
     } catch (e) {
-      error.value = (e as Error).message
+      codec.error.value = (e as Error).message
     } finally {
       loading.value = false
     }
   }
 
+  // ── Lifecycle ──────────────────────────────────────────────────────
   async function init() {
     await feature.initialize()
     await feature.activate()
@@ -108,12 +128,17 @@ export function useUrl() {
   }
 
   return {
-    input,
-    output,
-    error,
-    loading,
-    mode,
+    // From shared codec
+    input: codec.input,
+    output: codec.output,
+    error: codec.error,
+    mode: codec.mode,
+    selectMode,
+    transform: codec.transform,
+    clear: codec.clear,
+    // URL-specific
     variant,
+    loading,
     stats,
     outputStats,
     toolbar,

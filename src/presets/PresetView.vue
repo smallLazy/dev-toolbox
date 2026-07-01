@@ -5,11 +5,19 @@
  * Renders any PipelinePreset with encode/decode mode toggle,
  * input/output textareas, execute button, pipeline step preview,
  * and optional migration banner.
+ *
+ * Layout uses shared ToolPage components for consistent visual spec.
  */
 import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePreset } from './composables'
 import type { PipelinePreset } from '@/shared/pipeline/types'
+import ToolPage from '@/templates/ToolPage.vue'
+import ToolHeader from '@/templates/ToolHeader.vue'
+import ToolSection from '@/templates/ToolSection.vue'
+import ToolActions from '@/templates/ToolActions.vue'
+import ToolOutputPanel from '@/templates/ToolOutputPanel.vue'
+import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
 
 // Preset registry — maps preset IDs to their definitions
 const presetRegistry: Record<string, PipelinePreset> = {}
@@ -24,7 +32,7 @@ const preset = computed(() => presetRegistry[presetId])
 
 const {
   input, output, error, loading, mode,
-  pipelineResult, execute, clear, swap, copy, switchMode,
+  pipelineResult, execute, clear, swap, copy, selectMode,
 } = usePreset(preset.value!)
 
 onMounted(() => {
@@ -36,55 +44,55 @@ onMounted(() => {
 const showMigrationBanner = computed(() =>
   route.query?.from === preset.value?.deprecated?.oldRoute?.slice(1),
 )
+
+// ── Mode options for ToolSegmentedControl ─────────────────────────────
+const modeOptions = [
+  { label: 'Encode', value: 'encode' },
+  { label: 'Decode', value: 'decode' },
+]
+
+function handleModeChange(value: string) {
+  selectMode(value as 'encode' | 'decode')
+}
 </script>
 
 <template>
-  <div v-if="preset" class="page">
-    <header class="page-header">
-      <h1 class="page-title">{{ preset.name }}</h1>
-      <p class="page-desc">{{ preset.description }}</p>
-    </header>
+  <ToolPage v-if="preset">
+    <ToolHeader
+      :title="preset.name"
+      :description="preset.description"
+    />
 
     <div class="page-content">
-      <!-- Mode selector -->
-      <div class="card">
-        <div class="card-header">Mode</div>
-        <div class="card-body">
-          <div class="segmented-control">
-            <button
-              :class="{ active: mode === 'encode' }"
-              @click="switchMode('encode')"
-            >Encode</button>
-            <button
-              :class="{ active: mode === 'decode' }"
-              @click="switchMode('decode')"
-            >Decode</button>
-          </div>
-        </div>
-      </div>
+      <!-- Configuration: Mode selector -->
+      <ToolSection title="Configuration">
+        <ToolSegmentedControl
+          :model-value="mode"
+          :options="modeOptions"
+          @update:model-value="handleModeChange"
+        />
+      </ToolSection>
 
       <!-- Input -->
-      <div class="card">
-        <div class="card-header">Input</div>
-        <div class="card-body">
-          <textarea
-            v-model="input"
-            class="dt-textarea"
-            rows="6"
-            :placeholder="mode === 'encode' ? 'Enter text to encode...' : 'Enter text to decode...'"
-          />
-        </div>
-      </div>
+      <ToolSection title="Input">
+        <textarea
+          v-model="input"
+          class="dt-textarea"
+          rows="6"
+          :placeholder="mode === 'encode' ? 'Enter text to encode...' : 'Enter text to decode...'"
+        />
+      </ToolSection>
 
       <!-- Actions -->
-      <div class="action-bar">
+      <ToolActions>
         <button class="btn-accent" :disabled="loading" @click="execute">
           <span v-if="loading" class="spinner"></span>
           {{ loading ? 'Processing...' : (mode === 'encode' ? 'Encode' : 'Decode') }}
         </button>
+        <button v-if="output" class="btn-secondary" @click="copy">Copy Output</button>
         <button class="btn-secondary" @click="clear">Clear</button>
         <button class="btn-secondary" @click="swap" :disabled="!output">Swap</button>
-      </div>
+      </ToolActions>
 
       <!-- Error -->
       <div v-if="error" class="alert-error">{{ error }}</div>
@@ -95,7 +103,7 @@ const showMigrationBanner = computed(() =>
         {{ preset.deprecated?.migrationNote }}
       </div>
 
-      <!-- Pipeline preview -->
+      <!-- Pipeline preview (preserved: unique to PresetView) -->
       <div v-if="pipelineResult && pipelineResult.steps.length > 0" class="card pipeline-card">
         <div class="card-header">Pipeline Preview</div>
         <div class="card-body pipeline-body">
@@ -114,15 +122,15 @@ const showMigrationBanner = computed(() =>
       </div>
 
       <!-- Output -->
-      <div v-if="output" class="card card-output">
-        <div class="card-header">Output</div>
-        <div class="card-body">
-          <textarea :value="output" class="dt-textarea" rows="6" readonly />
-          <button class="btn-secondary btn-copy" @click="copy">Copy</button>
-        </div>
-      </div>
+      <ToolSection v-if="output" title="Output" variant="output">
+        <ToolOutputPanel
+          :value="output"
+          :aria-label="'Pipeline output'"
+        />
+        <button class="btn-secondary btn-copy" @click="copy">Copy</button>
+      </ToolSection>
 
-      <!-- Info -->
+      <!-- Info: Encode / Decode Pipeline description (preserved: unique to PHP Codec) -->
       <div class="info-card">
         <h4 v-if="mode === 'encode'">Encode Pipeline</h4>
         <h4 v-else>Decode Pipeline</h4>
@@ -146,7 +154,7 @@ const showMigrationBanner = computed(() =>
         </ul>
       </div>
     </div>
-  </div>
+  </ToolPage>
 
   <div v-else class="page">
     <p>Unknown preset: {{ presetId }}</p>
@@ -154,47 +162,19 @@ const showMigrationBanner = computed(() =>
 </template>
 
 <style scoped>
-.page { max-width: var(--content-max-width); margin: 0 auto; }
-.page-header { margin-bottom: var(--space-6); }
-.page-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-110); margin-bottom: var(--space-1); letter-spacing: -0.01em; }
-.page-desc { font-size: var(--text-body); color: var(--color-neutral-70); }
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
 
-.card { background: var(--color-neutral-35); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
-.card-body { padding: var(--space-4) var(--space-5); }
-.card-output { border-color: var(--border-color-focus); }
-.card-output .card-body { background: var(--color-neutral-15); }
-
-.segmented-control { display: flex; gap: var(--space-1); }
-.segmented-control button {
-  padding: var(--space-compact) var(--space-4);
-  border: var(--border-width-thin) solid var(--border-color-subtle);
-  background: var(--color-neutral-20);
-  color: var(--color-neutral-80);
-  border-radius: var(--radius-md);
-  font-size: var(--text-body);
-  font-family: var(--font-sans);
-  cursor: pointer;
-  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
-}
-.segmented-control button.active {
-  background: var(--color-accent-primary);
-  color: var(--color-neutral-10);
-  border-color: var(--color-accent-primary);
-}
-
-.action-bar { display: flex; gap: var(--space-2); }
-
+/* ── Error ─────────────────────────────────────────────────────────── */
 .alert-error {
   padding: var(--space-3) var(--space-4);
-  background: var(--color-error-bg);
-  color: var(--color-error-text);
-  border: var(--border-width-thin) solid var(--color-error-border);
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border: var(--border-width-thin) solid var(--color-danger-border);
   border-radius: var(--radius-md);
   font-size: var(--text-body);
 }
 
+/* ── Migration banner (preserved: unique to PresetView) ─────────────── */
 .migration-banner {
   padding: var(--space-3) var(--space-4);
   background: var(--color-info-bg);
@@ -203,6 +183,11 @@ const showMigrationBanner = computed(() =>
   border-radius: var(--radius-md);
   font-size: var(--text-body);
 }
+
+/* ── Pipeline Preview card (preserved: unique to PresetView) ────────── */
+.card { background: var(--color-neutral-35); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+.card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
+.card-body { padding: var(--space-4) var(--space-5); }
 
 .pipeline-card { border-color: var(--border-color-focus); }
 .pipeline-body { font-size: var(--text-label); }
@@ -215,7 +200,7 @@ const showMigrationBanner = computed(() =>
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   color: var(--color-neutral-90);
-  background: rgba(0,0,0,.15);
+  background: rgba(0, 0, 0, 0.15);
   padding: var(--space-compact) var(--space-2);
   border-radius: var(--radius-sm);
   word-break: break-all;
@@ -230,9 +215,10 @@ const showMigrationBanner = computed(() =>
   border-top: var(--border-width-thin) solid var(--border-color-subtle);
 }
 
+/* ── Info card (preserved: unique to PHP Codec) ─────────────────────── */
 .info-card {
   background: var(--color-info-bg);
-  border: var(--border-width-thin) solid rgba(107,165,231,0.15);
+  border: var(--border-width-thin) solid rgba(107, 165, 231, 0.15);
   border-radius: var(--radius-xl);
   padding: var(--space-4) var(--space-5);
 }
@@ -246,11 +232,12 @@ const showMigrationBanner = computed(() =>
 }
 .info-card .pipeline code {
   font-size: var(--text-label); font-family: var(--font-mono); color: var(--color-neutral-100);
-  background: rgba(0,0,0,.3); padding: var(--space-compact) var(--space-2); border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.3); padding: var(--space-compact) var(--space-2); border-radius: var(--radius-sm);
 }
 .info-card ul { font-size: var(--text-label); color: var(--color-neutral-80); padding-left: var(--space-5); }
 .info-card li { margin-bottom: 2px; }
-.info-card code { font-family: var(--font-mono); background: rgba(0,0,0,.3); padding: 1px 5px; border-radius: var(--radius-sm); font-size: var(--text-caption); color: var(--color-info-text); }
+.info-card code { font-family: var(--font-mono); background: rgba(0, 0, 0, 0.3); padding: 1px 5px; border-radius: var(--radius-sm); font-size: var(--text-caption); color: var(--color-info-text); }
 
+/* ── Utility ────────────────────────────────────────────────────────── */
 .btn-copy { margin-top: var(--space-3); }
 </style>
