@@ -11,6 +11,7 @@
 import { onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePreset } from './composables'
+import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
 import type { PipelinePreset } from '@/shared/pipeline/types'
 import ToolPage from '@/templates/ToolPage.vue'
 import ToolHeader from '@/templates/ToolHeader.vue'
@@ -54,6 +55,11 @@ const modeOptions = [
 function handleModeChange(value: string) {
   selectMode(value as 'encode' | 'decode')
 }
+
+// ── Pointer-safe toolbar actions (Copy, Clear, Swap) ──────────────────
+const copyAction = usePointerSafeAction()
+const clearAction = usePointerSafeAction({ disabled: () => loading.value })
+const swapAction = usePointerSafeAction()
 </script>
 
 <template>
@@ -66,11 +72,14 @@ function handleModeChange(value: string) {
     <div class="page-content">
       <!-- Configuration: Mode selector -->
       <ToolSection title="Configuration">
-        <ToolSegmentedControl
-          :model-value="mode"
-          :options="modeOptions"
-          @update:model-value="handleModeChange"
-        />
+        <div class="field">
+          <label class="field-label">Mode</label>
+          <ToolSegmentedControl
+            :model-value="mode"
+            :options="modeOptions"
+            @update:model-value="handleModeChange"
+          />
+        </div>
       </ToolSection>
 
       <!-- Input -->
@@ -87,11 +96,31 @@ function handleModeChange(value: string) {
       <ToolActions>
         <button class="btn-accent" :disabled="loading" @click="execute">
           <span v-if="loading" class="spinner"></span>
-          {{ loading ? 'Processing...' : (mode === 'encode' ? 'Encode' : 'Decode') }}
+          {{ loading ? 'Processing...' : (mode === 'encode' ? 'Run Encode' : 'Run Decode') }}
         </button>
-        <button v-if="output" class="btn-secondary" @click="copy">Copy Output</button>
-        <button class="btn-secondary" @click="clear">Clear</button>
-        <button class="btn-secondary" @click="swap" :disabled="!output">Swap</button>
+        <button
+          v-if="output"
+          type="button"
+          class="btn-secondary"
+          aria-label="Copy output to clipboard"
+          @pointerdown="copyAction.handlePointerDown($event, () => copy())"
+          @click="copyAction.handleClick(() => copy())"
+        >Copy Output</button>
+        <button
+          type="button"
+          class="btn-secondary"
+          aria-label="Clear input and output"
+          @pointerdown="clearAction.handlePointerDown($event, () => clear())"
+          @click="clearAction.handleClick(() => clear())"
+        >Clear</button>
+        <button
+          type="button"
+          class="btn-secondary"
+          :disabled="!output"
+          aria-label="Swap input and output"
+          @pointerdown="swapAction.handlePointerDown($event, () => swap())"
+          @click="swapAction.handleClick(() => swap())"
+        >Swap</button>
       </ToolActions>
 
       <!-- Error -->
@@ -127,7 +156,13 @@ function handleModeChange(value: string) {
           :value="output"
           :aria-label="'Pipeline output'"
         />
-        <button class="btn-secondary btn-copy" @click="copy">Copy</button>
+        <button
+          type="button"
+          class="btn-secondary btn-copy"
+          aria-label="Copy output to clipboard"
+          @pointerdown="copyAction.handlePointerDown($event, () => copy())"
+          @click="copyAction.handleClick(() => copy())"
+        >Copy</button>
       </ToolSection>
 
       <!-- Info: Encode / Decode Pipeline description (preserved: unique to PHP Codec) -->
@@ -163,6 +198,9 @@ function handleModeChange(value: string) {
 
 <style scoped>
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.field { display: flex; flex-direction: column; gap: var(--space-compact); }
+.field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
 
 /* ── Error ─────────────────────────────────────────────────────────── */
 .alert-error {
