@@ -15,12 +15,12 @@ const appVersion = `v${__APP_VERSION__}`
 // ── Category Metadata ────────────────────────────────────────────────
 
 const CATEGORY_META: Record<string, { label: string; icon: IconName; order: number }> = {
-  encoder:   { label: 'Encoding',   icon: 'CaseSensitive', order: 1 },
+  encoding:  { label: 'Encoding',   icon: 'CaseSensitive', order: 1 },
   crypto:    { label: 'Crypto',     icon: 'Lock',          order: 2 },
   formatter: { label: 'Formatter',  icon: 'FileJson',      order: 3 },
   converter: { label: 'Converter',  icon: 'Clock',         order: 4 },
   analyzer:  { label: 'Analyzer',   icon: 'Search',        order: 5 },
-  generator: { label: 'AI Tools',   icon: 'Zap',           order: 6 },
+  ai:        { label: 'AI Tools',   icon: 'Zap',           order: 6 },
   network:   { label: 'Network',    icon: 'Globe',         order: 7 },
   utility:   { label: 'Utility',    icon: 'Package',       order: 8 },
 }
@@ -46,15 +46,8 @@ interface CategorySection {
 // ── Legacy items (TODO: remove once migrated to plugins) ─────────────
 
 /** Tools still living in src/modules/ without a plugin manifest.
- *  TODO: remove JWT/AES once migrated to features. */
+ *  TODO: remove AES once migrated to features. */
 const LEGACY_ITEMS: MenuItem[] = [
-  {
-    path: '/jwt',
-    label: 'JWT',
-    icon: 'Shield',
-    keywords: 'jwt token json web token encode decode',
-    category: 'encoder',
-  },
   {
     path: '/crypto',
     label: 'AES',
@@ -74,9 +67,9 @@ const sidebarCategories = computed<CategorySection[]>(() => {
   // 1. Load plugin tools from workspaceStore.toolsByCategory
   //    Each tool inherits its category icon — no emoji, all Design System.
   //    Dedup by pluginId AND path to guarantee no duplicates across categories.
+  //    Unknown categories fall back to Utility rather than being silently dropped.
   for (const [categoryId, tools] of workspaceStore.toolsByCategory.entries()) {
-    const meta = CATEGORY_META[categoryId]
-    if (!meta) continue
+    const meta = CATEGORY_META[categoryId] ?? { label: categoryId, icon: 'Package' as IconName, order: 99 }
 
     const categoryItems: MenuItem[] = []
     for (const tool of tools) {

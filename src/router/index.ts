@@ -34,6 +34,11 @@ const router = createRouter({
       component: () => import("../features/json/JsonView.vue"),
     },
     {
+      path: "/sql",
+      name: "sql",
+      component: () => import("../features/sql/SqlView.vue"),
+    },
+    {
       path: "/sql-in",
       redirect: { path: "/sql", query: { mode: "in-builder" } },
     },
@@ -60,7 +65,7 @@ const router = createRouter({
     {
       path: "/jwt",
       name: "jwt",
-      component: () => import("../modules/jwt/JwtView.vue"),
+      component: () => import("../features/jwt/JwtView.vue"),
     },
     {
       path: "/config",
