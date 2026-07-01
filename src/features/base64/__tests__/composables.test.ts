@@ -1,12 +1,12 @@
 /**
- * Base64 Plugin — Composable Tests (mode switching behavior)
+ * Base64 Plugin — Composable Tests (Mode Switch behavior)
  *
- * Tests that selectMode immediately transforms current input
- * using the shared useCodecTransform state machine wired with
- * real Base64 encode/decode functions.
+ * Tests that the Mode Switch (Encode/Decode segmented control) immediately
+ * transforms current input using the shared useCodecTransform state machine
+ * wired with real Base64 encode/decode functions.
  *
- * This validates the fix: first click on Encode/Decode tab
- * must process the current input without requiring a second click.
+ * This validates: first click on Mode Switch must process the current
+ * input without requiring a second click on the Run Encode/Run Decode button.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -21,16 +21,16 @@ function createBase64Codec(defaultMode: 'encode' | 'decode' = 'encode') {
   })
 }
 
-describe('Base64 mode switching (via useCodecTransform)', () => {
-  // ── Requirement a: default Encode mode, input Base64, first Decode click → plaintext
+describe('Base64 Mode Switch (via useCodecTransform)', () => {
+  // ── Requirement a: default Encode mode, input Base64, first Mode Switch to Decode → plaintext
 
-  it('default encode mode: input Base64 string, first selectMode("decode") outputs plaintext', () => {
+  it('default encode mode: input Base64 string, first Mode Switch to "decode" outputs plaintext', () => {
     const codec = createBase64Codec('encode')
 
     // "Hello World" in Base64
     codec.input.value = 'SGVsbG8gV29ybGQ='
 
-    // First click on Decode tab
+    // First click on Decode in the Mode Switch
     codec.selectMode('decode')
 
     expect(codec.mode.value).toBe('decode')
@@ -38,14 +38,14 @@ describe('Base64 mode switching (via useCodecTransform)', () => {
     expect(codec.error.value).toBeNull()
   })
 
-  // ── Requirement b: Decode mode, input plaintext, first Encode click → Base64
+  // ── Requirement b: Decode mode, input plaintext, first Mode Switch to Encode → Base64
 
-  it('decode mode: input plaintext, first selectMode("encode") outputs Base64', () => {
+  it('decode mode: input plaintext, first Mode Switch to "encode" outputs Base64', () => {
     const codec = createBase64Codec('decode')
 
     codec.input.value = 'Hello World'
 
-    // First click on Encode tab
+    // First click on Encode in the Mode Switch
     codec.selectMode('encode')
 
     expect(codec.mode.value).toBe('encode')
@@ -53,9 +53,9 @@ describe('Base64 mode switching (via useCodecTransform)', () => {
     expect(codec.error.value).toBeNull()
   })
 
-  // ── Additional: roundtrip via mode switching ─────────────────────────
+  // ── Additional: roundtrip via Mode Switch ─────────────────────────────
 
-  it('roundtrip: encode → set input to encoded output → decode → get original', () => {
+  it('roundtrip: switch mode to encode, set input to encoded output, switch to decode → original', () => {
     const codec = createBase64Codec('encode')
 
     // Encode: "Hello World" → Base64
@@ -70,7 +70,7 @@ describe('Base64 mode switching (via useCodecTransform)', () => {
     expect(codec.output.value).toBe('Hello World')
   })
 
-  it('consecutive mode switches do not require second click', () => {
+  it('consecutive Mode Switch clicks each produce output on first click', () => {
     const codec = createBase64Codec('encode')
 
     codec.input.value = 'Test 123'
@@ -94,7 +94,7 @@ describe('Base64 mode switching (via useCodecTransform)', () => {
 
   // ── Empty input ──────────────────────────────────────────────────────
 
-  it('switching mode with empty input clears output without error', () => {
+  it('Mode Switch with empty input clears output without error', () => {
     const codec = createBase64Codec('encode')
 
     // Set up prior output
@@ -112,7 +112,7 @@ describe('Base64 mode switching (via useCodecTransform)', () => {
 
   // ── Error handling ───────────────────────────────────────────────────
 
-  it('invalid Base64 input on decode sets error and clears output', () => {
+  it('invalid Base64 input on Mode Switch to decode sets error and clears output', () => {
     const codec = createBase64Codec('encode')
 
     codec.input.value = '!!!not-base64!!!'
@@ -121,5 +121,19 @@ describe('Base64 mode switching (via useCodecTransform)', () => {
 
     expect(codec.output.value).toBeNull()
     expect(codec.error.value).toBeTruthy()
+  })
+})
+
+// ── Button label derivation (Run Encode / Run Decode) ──────────────────
+
+describe('Base64 action button label', () => {
+  it('shows "Run Encode" when mode is encode', () => {
+    const label = (mode: 'encode' | 'decode') => mode === 'encode' ? 'Run Encode' : 'Run Decode'
+    expect(label('encode')).toBe('Run Encode')
+  })
+
+  it('shows "Run Decode" when mode is decode', () => {
+    const label = (mode: 'encode' | 'decode') => mode === 'encode' ? 'Run Encode' : 'Run Decode'
+    expect(label('decode')).toBe('Run Decode')
   })
 })

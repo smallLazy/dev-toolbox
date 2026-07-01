@@ -135,13 +135,13 @@ onUnmounted(() => dispose())
           class="btn-accent"
           :disabled="loading"
           :aria-label="
-            mode === 'encode' ? 'Encode input to URL encoding' : 'Decode URL-encoded input'
+            mode === 'encode' ? 'Run Encode: encode input to URL encoding' : 'Run Decode: decode URL-encoded input'
           "
           @pointerdown="handlePointerDown"
           @click="handleClick"
         >
           <span v-if="loading" class="spinner"></span>
-          {{ loading ? 'Processing...' : mode === 'encode' ? 'Encode' : 'Decode' }}
+          {{ loading ? 'Processing...' : mode === 'encode' ? 'Run Encode' : 'Run Decode' }}
         </button>
         <button
           v-if="output"
@@ -190,7 +190,7 @@ onUnmounted(() => dispose())
         <div class="empty-hint">
           <p>URL Encode / Decode</p>
           <p class="hint-desc">
-            Enter URL or text above and click <strong>{{ mode === 'encode' ? 'Encode' : 'Decode' }}</strong>
+            Enter URL or text above and click <strong>{{ mode === 'encode' ? 'Run Encode' : 'Run Decode' }}</strong>
             or press <kbd>⌘Enter</kbd>
           </p>
         </div>

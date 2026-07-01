@@ -104,12 +104,12 @@ onUnmounted(() => dispose())
           type="button"
           class="btn-accent"
           :disabled="loading"
-          :aria-label="mode === 'encode' ? 'Encode input to Base64' : 'Decode Base64 input'"
+          :aria-label="mode === 'encode' ? 'Run Encode: encode input to Base64' : 'Run Decode: decode Base64 input'"
           @pointerdown="handlePointerDown"
           @click="handleClick"
         >
           <span v-if="loading" class="spinner"></span>
-          {{ loading ? 'Processing...' : (mode === 'encode' ? 'Encode' : 'Decode') }}
+          {{ loading ? 'Processing...' : (mode === 'encode' ? 'Run Encode' : 'Run Decode') }}
         </button>
         <button v-if="output" class="btn-secondary" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))" aria-label="Copy output to clipboard">Copy Output</button>
         <button class="btn-secondary" @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))" @click="clearAction.handleClick(() => toolbar.execute('clear'))" aria-label="Clear input and output">Clear</button>
@@ -135,7 +135,7 @@ onUnmounted(() => dispose())
       <ToolSection v-if="!output && !error && !input" title="">
         <div class="empty-hint">
           <p>Base64 Encode / Decode</p>
-          <p class="hint-desc">Enter text above and click <strong>Encode</strong> or press <kbd>⌘Enter</kbd></p>
+          <p class="hint-desc">Enter text above and click <strong>Run Encode</strong> or press <kbd>⌘Enter</kbd></p>
         </div>
       </ToolSection>
     </div>

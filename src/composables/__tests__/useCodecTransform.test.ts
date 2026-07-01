@@ -2,8 +2,12 @@
  * useCodecTransform — Unit Tests
  *
  * Tests the shared encode/decode interaction state machine.
- * Uses mock encode/decode functions to verify the state machine
- * behavior independent of any specific algorithm.
+ * Uses mock encode/decode functions to verify the Mode Switch
+ * (selectMode) immediately transforms current input.
+ *
+ * KEY GUARANTEE: selectMode(nextMode) always calls transform(nextMode)
+ * explicitly — the user sees output immediately when clicking the
+ * Mode Switch, without needing to also click Run Encode / Run Decode.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -29,8 +33,8 @@ function mockDecode(input: string): string {
 
 // ── selectMode ─────────────────────────────────────────────────────────
 
-describe('selectMode', () => {
-  it('selectMode("decode") uses decode function to immediately transform current input', () => {
+describe('selectMode (Mode Switch)', () => {
+  it('Mode Switch to "decode" uses decode function to immediately transform current input', () => {
     const codec = useCodecTransform({
       encode: mockEncode,
       decode: mockDecode,
@@ -46,7 +50,7 @@ describe('selectMode', () => {
     expect(codec.error.value).toBeNull()
   })
 
-  it('selectMode("encode") uses encode function to immediately transform current input', () => {
+  it('Mode Switch to "encode" uses encode function to immediately transform current input', () => {
     const codec = useCodecTransform({
       encode: mockEncode,
       decode: mockDecode,
@@ -61,7 +65,7 @@ describe('selectMode', () => {
     expect(codec.error.value).toBeNull()
   })
 
-  it('switching mode back and forth does not require second click', () => {
+  it('switching Mode Switch back and forth does not require second click', () => {
     const codec = useCodecTransform({
       encode: mockEncode,
       decode: mockDecode,
@@ -144,7 +148,7 @@ describe('empty input handling', () => {
     expect(codec.error.value).toBeNull()
   })
 
-  it('selectMode with empty input clears output without error', () => {
+  it('Mode Switch with empty input clears output without error', () => {
     const codec = useCodecTransform({
       encode: mockEncode,
       decode: mockDecode,
@@ -218,7 +222,7 @@ describe('error handling', () => {
     expect(codec.output.value).toBe('cba')
   })
 
-  it('selectMode with error-triggering input sets error on first click', () => {
+  it('Mode Switch with error-triggering input sets error on first click', () => {
     const codec = useCodecTransform({
       encode: mockEncode,
       decode: mockDecode,
@@ -301,5 +305,19 @@ describe('default mode', () => {
     })
 
     expect(codec.mode.value).toBe('decode')
+  })
+})
+
+// ── Button label derivation (Run Encode / Run Decode) ──────────────────
+
+describe('action button label', () => {
+  it('shows "Run Encode" when mode is encode', () => {
+    const label = (mode: 'encode' | 'decode') => mode === 'encode' ? 'Run Encode' : 'Run Decode'
+    expect(label('encode')).toBe('Run Encode')
+  })
+
+  it('shows "Run Decode" when mode is decode', () => {
+    const label = (mode: 'encode' | 'decode') => mode === 'encode' ? 'Run Encode' : 'Run Decode'
+    expect(label('decode')).toBe('Run Decode')
   })
 })
