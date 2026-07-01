@@ -46,17 +46,8 @@ interface CategorySection {
 // ── Legacy items (TODO: remove once migrated to plugins) ─────────────
 
 /** Tools still living in src/modules/ without a plugin manifest.
- *  TODO: remove AES once migrated to features. */
-const LEGACY_ITEMS: MenuItem[] = [
-  {
-    path: '/crypto',
-    label: 'AES',
-    icon: 'LockKeyhole',
-    keywords: 'aes crypto encrypt decrypt cbc ecb',
-    category: 'crypto',
-    pluginId: 'aes',
-  },
-]
+ *  All legacy tools have been migrated — kept for future extensions. */
+const LEGACY_ITEMS: MenuItem[] = []
 
 // ── Dynamic sidebar categories from workspace store ──────────────────
 
