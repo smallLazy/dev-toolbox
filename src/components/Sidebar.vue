@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Icons, APP_ICONS, type IconName } from '@/design/icons'
+import { Icons, APP_ICONS, getToolIconName, type IconName } from '@/design/icons'
 import { useWorkspaceStore } from '@/stores/workspace'
 import PluginEmptyState from '@/templates/PluginEmptyState.vue'
 
@@ -51,9 +51,10 @@ const LEGACY_ITEMS: MenuItem[] = [
   {
     path: '/crypto',
     label: 'AES',
-    icon: 'Lock',
+    icon: 'LockKeyhole',
     keywords: 'aes crypto encrypt decrypt cbc ecb',
     category: 'crypto',
+    pluginId: 'aes',
   },
 ]
 
@@ -65,7 +66,7 @@ const sidebarCategories = computed<CategorySection[]>(() => {
   const seenPaths = new Set<string>()
 
   // 1. Load plugin tools from workspaceStore.toolsByCategory
-  //    Each tool inherits its category icon — no emoji, all Design System.
+  //    Each tool resolves its own icon via getToolIconName(tool.id) — no emoji, all Design System.
   //    Dedup by pluginId AND path to guarantee no duplicates across categories.
   //    Unknown categories fall back to Utility rather than being silently dropped.
   for (const [categoryId, tools] of workspaceStore.toolsByCategory.entries()) {
@@ -80,7 +81,7 @@ const sidebarCategories = computed<CategorySection[]>(() => {
       categoryItems.push({
         path: tool.path,
         label: tool.name,
-        icon: meta.icon,
+        icon: getToolIconName(tool.id),
         keywords: tool.searchKeywords.join(' '),
         category: tool.category,
         pluginId: tool.id,

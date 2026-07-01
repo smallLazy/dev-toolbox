@@ -31,7 +31,10 @@ export const ICON_STROKE = 2
 // SVG Factory
 // ═══════════════════════════════════════════════════════════════════════════
 
-function icon(paths: string[], viewBox = '0 0 24 24') {
+/** A single SVG element descriptor — either a path-d string or a [tag, attrs] tuple. */
+type IconElement = string | [string, Record<string, string>]
+
+function icon(elements: IconElement[], viewBox = '0 0 24 24') {
   return defineComponent({
     props: { size: { type: [Number, String], default: 24 } },
     setup(props: { size: number | string }, { attrs }) {
@@ -45,7 +48,13 @@ function icon(paths: string[], viewBox = '0 0 24 24') {
           'stroke-linecap': 'round' as const,
           'stroke-linejoin': 'round' as const,
           ...attrs,
-        }, paths.map((d) => h('path', { d })))
+        }, elements.map((el) => {
+          if (typeof el === 'string') {
+            return h('path', { d: el })
+          }
+          const [tag, elAttrs] = el
+          return h(tag, elAttrs)
+        }))
     },
   })
 }
@@ -113,6 +122,52 @@ export const Icons = {
   GitBranch: icon(['M6 3v12', 'M18 9a3 3 0 100-6 3 3 0 000 6z', 'M6 21a3 3 0 100-6 3 3 0 000 6z', 'M18 9a9 9 0 01-9 9']),
   MessagesSquare: icon(['M14 9a2 2 0 01-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 012 2v5z', 'M18 9h2a2 2 0 012 2v11l-4-4h-6a2 2 0 01-2-2v-1']),
   Eye: icon(['M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z', 'M12 15a3 3 0 100-6 3 3 0 000 6z']),
+
+  // ── Sprint 02 — per-tool identity icons ──
+  Binary: icon([
+    ['rect', { x: '14', y: '14', width: '4', height: '6', rx: '2' }],
+    ['rect', { x: '6', y: '4', width: '4', height: '6', rx: '2' }],
+    'M6 20h4',
+    'M14 10h4',
+    'M6 14h2v6',
+    'M14 4h2v6',
+  ]),
+  KeyRound: icon([
+    'M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z',
+    ['circle', { cx: '16.5', cy: '7.5', r: '.5', fill: 'currentColor' }],
+  ]),
+  LockKeyhole: icon([
+    ['circle', { cx: '12', cy: '16', r: '1' }],
+    ['rect', { x: '3', y: '10', width: '18', height: '12', rx: '2' }],
+    'M7 10V7a5 5 0 0 1 10 0v3',
+  ]),
+  FingerprintPattern: icon([
+    'M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4',
+    'M14 13.12c0 2.38 0 6.38-1 8.88',
+    'M17.29 21.02c.12-.6.43-2.3.5-3.02',
+    'M2 12a10 10 0 0 1 18-6',
+    'M2 16h.01',
+    'M21.8 16c.2-2 .131-5.354 0-6',
+    'M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2',
+    'M8.65 22c.21-.66.45-1.32.57-2',
+    'M9 6.8a6 6 0 0 1 9 5.2v2',
+  ]),
+  CodeXml: icon([
+    'm18 16 4-4-4-4',
+    'm6 8-4 4 4 4',
+    'm14.5 4-5 16',
+  ]),
+  ShieldCheck: icon([
+    'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z',
+    'm9 12 2 2 4-4',
+  ]),
+  BadgeCheck: icon([
+    'M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z',
+    'm9 12 2 2 4-4',
+  ]),
+  Wrench: icon([
+    'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z',
+  ]),
 } as const
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -123,14 +178,14 @@ export const TOOL_ICONS = {
   // ── Core tools ──
   json: Icons.FileJson,
   crypto: Icons.Lock,
-  aes: Icons.Lock,
-  base64: Icons.CaseSensitive,
+  aes: Icons.LockKeyhole,
+  base64: Icons.Binary,
   url: Icons.Link,
   timestamp: Icons.Clock,
-  hash: Icons.Hash,
-  jwt: Icons.Shield,
+  hash: Icons.FingerprintPattern,
+  jwt: Icons.KeyRound,
   ['cloud-encrypt']: Icons.Package,
-  ['preset-php-compatible']: Icons.Package,
+  ['preset-php-compatible']: Icons.Braces,
   ['sql-in']: Icons.Database,
   config: Icons.Settings,
   settings: Icons.Settings,
@@ -146,7 +201,7 @@ export const TOOL_ICONS = {
   gitee: Icons.GitBranch,
   github: Icons.GitBranch,
   graphql: Icons.Globe,
-  ['html-encode']: Icons.FileCode,
+  ['html-encode']: Icons.CodeXml,
   ['http-client']: Icons.Globe,
   jira: Icons.Check,
   markdown: Icons.FileCode,
@@ -155,9 +210,9 @@ export const TOOL_ICONS = {
   regex: Icons.FileCode,
   ['request-decoder']: Icons.Globe,
   review: Icons.Check,
-  rsa: Icons.Key,
+  rsa: Icons.ShieldCheck,
   sentry: Icons.Shield,
-  sm2: Icons.Key,
+  sm2: Icons.BadgeCheck,
   sm3: Icons.Hash,
   sm4: Icons.Lock,
   sql: Icons.Database,
@@ -210,9 +265,33 @@ export type IconName = keyof typeof Icons
 export type ToolIconKey = keyof typeof TOOL_ICONS
 export type AppIconKey = keyof typeof APP_ICONS
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Reverse icon lookup — pre-built at module init for O(1) getToolIconName
+// ═══════════════════════════════════════════════════════════════════════════
+
+const ICON_NAME_BY_COMPONENT = new Map<object, IconName>()
+
+for (const entry of Object.entries(Icons) as [IconName, object][]) {
+  ICON_NAME_BY_COMPONENT.set(entry[1], entry[0])
+}
+
 /**
- * Get the canonical icon for a plugin by its ID.
+ * Get the canonical icon component for a plugin by its ID.
+ * Falls back to Wrench for unknown tool IDs.
  */
 export function getToolIcon(pluginId: string) {
-  return TOOL_ICONS[pluginId as ToolIconKey] ?? Icons.Package
+  return TOOL_ICONS[pluginId as ToolIconKey] ?? Icons.Wrench
+}
+
+/**
+ * Get the canonical icon name (string key) for a plugin by its ID.
+ * Use this when the icon is rendered via <component :is="Icons[name]">.
+ * Falls back to 'Wrench' for unknown tool IDs.
+ *
+ * Uses a module-level reverse Map built from Icons — O(1) lookup,
+ * no per-call Object.entries() iteration.
+ */
+export function getToolIconName(pluginId: string): IconName {
+  const component = getToolIcon(pluginId)
+  return ICON_NAME_BY_COMPONENT.get(component) ?? 'Wrench'
 }

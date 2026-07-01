@@ -93,6 +93,16 @@
   --space-12: 48px;
   --space-16: 64px;
 
+  /* ── Icon Sizes ──────────────────────────────────────────────────────────
+     Icon dimension tokens. Use these for CSS-based icon sizing; prefer
+     ICON_SIZE constants in JS/Vue contexts. */
+  --icon-sm:  12px;
+  --icon-md:  16px;
+  --icon-lg:  18px;
+  --icon-xl:  20px;
+  --icon-2xl: 24px;
+  --icon-3xl: 32px;
+
   /* ── Semantic Spacing ─────────────────────────────────────────────────── */
   --space-compact: 3px;
   --space-tight: 6px;
