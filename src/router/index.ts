@@ -69,8 +69,7 @@ const router = createRouter({
     },
     {
       path: "/config",
-      name: "config",
-      component: () => import("../modules/config/ConfigView.vue"),
+      redirect: "/settings",
     },
     {
       path: "/settings",
@@ -81,6 +80,13 @@ const router = createRouter({
       path: "/about",
       name: "about",
       component: () => import("../modules/about/AboutView.vue"),
+    },
+    // Catch-all: tools registered in sidebar but not yet implemented
+    // render the ToolUnavailable fallback instead of a blank page.
+    {
+      path: "/:pathMatch(.*)*",
+      name: "tool-unavailable",
+      component: () => import("../components/ToolUnavailable.vue"),
     },
   ],
 });

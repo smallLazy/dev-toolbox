@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import MainLayout from "./layouts/MainLayout.vue";
-import { useAppStore } from "./stores/app";
 import { useWorkspaceStore } from "./stores/workspace";
 import { onMounted, onUnmounted } from "vue";
 
-const appStore = useAppStore();
 const workspaceStore = useWorkspaceStore();
 
 onMounted(async () => {
-  await appStore.loadConfig();
   workspaceStore.init();
 });
 
