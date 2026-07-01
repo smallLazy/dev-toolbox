@@ -48,30 +48,30 @@ const showMigrationBanner = computed(() =>
     <div class="page-content">
       <!-- Mode selector -->
       <div class="card">
-        <div class="card-header">模式</div>
+        <div class="card-header">Mode</div>
         <div class="card-body">
           <div class="segmented-control">
             <button
               :class="{ active: mode === 'encode' }"
               @click="switchMode('encode')"
-            >编码</button>
+            >Encode</button>
             <button
               :class="{ active: mode === 'decode' }"
               @click="switchMode('decode')"
-            >解码</button>
+            >Decode</button>
           </div>
         </div>
       </div>
 
       <!-- Input -->
       <div class="card">
-        <div class="card-header">{{ mode === 'encode' ? '原始内容' : '已编码字符串' }}</div>
+        <div class="card-header">Input</div>
         <div class="card-body">
           <textarea
             v-model="input"
             class="dt-textarea"
             rows="6"
-            :placeholder="mode === 'encode' ? '输入要编码的内容...' : '粘贴已编码的字符串...'"
+            :placeholder="mode === 'encode' ? 'Enter text to encode...' : 'Enter text to decode...'"
           />
         </div>
       </div>
@@ -80,10 +80,10 @@ const showMigrationBanner = computed(() =>
       <div class="action-bar">
         <button class="btn-accent" :disabled="loading" @click="execute">
           <span v-if="loading" class="spinner"></span>
-          {{ loading ? '处理中...' : (mode === 'encode' ? '编码' : '解码') }}
+          {{ loading ? 'Processing...' : (mode === 'encode' ? 'Encode' : 'Decode') }}
         </button>
-        <button class="btn-secondary" @click="clear">清空</button>
-        <button class="btn-secondary" @click="swap" :disabled="!output">交换</button>
+        <button class="btn-secondary" @click="clear">Clear</button>
+        <button class="btn-secondary" @click="swap" :disabled="!output">Swap</button>
       </div>
 
       <!-- Error -->
@@ -91,16 +91,16 @@ const showMigrationBanner = computed(() =>
 
       <!-- Migration banner -->
       <div v-if="showMigrationBanner" class="migration-banner">
-        您从旧版「{{ preset.deprecated?.oldName }}」跳转过来。
+        You were redirected from the legacy "{{ preset.deprecated?.oldName }}" tool.
         {{ preset.deprecated?.migrationNote }}
       </div>
 
       <!-- Pipeline preview -->
       <div v-if="pipelineResult && pipelineResult.steps.length > 0" class="card pipeline-card">
-        <div class="card-header">管道预览</div>
+        <div class="card-header">Pipeline Preview</div>
         <div class="card-body pipeline-body">
           <div class="pipeline-step-initial">
-            <span class="pipeline-label">原始内容</span>
+            <span class="pipeline-label">Input</span>
             <code class="pipeline-value">{{ input.slice(0, 80) }}{{ input.length > 80 ? '...' : '' }}</code>
           </div>
           <div v-for="step in pipelineResult.steps" :key="step.stepId" class="pipeline-step">
@@ -108,41 +108,48 @@ const showMigrationBanner = computed(() =>
             <code class="pipeline-value">{{ step.output.slice(0, 100) }}{{ step.output.length > 100 ? '...' : '' }}</code>
           </div>
           <div class="pipeline-timing">
-            总耗时 {{ pipelineResult.totalDurationMs.toFixed(2) }}ms
+            Total {{ pipelineResult.totalDurationMs.toFixed(2) }}ms
           </div>
         </div>
       </div>
 
       <!-- Output -->
       <div v-if="output" class="card card-output">
-        <div class="card-header">输出</div>
+        <div class="card-header">Output</div>
         <div class="card-body">
           <textarea :value="output" class="dt-textarea" rows="6" readonly />
-          <button class="btn-secondary btn-copy" @click="copy">复制</button>
+          <button class="btn-secondary btn-copy" @click="copy">Copy</button>
         </div>
       </div>
 
       <!-- Info -->
       <div class="info-card">
-        <h4>编码管道</h4>
+        <h4 v-if="mode === 'encode'">Encode Pipeline</h4>
+        <h4 v-else>Decode Pipeline</h4>
         <p class="pipeline">
           <code v-if="mode === 'encode'">
-            原始内容 → URL Encode (PHP: 空格→+) → Base64 (去除 = 填充)
+            Input → URL Encode(PHP, spaces to +) → Base64 Encode → Remove trailing =
           </code>
           <code v-else>
-            已编码字符串 → 补 = → Base64 解码 → URL Decode (PHP)
+            Input → Restore Base64 padding → Base64 Decode → URL Decode(PHP)
           </code>
         </p>
+        <p v-if="mode === 'encode'" class="pipeline-note">
+          Note: This is not encryption. It is a compatibility encoding pipeline.
+        </p>
+        <p v-else class="pipeline-note">
+          Note: This is not decryption. It is a compatibility decoding pipeline.
+        </p>
         <ul>
-          <li>等价于 PHP <code>base_encryption()</code> / <code>filter()</code></li>
-          <li>非加密算法，仅做编码混淆</li>
+          <li>Equivalent to PHP <code>base_encryption()</code> / <code>filter()</code></li>
+          <li>Not an encryption algorithm — encoding/compatibility only</li>
         </ul>
       </div>
     </div>
   </div>
 
   <div v-else class="page">
-    <p>未知预设: {{ presetId }}</p>
+    <p>Unknown preset: {{ presetId }}</p>
   </div>
 </template>
 
@@ -231,6 +238,12 @@ const showMigrationBanner = computed(() =>
 }
 .info-card h4 { font-size: var(--text-body); font-weight: var(--weight-medium); color: var(--color-info-text); margin-bottom: var(--space-2); }
 .info-card .pipeline { margin-bottom: var(--space-2); }
+.info-card .pipeline-note {
+  font-size: var(--text-label);
+  color: var(--color-info-text);
+  margin-bottom: var(--space-2);
+  font-weight: var(--weight-medium);
+}
 .info-card .pipeline code {
   font-size: var(--text-label); font-family: var(--font-mono); color: var(--color-neutral-100);
   background: rgba(0,0,0,.3); padding: var(--space-compact) var(--space-2); border-radius: var(--radius-sm);

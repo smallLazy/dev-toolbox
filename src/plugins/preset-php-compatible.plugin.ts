@@ -8,10 +8,10 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'preset-php-compatible',
-  name: 'PHP Compatible',
+  name: 'PHP Codec',
   icon: 'Package',
   version: '1.0.0',
-  description: 'PHP base_encryption / filter 兼容管道 — URL Encode(PHP) → Base64(无填充)',
+  description: 'Compatible with PHP base_encryption() / filter(): URL Encode(PHP) → Base64(no padding)',
   category: 'encoder',
 
   route: '/preset/php-compatible',
@@ -19,18 +19,19 @@ export default definePlugin({
 
   keywords: [
     'php',
+    'php codec',
     'base_encryption',
     'filter',
     'urlencode',
     'base64',
     'cloud encrypt',
     'cloud-encrypt',
-    'PHP编码',
-    'PHP解码',
-    '参数编码',
-    '请求编码',
-    '兼容编码',
-    'base加密',
+    'encode',
+    'decode',
+    'pipeline',
+    'codec',
+    'url encode',
+    'no padding',
   ],
 
   permissions: ['clipboard:read', 'clipboard:write'],

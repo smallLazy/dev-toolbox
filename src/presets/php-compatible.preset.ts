@@ -13,8 +13,8 @@ import { encode as base64Encode, decode as base64Decode } from '@/features/base6
 
 export const phpCompatiblePreset: PipelinePreset = {
   id: 'php-compatible',
-  name: 'PHP Compatible',
-  description: 'PHP base_encryption / filter 兼容管道 — URL Encode (PHP) → Base64 (无填充)',
+  name: 'PHP Codec',
+  description: 'Compatible with PHP base_encryption() / filter(): URL Encode(PHP) → Base64(no padding)',
   icon: 'Package',
   category: 'encoding',
   version: '1.0.0',
@@ -49,25 +49,26 @@ export const phpCompatiblePreset: PipelinePreset = {
 
   keywords: [
     'php',
+    'php codec',
     'base_encryption',
     'filter',
     'urlencode',
     'base64',
     'cloud encrypt',
     'cloud-encrypt',
-    'PHP编码',
-    'PHP解码',
-    '参数编码',
-    '请求编码',
-    '兼容编码',
-    'base加密',
+    'encode',
+    'decode',
+    'pipeline',
+    'codec',
+    'url encode',
+    'no padding',
   ],
 
   deprecated: {
     oldRoute: '/cloud-encrypt',
     oldName: 'Cloud Encrypt',
     migrationNote:
-      'Cloud Encrypt 已迁移为 Pipeline Preset「PHP Compatible」。' +
-      '该功能不是加密，而是 URL Encode (PHP) → Base64 (无填充) 的兼容编码流程。',
+      'Cloud Encrypt has been migrated to the Pipeline Preset "PHP Codec". ' +
+      'This is not encryption — it is a compatibility encoding pipeline: URL Encode(PHP) → Base64(no padding).',
   },
 }
