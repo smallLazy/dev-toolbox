@@ -83,7 +83,7 @@ Merge to master
 | Platform | Architecture | Artifact | Runner |
 |----------|-------------|----------|--------|
 | macOS | arm64 (Apple Silicon) | `.dmg` | `macos-latest` |
-| macOS | x86_64 (Intel) | `.dmg` | `macos-13` |
+| macOS | x86_64 (Intel) | `.dmg` | `macos-15-intel` |
 | Windows | x86_64 | `.msi` + `.zip` | `windows-latest` |
 | Linux | x86_64 | `.AppImage` + `.deb` | `ubuntu-latest` |
 
