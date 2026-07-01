@@ -11,7 +11,7 @@ export default definePlugin({
   name: 'PHP Codec',
   icon: 'Braces',
   version: '1.0.0',
-  description: 'Compatible with PHP base_encryption() / filter(): URL Encode(PHP) → Base64(no padding)',
+  description: 'Encode/decode PHP-compatible payloads',
   category: 'encoding',
   status: 'active',
 

@@ -157,7 +157,7 @@
 
   /* ── Dashboard Layout ─────────────────────────────────────────────────── */
   --dashboard-card-width: 280px;
-  --dashboard-card-height: 80px;
+  --dashboard-card-height: 96px;
   --dashboard-grid-gap: var(--space-3);
   --dashboard-grid-max-width: 1200px;
 
