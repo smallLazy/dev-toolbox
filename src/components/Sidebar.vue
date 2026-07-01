@@ -46,7 +46,7 @@ interface CategorySection {
 // ── Legacy items (TODO: remove once migrated to plugins) ─────────────
 
 /** Tools still living in src/modules/ without a plugin manifest.
- *  Remove these when crypto/jwt/sql-in/timestamp are migrated to features. */
+ *  TODO: remove JWT/AES/SQL IN once migrated to features. */
 const LEGACY_ITEMS: MenuItem[] = [
   {
     path: '/jwt',
@@ -68,13 +68,6 @@ const LEGACY_ITEMS: MenuItem[] = [
     icon: 'Database',
     keywords: 'sql in mysql list quote',
     category: 'formatter',
-  },
-  {
-    path: '/timestamp',
-    label: 'Timestamp',
-    icon: 'Clock',
-    keywords: 'timestamp unix time date converter',
-    category: 'converter',
   },
 ]
 

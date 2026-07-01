@@ -51,7 +51,7 @@ const router = createRouter({
     {
       path: "/timestamp",
       name: "timestamp",
-      component: () => import("../modules/timestamp/TimestampView.vue"),
+      component: () => import("../features/timestamp/TimestampView.vue"),
     },
     {
       path: "/hash",
