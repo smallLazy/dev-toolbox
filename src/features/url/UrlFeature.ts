@@ -116,16 +116,6 @@ export class UrlFeature extends BaseFeature<UrlConfig, string, UrlResult> {
     this._toolState = { input: '', output: null, inputSize: 0, outputSize: null }
   }
 
-  // ── Clipboard ─────────────────────────────────────────────────────
-
-  async copyOutput(): Promise<void> {
-    const result = this._state.output
-    if (result) {
-      await this.context.clipboard.copy(result.output)
-      this.context.notification.success('Copied', 'Output copied to clipboard')
-    }
-  }
-
   // ── History ───────────────────────────────────────────────────────
 
   recordHistory(): void {

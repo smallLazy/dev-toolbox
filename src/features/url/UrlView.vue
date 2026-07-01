@@ -14,6 +14,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useUrl } from './composables'
 import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
+import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
 import type { UrlMode, UrlVariant } from './types'
 
 const { input, output, error, loading, mode, variant, outputStats, toolbar, execute, init, dispose } =
@@ -80,6 +81,11 @@ function handleVariantClick(nextVariant: UrlVariant) {
   }
   switchVariant(nextVariant)
 }
+
+// ── Pointer-safe toolbar actions (Copy, Clear, Swap) ──────────────
+const copyAction = usePointerSafeAction()
+const clearAction = usePointerSafeAction({ disabled: () => loading.value })
+const swapAction = usePointerSafeAction({ disabled: () => loading.value })
 
 // ── Lifecycle ────────────────────────────────────────────────────────
 onMounted(() => init())
@@ -197,14 +203,16 @@ onUnmounted(() => dispose())
         <button
           v-if="output"
           class="btn-secondary"
-          @click="toolbar.execute('copy')"
+          @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))"
+          @click="copyAction.handleClick(() => toolbar.execute('copy'))"
           aria-label="Copy output to clipboard"
         >
           Copy Output
         </button>
         <button
           class="btn-secondary"
-          @click="toolbar.execute('clear')"
+          @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))"
+          @click="clearAction.handleClick(() => toolbar.execute('clear'))"
           aria-label="Clear input and output"
         >
           Clear
@@ -212,7 +220,8 @@ onUnmounted(() => dispose())
         <button
           v-if="output"
           class="btn-secondary"
-          @click="toolbar.execute('swap')"
+          @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))"
+          @click="swapAction.handleClick(() => toolbar.execute('swap'))"
           aria-label="Swap input and output"
         >
           Swap I/O

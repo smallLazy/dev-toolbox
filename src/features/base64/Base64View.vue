@@ -15,6 +15,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useBase64 } from './composables'
 import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
+import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
 
 const { input, output, error, loading, mode, stats, outputStats, toolbar, execute, init, dispose } = useBase64()
 
@@ -72,6 +73,11 @@ function handleModeClick(nextMode: Base64Mode) {
   }
   switchMode(nextMode)
 }
+
+// ── Pointer-safe toolbar actions (Copy, Clear, Swap) ──────────────
+const copyAction = usePointerSafeAction()
+const clearAction = usePointerSafeAction({ disabled: () => loading.value })
+const swapAction = usePointerSafeAction({ disabled: () => loading.value })
 
 // ── Lifecycle ────────────────────────────────────────────────────────
 onMounted(() => init())
@@ -145,9 +151,9 @@ onUnmounted(() => dispose())
           <span v-if="loading" class="spinner"></span>
           {{ loading ? 'Processing...' : (mode === 'encode' ? 'Encode' : 'Decode') }}
         </button>
-        <button v-if="output" class="btn-secondary" @click="toolbar.execute('copy')" aria-label="Copy output to clipboard">Copy Output</button>
-        <button class="btn-secondary" @click="toolbar.execute('clear')" aria-label="Clear input and output">Clear</button>
-        <button v-if="output" class="btn-secondary" @click="toolbar.execute('swap')" aria-label="Swap input and output">Swap I/O</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))" @click="copyAction.handleClick(() => toolbar.execute('copy'))" aria-label="Copy output to clipboard">Copy Output</button>
+        <button class="btn-secondary" @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))" @click="clearAction.handleClick(() => toolbar.execute('clear'))" aria-label="Clear input and output">Clear</button>
+        <button v-if="output" class="btn-secondary" @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))" @click="swapAction.handleClick(() => toolbar.execute('swap'))" aria-label="Swap input and output">Swap I/O</button>
       </div>
 
       <!-- Error -->

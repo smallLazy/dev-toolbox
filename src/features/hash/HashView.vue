@@ -14,6 +14,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useHash } from './composables'
 import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
+import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
 import type { HashAlgorithm } from './types'
 
 const { input, output, error, loading, algorithm, outputStats, toolbar, execute, init, dispose } =
@@ -55,6 +56,10 @@ function handleAlgorithmClick(nextAlgorithm: HashAlgorithm) {
   }
   switchAlgorithm(nextAlgorithm)
 }
+
+// ── Pointer-safe toolbar actions (Copy, Clear) ────────────────────
+const copyAction = usePointerSafeAction()
+const clearAction = usePointerSafeAction({ disabled: () => loading.value })
 
 // ── Lifecycle ────────────────────────────────────────────────────────
 onMounted(() => init())
@@ -137,14 +142,16 @@ onUnmounted(() => dispose())
         <button
           v-if="output"
           class="btn-secondary"
-          @click="toolbar.execute('copy')"
+          @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))"
+          @click="copyAction.handleClick(() => toolbar.execute('copy'))"
           aria-label="Copy hash output to clipboard"
         >
           Copy Output
         </button>
         <button
           class="btn-secondary"
-          @click="toolbar.execute('clear')"
+          @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))"
+          @click="clearAction.handleClick(() => toolbar.execute('clear'))"
           aria-label="Clear input and output"
         >
           Clear

@@ -16,6 +16,7 @@ import type { FeatureHistory } from './FeatureHistory'
 import type { FeatureSettings } from './FeatureSettings'
 import type { FeatureEventBus } from './types'
 import type { FeatureConfig } from './types'
+import { copyText } from '@/shared/clipboard'
 
 // ── Lightweight Service Interfaces (SDK-level, not Core-level) ─────────
 
@@ -108,18 +109,25 @@ export function createFeatureContext<TConfig extends FeatureConfig = FeatureConf
     clipboard: {
       async copy(text: string): Promise<void> {
         outputCache = text
+        await copyText(text)
       },
       async paste(): Promise<string> {
         return inputCache
       },
       async copyInput(): Promise<void> {
         outputCache = inputCache
+        if (inputCache) {
+          await copyText(inputCache)
+        }
       },
       async copyOutput(): Promise<void> {
-        // no-op in mock
+        if (outputCache) {
+          await copyText(outputCache)
+        }
       },
       async pasteInput(): Promise<void> {
-        // no-op in mock
+        // In a real implementation this would read from system clipboard;
+        // current mock updates inputCache in paste() instead.
       },
     },
 
