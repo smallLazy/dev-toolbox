@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'sentry',
   name: 'Sentry',
-  icon: '🏢',
+  icon: 'Shield',
   version: '1.0.0',
-  description: '企业工具 — 外部服务集成',
+  description: 'Enterprise tool — external service integration',
   category: 'utility',
 
   route: '/sentry',

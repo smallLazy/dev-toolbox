@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'sm3',
   name: 'Sm3',
-  icon: '🔐',
+  icon: 'Hash',
   version: '1.0.0',
-  description: '数据转换工具 — 输入、转换、输出',
+  description: 'Data conversion tool — input, convert, output',
   category: 'crypto',
 
   route: '/sm3',

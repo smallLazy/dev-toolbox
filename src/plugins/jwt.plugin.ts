@@ -7,7 +7,7 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'jwt',
   name: 'JWT',
-  icon: 'Shield',
+  icon: 'KeyRound',
   version: '1.0.0',
   description: 'Decode JSON Web Tokens locally',
   category: 'encoding',

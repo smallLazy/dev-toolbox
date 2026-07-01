@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'http-client',
   name: 'HttpClient',
-  icon: '🌐',
+  icon: 'Globe',
   version: '1.0.0',
-  description: '网络工具 — HTTP 请求与响应分析',
+  description: 'Network tool — HTTP request and response analysis',
   category: 'network',
 
   route: '/http-client',

@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'diff',
   name: 'Diff',
-  icon: '📝',
+  icon: 'GitBranch',
   version: '1.0.0',
-  description: '编辑器工具 — 格式化、压缩与验证',
+  description: 'Editor tool — format, minify, and validate',
   category: 'formatter',
 
   route: '/diff',

@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'color',
   name: 'Color',
-  icon: '🔄',
+  icon: 'Palette',
   version: '1.0.0',
-  description: '格式互转工具 — 两种格式之间互相转换',
+  description: 'Format converter — convert between formats',
   category: 'converter',
 
   route: '/color',

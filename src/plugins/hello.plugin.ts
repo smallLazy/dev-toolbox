@@ -15,9 +15,9 @@ import { definePlugin, createCommand, type PluginContext } from '@/sdk/plugin'
 export default definePlugin({
   id: 'hello',
   name: 'Hello Plugin',
-  icon: '👋',
+  icon: 'Beaker',
   version: '1.0.0',
-  description: 'Framework Validation — 验证 Workspace Core 是否正常运行',
+  description: 'Framework Validation — verify Workspace Core is running correctly',
   category: 'utility',
 
   // Route: string path + lazy component

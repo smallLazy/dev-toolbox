@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'prompt',
   name: 'Prompt',
-  icon: '🤖',
+  icon: 'MessagesSquare',
   version: '1.0.0',
-  description: 'AI 工具 — 对话、补全与生成',
+  description: 'AI tools — chat, completion, and generation',
   category: 'ai',
 
   route: '/prompt',

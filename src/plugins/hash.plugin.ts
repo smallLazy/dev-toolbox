@@ -7,7 +7,7 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'hash',
   name: 'Hash',
-  icon: 'Hash',
+  icon: 'FingerprintPattern',
   version: '1.0.0',
   description: 'Generate MD5 and SHA-256 hashes',
   category: 'crypto',

@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'regex',
   name: 'Regex',
-  icon: '🔍',
+  icon: 'FileCode',
   version: '1.0.0',
-  description: '检查器工具 — 解析并结构化展示数据',
+  description: 'Inspector tool — parse and display structured data',
   category: 'analyzer',
 
   route: '/regex',

@@ -8,9 +8,9 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'qrcode',
   name: 'Qrcode',
-  icon: '👁',
+  icon: 'QrCode',
   version: '1.0.0',
-  description: '查看器工具 — 预览文件和元数据',
+  description: 'Viewer tool — preview files and metadata',
   category: 'utility',
 
   route: '/qrcode',

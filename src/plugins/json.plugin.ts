@@ -10,10 +10,10 @@ import { definePlugin, createCommand } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'json',
-  name: 'JSON 格式化',
-  icon: '📋',
+  name: 'JSON Formatter',
+  icon: 'FileJson',
   version: '1.0.0',
-  description: 'JSON 格式化、压缩与验证',
+  description: 'Format, validate, and minify JSON',
   category: 'formatter',
 
   route: '/json',
@@ -51,7 +51,7 @@ export default definePlugin({
     'json', 'format', 'minify', 'validate', 'prettify',
     'pretty', 'compress', 'beautify', 'formatter', 'validator',
     'json format', 'json minify', 'json validate',
-    '格式化', '压缩', '验证', '美化',
+    '格式化', '压缩', '验证', '美化', 'beautify', 'pretty', 'formatter',
   ],
 
   // ── Permissions ────────────────────────────────────────────────────
@@ -62,26 +62,26 @@ export default definePlugin({
     indentSize: {
       key: 'indentSize',
       type: 'select',
-      label: '缩进空格数',
+      label: 'Indent Size',
       options: ['2', '4'],
       default: 2,
     },
     sortKeys: {
       key: 'sortKeys',
       type: 'toggle',
-      label: '按键排序',
+      label: 'Sort Keys',
       default: false,
     },
     autoFormatOnPaste: {
       key: 'autoFormatOnPaste',
       type: 'toggle',
-      label: '粘贴自动格式化',
+      label: 'Auto-format on Paste',
       default: true,
     },
     themeFollowWorkspace: {
       key: 'themeFollowWorkspace',
       type: 'toggle',
-      label: '跟随 Workspace 主题',
+      label: 'Follow Workspace Theme',
       default: true,
     },
   },

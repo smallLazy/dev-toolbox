@@ -7,7 +7,7 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'base64',
   name: 'Base64',
-  icon: 'CaseSensitive',
+  icon: 'Binary',
   version: '1.0.0',
   description: 'Encode and decode text to/from Base64 with full Unicode support',
   category: 'encoding',

@@ -9,7 +9,7 @@ import { definePlugin } from '@/sdk/plugin'
 export default definePlugin({
   id: 'preset-php-compatible',
   name: 'PHP Codec',
-  icon: 'Package',
+  icon: 'Braces',
   version: '1.0.0',
   description: 'Compatible with PHP base_encryption() / filter(): URL Encode(PHP) → Base64(no padding)',
   category: 'encoding',
