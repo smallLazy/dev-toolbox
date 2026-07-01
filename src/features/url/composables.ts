@@ -7,6 +7,7 @@
 
 import { ref, computed } from 'vue'
 import { createFeatureContext } from '@/sdk/feature'
+import { copyText } from '@/shared/clipboard'
 import { UrlFeature } from './UrlFeature'
 import { createToolbar } from './toolbar'
 import { defaults } from './settings'
@@ -47,7 +48,7 @@ export function useUrl() {
       }
 
       try {
-        await navigator.clipboard.writeText(output.value)
+        await copyText(output.value)
       } catch (e) {
         error.value = e instanceof Error ? e.message : 'Failed to copy output'
       }

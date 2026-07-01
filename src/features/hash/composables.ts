@@ -7,6 +7,7 @@
 
 import { ref, computed } from 'vue'
 import { createFeatureContext } from '@/sdk/feature'
+import { copyText } from '@/shared/clipboard'
 import { HashFeature } from './HashFeature'
 import { createToolbar } from './toolbar'
 import { defaults } from './settings'
@@ -46,7 +47,7 @@ export function useHash() {
       }
 
       try {
-        await navigator.clipboard.writeText(output.value)
+        await copyText(output.value)
       } catch (e) {
         error.value = e instanceof Error ? e.message : 'Failed to copy output'
       }
