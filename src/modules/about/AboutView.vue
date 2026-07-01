@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { APP_ICONS, Icons } from '@/design/icons'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { copyText } from '@/shared/clipboard'
 
 const store = useWorkspaceStore()
 
@@ -74,7 +75,7 @@ async function copyVersion() {
     `Rust: ${rustVersion}`,
   ].join('\n')
   try {
-    await navigator.clipboard.writeText(info)
+    await copyText(info)
     copyLabel.value = 'Copied!'
     setTimeout(() => { copyLabel.value = 'Copy Version' }, 2000)
   } catch {

@@ -43,12 +43,6 @@ interface CategorySection {
   items: MenuItem[]
 }
 
-// ── Legacy items (TODO: remove once migrated to plugins) ─────────────
-
-/** Tools still living in src/modules/ without a plugin manifest.
- *  All legacy tools have been migrated — kept for future extensions. */
-const LEGACY_ITEMS: MenuItem[] = []
-
 // ── Dynamic sidebar categories from workspace store ──────────────────
 
 const sidebarCategories = computed<CategorySection[]>(() => {
@@ -56,10 +50,10 @@ const sidebarCategories = computed<CategorySection[]>(() => {
   const seenPluginIds = new Set<string>()
   const seenPaths = new Set<string>()
 
-  // 1. Load plugin tools from workspaceStore.toolsByCategory
-  //    Each tool resolves its own icon via getToolIconName(tool.id) — no emoji, all Design System.
-  //    Dedup by pluginId AND path to guarantee no duplicates across categories.
-  //    Unknown categories fall back to Utility rather than being silently dropped.
+  // Load plugin tools from workspaceStore.toolsByCategory.
+  // Each tool resolves its own icon via getToolIconName(tool.id) — no emoji, all Design System.
+  // Dedup by pluginId AND path to guarantee no duplicates across categories.
+  // Unknown categories fall back to Utility rather than being silently dropped.
   for (const [categoryId, tools] of workspaceStore.toolsByCategory.entries()) {
     const meta = CATEGORY_META[categoryId] ?? { label: categoryId, icon: 'Package' as IconName, order: 99 }
 
@@ -89,30 +83,7 @@ const sidebarCategories = computed<CategorySection[]>(() => {
     }
   }
 
-  // 2. Supplement legacy (non-plugin) items — only if path not already seen
-  for (const item of LEGACY_ITEMS) {
-    const categoryId = item.category
-    if (!categoryId) continue
-
-    const meta = CATEGORY_META[categoryId]
-    if (!meta) continue
-
-    if (seenPaths.has(item.path)) continue
-    seenPaths.add(item.path)
-
-    if (!sections.has(categoryId)) {
-      sections.set(categoryId, {
-        id: categoryId,
-        label: meta.label,
-        icon: meta.icon,
-        items: [],
-      })
-    }
-
-    sections.get(categoryId)!.items.push(item)
-  }
-
-  // 3. Sort categories by order, items alphabetically
+  // Sort categories by order, items alphabetically
   return Array.from(sections.values())
     .map((section) => ({
       ...section,
