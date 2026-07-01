@@ -19,6 +19,7 @@ Claude must read these before coding (in order):
 [ ] docs/platform/platform-freeze-v1.md    ← What's frozen
 [ ] docs/ai/AI_PLUGIN_GUIDE.md             ← How to create Plugins
 [ ] docs/ai/AI_UI_GUIDE.md                 ← Design System compliance
+[ ] docs/design/ui-copy-guidelines.md      ← UI Copy Language Consistency
 ```
 
 For full context: `docs/ai/AI_CONTEXT_GRAPH.md`
@@ -80,6 +81,77 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ✅ Run npm run validate before committing
 ```
 
+### UI Copy Language Consistency
+
+> **Reference**: `docs/design/ui-copy-guidelines.md` — full spec with Good/Bad examples.
+
+#### Default: English UI
+
+Dev Toolbox is a developer-facing tool. **All user-visible copy defaults to English.**
+
+```
+✅ Plugin name:         PHP Codec, JSON Formatter, HTTP Client
+✅ Page title:          PHP Codec
+✅ Sidebar label:       PHP Codec
+✅ Mode labels:         Encode / Decode
+✅ Buttons:             Encode, Decode, Clear, Swap, Copy
+✅ Input labels:        Input, Output
+✅ Placeholders:        Enter text to encode...
+✅ Help text / notes:   Note: This is not encryption.
+✅ Error messages:      Invalid Base64 input
+✅ Empty states:        No tools found
+✅ Toast messages:      Copied to clipboard
+```
+
+#### Technical Terms Stay English
+
+```
+URL Encode, Base64, JSON, JWT, AES, Hash, Unicode, Regex,
+Markdown, SQL, Timestamp, UUID, XML, YAML, HTML, HTTP
+```
+
+#### Never Mix Languages on One Page
+
+> **One page, one language.** If a page is English, every visible string is English.
+> If a page is explicitly Chinese, every visible string is Chinese.
+
+```
+❌ English title + Chinese buttons:   PHP Codec [编码] [解码]
+❌ Chinese title + English buttons:   PHP 兼容编码 [Encode] [Decode]
+❌ English labels + Chinese help:     Input: ___  注意：不是加密
+```
+
+#### Chinese Allowed Only When
+
+1. Chinese-specific tool (e.g., Pinyin converter)
+2. Chinese-named service integration (e.g., WeCom, Zentao)
+3. Explicit product requirement (documented in Plugin README)
+
+When Chinese is chosen, **the entire page must be Chinese** — no mixing.
+Technical terms (Section 5 of the guidelines) remain English even on Chinese pages.
+
+#### Never Do (UI Copy)
+
+```
+❌ Chinese plugin name for a general developer tool
+❌ Mixed CN/EN labels on the same page
+❌ Chinese buttons with English title (or vice versa)
+❌ Chinese placeholder with English input label
+❌ English error messages with Chinese help text
+❌ Translated technical terms (e.g., "Base64 编码" as a tool name)
+```
+
+#### Always Do (UI Copy)
+
+```
+✅ English plugin name for all general developer tools
+✅ Consistent language across the entire page
+✅ Title Case for tool names (PHP Codec, JSON Formatter)
+✅ Standard technical term spelling (URL Encode, not Url Encode)
+✅ Both CN + EN search keywords for discoverability
+✅ Test assertions match the chosen UI language
+```
+
 ---
 
 ## Claude Checklist
@@ -107,6 +179,9 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 [ ] No Core/SDK/Registry modifications
 [ ] Card+Section layout used
 [ ] All states covered: idle, loading, success, error, empty
+[ ] UI copy: English by default (see docs/design/ui-copy-guidelines.md)
+[ ] UI copy: No mixed CN/EN on the same page
+[ ] Plugin name in English (Title Case) unless Chinese tool with justification
 ```
 
 ### Before Committing
@@ -118,6 +193,7 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 [ ] No hardcoded hex values (grep for # in diff)
 [ ] No hardcoded px values (grep for px in diff)
 [ ] No emoji in templates (grep for emoji in diff)
+[ ] No mixed CN/EN UI copy (see docs/design/ui-copy-guidelines.md)
 [ ] Plugin README.md and CHANGELOG.md exist
 [ ] Search keywords registered (8+, CN + EN)
 ```
