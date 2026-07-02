@@ -34,3 +34,21 @@ export interface JsonValidateResult {
     message: string
   }>
 }
+
+/** Unified result returned by all transform operations. Never throws. */
+export interface JsonTransformResult {
+  success: boolean
+  output: string | null
+  error: string | null
+  stats: JsonStats | null
+}
+
+/** Detailed statistics about parsed JSON content. */
+export interface JsonStats {
+  chars: number
+  lines: number
+  bytes: number
+  type?: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'
+  keys?: number
+  items?: number
+}

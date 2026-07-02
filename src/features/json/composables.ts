@@ -1,50 +1,55 @@
 /**
  * JSON Plugin — Vue Composable
  *
- * Bridges JsonFeature to Vue reactivity.
- * No Core/Registry/Service access. Only JsonFeature + context.
+ * Bridges pure logic to Vue reactivity.
+ * Uses transformJson() (safe, never throws) for the UI path.
+ * JsonFeature is kept for lifecycle/history — not for transform.
+ * No Core/Registry/Service access.
  */
 
-import { ref, computed, watch } from 'vue'
-import { createFeatureContext, type FeatureContext } from '@/sdk/feature'
+import { ref, computed } from 'vue'
+import { createFeatureContext } from '@/sdk/feature'
 import { copyText } from '@/shared/clipboard'
 import { JsonFeature } from './JsonFeature'
 import { createJsonToolbar } from './toolbar'
-import type { JsonConfig, JsonMode } from './types'
+import { transformJson, getJsonStats } from './logic'
+import type { JsonConfig, JsonMode, JsonStats } from './types'
 import { jsonDefaults } from './settings'
 
 export function useJsonPlugin() {
-  // ── Context & Feature ────────────────────────────────────────────
+  // ── Context & Feature (lifecycle only) ──────────────────────────────
   const context = createFeatureContext<JsonConfig>({
     id: 'json',
     name: 'JSON Formatter',
     description: 'Format, validate, and minify JSON',
-    icon: '📋',
+    icon: 'FileJson',
     version: '1.0.0',
     category: 'formatter',
   })
   const feature = new JsonFeature(context)
 
-  // ── Reactive State ────────────────────────────────────────────────
+  // ── Reactive State ──────────────────────────────────────────────────
   const input = ref('')
   const output = ref<string | null>(null)
   const error = ref<string | null>(null)
   const loading = ref(false)
   const mode = ref<JsonMode>('format')
+  const stats = ref<JsonStats | null>(null)
 
-  // ── Derived ───────────────────────────────────────────────────────
+  // ── Derived ─────────────────────────────────────────────────────────
   const isValid = computed(() => {
     if (!input.value.trim()) return null
-    const vr = feature.validate(input.value)
-    return vr.valid
+    try {
+      JSON.parse(input.value.trim())
+      return true
+    } catch {
+      return false
+    }
   })
 
-  const inputStats = computed(() => feature.inputStats)
-  const outputStats = computed(() => feature.outputStats)
-
-  // ── Toolbar ───────────────────────────────────────────────────────
+  // ── Toolbar (copy / clear / swap only) ──────────────────────────────
   const toolbar = createJsonToolbar({
-    async onCopyOutput() {
+    async onCopy() {
       error.value = null
       if (!output.value) {
         error.value = 'No output to copy'
@@ -56,60 +61,56 @@ export function useJsonPlugin() {
         error.value = e instanceof Error ? e.message : 'Failed to copy output'
       }
     },
-    async onCopyInput() { await feature.copyInput() },
-    async onPaste() {
-      await feature.pasteInput()
-      input.value = feature.state.input
+    onClear() {
+      input.value = ''
+      output.value = null
+      error.value = null
+      stats.value = null
     },
-    onClear() { input.value = ''; output.value = null; error.value = null },
     onSwap() {
       if (output.value) {
         input.value = output.value
         output.value = null
+        stats.value = null
       }
-      mode.value = mode.value === 'format' ? 'minify' : 'format'
-    },
-    onExport() {
-      if (output.value) {
-        const blob = new Blob([output.value], { type: 'application/json' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url; a.download = 'output.json'; a.click()
-        URL.revokeObjectURL(url)
-      }
-    },
-    async onImport() {
-      const text = await context.clipboard.paste()
-      if (text) input.value = text
+      // Mode is NOT toggled — swap only moves data
     },
   })
 
-  // ── Actions ───────────────────────────────────────────────────────
-  async function execute(op?: JsonMode) {
+  // ── Actions ─────────────────────────────────────────────────────────
+
+  /** Execute transform for the given mode. Defaults to current mode. */
+  function execute(op?: JsonMode) {
     const currentMode = op ?? mode.value
     error.value = null
     output.value = null
+    stats.value = null
 
-    const validation = feature.validate(input.value)
-    if (!validation.valid) {
-      error.value = validation.errors[0]?.message ?? 'Invalid JSON'
-      return
-    }
-
-    loading.value = true
-    try {
-      const config: JsonConfig = { ...jsonDefaults, mode: currentMode } as JsonConfig & { mode: string }
-      const result = await feature.run(input.value, config)
-      output.value = result
+    const result = transformJson(input.value, currentMode, jsonDefaults)
+    if (result.success) {
+      output.value = result.output
+      stats.value = result.stats
       feature.recordHistory(currentMode)
-    } catch (e) {
-      error.value = (e as Error).message
-    } finally {
-      loading.value = false
+    } else if (result.error) {
+      error.value = result.error
+    }
+    // Empty input: output=null, error=null (result.error is null)
+  }
+
+  /** Switch mode and auto-execute if input has content. */
+  function selectMode(nextMode: JsonMode) {
+    mode.value = nextMode
+    if (input.value.trim()) {
+      execute(nextMode)
+    } else {
+      // Clear any previous output/error when switching on empty
+      output.value = null
+      error.value = null
+      stats.value = null
     }
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────────────
+  // ── Lifecycle ───────────────────────────────────────────────────────
   async function init() {
     await feature.initialize()
     await feature.activate()
@@ -121,12 +122,12 @@ export function useJsonPlugin() {
 
   return {
     // State
-    input, output, error, loading, mode,
+    input, output, error, loading, mode, stats,
     // Derived
-    isValid, inputStats, outputStats,
+    isValid,
     // Toolbar
     toolbar,
     // Actions
-    execute, init, dispose,
+    execute, selectMode, init, dispose,
   }
 }

@@ -79,6 +79,8 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ✅ Write pure functions in logic.ts
 ✅ Write 5+ unit tests per Plugin
 ✅ Run npm run validate before committing
+✅ Formatter tools use JSON Formatter as the reference layout unless explicitly justified
+✅ Mode controls must follow the shared layout rule: single Mode controls use full width, Mode+Variant controls use two columns; action labels must use Title Case and shared labels such as Run Encode, Copy Output, and Swap I/O
 ```
 
 ### UI Copy Language Consistency
