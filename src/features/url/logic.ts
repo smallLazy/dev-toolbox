@@ -272,3 +272,51 @@ export function formatSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
+
+// ── Safe Decode ──────────────────────────────────────────────────────
+
+/**
+ * Result type for safe decode operations that must never throw.
+ */
+export type TryDecodeResult =
+  | { success: true; value: string }
+  | { success: false; error: string }
+
+/**
+ * Safely decode a URL-encoded string — never throws.
+ *
+ * Wraps decodeUrl() in a try/catch and returns a discriminated union
+ * instead of throwing on malformed percent encoding.
+ *
+ * - component: uses decodeURIComponent — throws URIError on %ZZ, truncated %XX, etc.
+ * - uri: uses decodeURI — throws URIError on malformed percent encoding
+ * - php: uses decodeUrlPhp — lenient, keeps '%' on invalid hex, never throws
+ *
+ * Use this when you need a friendly error message rather than a thrown
+ * exception (e.g. for UI error display or batch processing).
+ *
+ * @param input   - URL-encoded string (valid or invalid)
+ * @param variant - Decoding variant ('component', 'uri', or 'php')
+ */
+export function tryDecodeUrl(input: string, variant: UrlVariant): TryDecodeResult {
+  // Empty input is valid and decodes to empty string
+  if (input.length === 0) {
+    return { success: true, value: '' }
+  }
+
+  try {
+    const value = decodeUrl(input, variant)
+    return { success: true, value }
+  } catch (e) {
+    if (e instanceof URIError) {
+      return {
+        success: false,
+        error: 'Invalid URL encoding: malformed percent sequence',
+      }
+    }
+    return {
+      success: false,
+      error: (e as Error).message || 'Decode failed',
+    }
+  }
+}
