@@ -1,0 +1,533 @@
+# Tool Development Guidelines v1.0
+
+> **Rule**: Every Dev Toolbox tool must follow the standard development workflow defined in this document. After completion, every tool must produce a **Tool Completion Report** using the mandatory template in Section 8.
+
+---
+
+## 1. Scope & Applicability
+
+These guidelines apply to **all tool development** within Dev Toolbox, including but not limited to:
+
+| Category | Examples |
+|----------|----------|
+| **Encoding** | Base64, URL Encode, HTML Encode, Unicode |
+| **Formatter** | JSON, XML, YAML, SQL |
+| **Crypto** | Hash, AES, RSA |
+| **Converter** | Color, Timestamp, Unit Converter |
+| **Any future tool** | All new tools added to Dev Toolbox |
+
+Regardless of category, every tool must follow the same ordered workflow and meet the same Definition of Done.
+
+---
+
+## 2. Standard Development Workflow
+
+> **Rule**: Tools must be developed in the following order. Do not skip steps or reorder.
+
+### Step 1 — Pure Logic First
+
+Implement pure logic functions in `util` / `service` / `logic` layer **before** any UI work.
+
+**Requirements:**
+
+- Must NOT depend on Vue components
+- Must NOT depend on DOM
+- Must NOT depend on browser UI state
+- Input and output must be explicitly typed
+- Must be independently testable
+- Must NOT embed business logic directly in UI components
+- Error handling must return structured results or define clear exception boundaries — never throw raw exceptions to the UI layer
+
+**Examples of well-structured pure functions:**
+
+```typescript
+// ✅ Correct: pure function with clear signature
+function base64Encode(input: string): string
+
+// ✅ Correct: structured result with error discrimination
+function base64Decode(input: string): Result<string, ToolError>
+
+// ✅ Correct: discriminated union for safe operations
+function tryDecode(input: string): TryDecodeResult
+
+// ❌ Wrong: throwing raw errors to UI
+function decode(input: string): string {
+  if (!input) throw new Error('empty')  // UI must catch this
+}
+
+// ❌ Wrong: depending on Vue reactivity
+function encode(input: Ref<string>): string
+```
+
+**Error handling pattern:**
+
+Prefer discriminated unions over throwing. If the project does not have a `Result<T, E>` or `ToolError` type, use the minimal pattern already established in the codebase (e.g., `Base64Feature`'s `TryDecodeResult`). Do not introduce new type abstractions unless they align with existing patterns.
+
+```typescript
+// Minimal discriminated union (already used in Base64 logic.ts)
+type TryDecodeResult =
+  | { success: true; value: string }
+  | { success: false; error: string }
+```
+
+### Step 2 — Unit Tests Before UI
+
+Write unit tests for all pure logic functions **before** connecting them to UI.
+
+**Minimum coverage requirements:**
+
+| Scenario | Required |
+|----------|----------|
+| Normal / happy-path input | ✅ |
+| Empty input | ✅ |
+| Chinese characters (CJK) | ✅ |
+| Emoji | ✅ |
+| Special characters | ✅ |
+| Invalid / malformed input | ✅ |
+| Error result validation | ✅ |
+| Edge cases (max length, boundary values) | ✅ |
+
+**Requirements:**
+
+- Must use code assertions — manual verification alone is insufficient
+- Must not rely on AI ad-hoc inspection
+- Every testable behavior must have a corresponding test case
+- Tests must be included in `npm test` and CI
+- Must NOT weaken validation just to make tests pass
+- Must NOT delete existing tests to bypass failures
+
+```bash
+# Run tests for the tool being developed
+npx vitest run src/features/<tool-name>/
+
+# Run all tests to ensure no regressions
+npm test
+```
+
+### Step 3 — UI Integration After Logic Is Stable
+
+Connect UI **only after** pure logic is implemented and unit tests pass.
+
+**Requirements:**
+
+- Reuse the existing unified tool layout (`ToolPage`, `PluginWorkspace`, `Card+Section`)
+- Must NOT break existing Design Tokens
+- Must NOT use hardcoded colors, spacing, or emoji icons
+- UI components must only handle: state management, event binding, and rendering
+- All tool logic must be called through `util` / `service` / `logic` modules
+- Error messages must be user-friendly — never use `alert()`
+- States must be clearly distinguishable: **idle**, **loading**, **success**, **error**, **empty**
+- Common interactions (`Copy`, `Clear`, `Run`) must remain consistent with existing tools
+
+### Step 4 — Component Interaction Tests
+
+After UI integration, add component interaction tests covering critical paths.
+
+**Minimum coverage requirements:**
+
+| Interaction | Required |
+|-------------|----------|
+| Default/initial state | ✅ |
+| Input content typing | ✅ |
+| Primary action button (Run / Convert / Format) | ✅ |
+| Mode switch (if the tool has modes, e.g., Encode ↔ Decode) | ✅ / N/A |
+| Clear action | ✅ |
+| Output result display | ✅ |
+| Error message display | ✅ |
+| Copy button | ✅ |
+| Keyboard shortcut (if supported) | ✅ / N/A |
+| Invalid input does not crash the page | ✅ |
+
+**Requirements:**
+
+- `navigator.clipboard.writeText` may be mocked for Copy tests
+- Only cover critical interaction paths — avoid over-testing visual details
+- Must NOT depend on real network requests
+- Must NOT depend on real system clipboard
+- Must NOT depend on real system clock (unless explicitly mocked)
+
+### Step 5 — Manual Smoke Test
+
+After all automated tests pass, conduct a quick manual smoke test.
+
+**Manual smoke test focus areas:**
+
+| Area | What to Check |
+|------|---------------|
+| Visual | Does the page look correct? |
+| Interaction | Does the workflow feel natural? |
+| Copy | Is the UI copy clear and unambiguous? |
+| Errors | Are error messages understandable? |
+| Copy feedback | Is the "Copied" feedback visible and clear? |
+| Platform | Basic operations work on macOS and Windows |
+
+**Important:**
+
+- Manual testing supplements — it does NOT replace — unit tests and component tests
+- Manual testing is only for visual and experiential validation
+- If a behavior cannot be verified by an automated test, it must be explicitly listed as a manual smoke test item
+
+---
+
+## 2a. Interaction Testing Layers
+
+> **Rule**: Pure logic unit tests are necessary but **not sufficient** for interactive UI features. A function passing its unit test does NOT prove the UI button wired to it actually works.
+
+### Why Pure Unit Tests Are Not Enough
+
+A pure function test only proves that **the function itself** behaves correctly given certain inputs. It does NOT prove:
+
+- That a button click actually calls the function
+- That the toolbar/handler/action dispatch chain is wired correctly
+- That the UI state updates after the function returns
+- That the user sees the correct result on screen
+
+**Real-world counter-example — Base64 Swap I/O:**
+
+| Layer | What Happened |
+|-------|---------------|
+| **Pure logic** | `useCodecTransform.swap()` unit test — ✅ Passed |
+| **Toolbar wiring** | `FeatureToolbar` had `swap` action **disabled by default** |
+| **Dispatch chain** | `toolbar.execute('swap')` could not find the action — handler never fired |
+| **User experience** | Clicking Swap in the UI did **nothing** — no error, no feedback |
+
+> The `swap()` state logic was correct. The unit test passed. But the feature was **broken for real users** because the wiring layer was not tested.
+
+This class of bug — **correct logic, broken wiring** — can only be caught by tests above the pure-function layer.
+
+### Test Layer Taxonomy
+
+Every interactive UI feature must be covered by tests at the appropriate layers. The table below defines five distinct test layers:
+
+| Layer | What It Tests | Example (Base64 Swap) |
+|-------|---------------|----------------------|
+| **1. Pure Logic** | Function correctness: input → output | `swap({ mode, input, output })` returns swapped state |
+| **2. Composable / State** | State machine transitions, reactive state | `useCodecTransform` state changes when `swap()` is called |
+| **3. Wiring / Action Dispatch** | Toolbar action → handler invocation chain | `toolbar.execute('swap')` reaches the registered swap handler |
+| **4. Component / DOM** | Real button click → UI state change visible in DOM | Clicking the Swap button swaps input ↔ output textareas |
+| **5. Manual Smoke** | Visual and experiential validation | Swap button looks correct, feedback is clear |
+
+### Required Coverage by Interaction Type
+
+For common tool interactions, the following layers are the **minimum** required. Pure logic tests alone (Layer 1) are never sufficient for interactive features.
+
+| Interaction | Minimum Required Layers | Notes |
+|-------------|------------------------|-------|
+| **Copy** | Layer 1 + Layer 3 | Pure logic test for clipboard formatting + wiring test that `toolbar.execute('copy')` calls the handler. DOM click is manual smoke if no component test framework. |
+| **Clear** | Layer 1 + Layer 2 + Layer 3 | Logic for reset + state test + wiring test for action dispatch |
+| **Swap I/O** | Layer 1 + Layer 2 + Layer 3 | Logic for swap + state test + wiring test that toolbar action is **enabled** and dispatches correctly |
+| **Run / Convert** | Layer 1 + Layer 2 + Layer 3 | Logic for transform + state test for result + wiring test for primary action dispatch |
+| **Mode Switch** | Layer 1 + Layer 2 + Layer 3 | Logic for mode change + state test + wiring test for mode toggle action |
+| **Keyboard Shortcut** | Layer 3 + Layer 4 | Wiring test that shortcut triggers the correct action + component test or manual smoke for key event |
+
+### Implementation Guidance (No New Dependencies)
+
+If the project does not currently have a component/DOM test framework, do **NOT** introduce a new dependency just for this rule. Instead:
+
+1. **Cover Layers 1–3 with existing tooling** — Vitest can test pure functions, composables, and wiring (by importing and calling toolbar/action/handler directly).
+2. **List Layer 4 as manual smoke test items** — DOM rendering, real button clicks, and visual feedback become explicit manual verification items in the Tool Completion Report.
+3. **Layer 5 remains manual** — visual and UX validation is always manual.
+
+**Wiring test pattern (no DOM required):**
+
+```typescript
+// ✅ Wiring test: verify toolbar action dispatches to handler
+// No DOM, no mount, no browser — pure Vitest
+it('swap action is enabled and dispatches to swap handler', () => {
+  const toolbar = createToolbar(/* config */)
+  const action = toolbar.actions.find(a => a.id === 'swap')
+
+  // 1. Action must be registered and enabled
+  expect(action).toBeDefined()
+  expect(action.disabled).toBe(false)
+
+  // 2. Executing the action must call the handler
+  const spy = vi.fn()
+  toolbar.on('swap', spy)
+  toolbar.execute('swap')
+  expect(spy).toHaveBeenCalledOnce()
+})
+```
+
+**Composable/state test pattern:**
+
+```typescript
+// ✅ State test: verify composable state transitions
+it('swap() swaps input and output in state', () => {
+  const state = useCodecTransform()
+  state.input.value = 'abc'
+  state.output.value = 'XYZ'
+
+  state.swap()
+
+  expect(state.input.value).toBe('XYZ')
+  expect(state.output.value).toBe('abc')
+})
+```
+
+---
+
+## 3. Definition of Done
+
+A tool is **Ready** only when ALL of the following conditions are met:
+
+- [ ] `util` / `service` / `logic` functions implemented
+- [ ] Unit tests cover all core logic scenarios (Step 2 checklist)
+- [ ] UI integrated into the unified tool layout
+- [ ] Component interaction tests cover all critical paths (Step 4 checklist)
+- [ ] Wiring / action dispatch tests cover Copy, Clear, Swap, Run, and mode switch (Section 2a)
+- [ ] Error handling is user-friendly (no raw exceptions, no `alert()`)
+- [ ] Empty input is safe (no crash, no white screen)
+- [ ] `Copy` and `Clear` work correctly
+- [ ] Keyboard shortcuts (if supported) match tool documentation
+- [ ] Zero hardcoded colors, spacing, or emoji icons
+- [ ] No unrelated tools modified
+- [ ] No unnecessary dependencies introduced
+- [ ] All quality gates pass (see Section 4)
+- [ ] Manual smoke test completed, OR pending items explicitly listed
+
+> **If any condition is not met, the tool Status is `Not Ready`.**
+
+---
+
+## 4. Quality Gate Commands
+
+After tool completion, run every command in this list:
+
+```bash
+npx vue-tsc --noEmit        # TypeScript type check
+npm test                     # All unit tests
+npm run build                # Production build
+npm run validate:arch        # Architecture compliance
+npm run validate:design      # Design Token compliance
+npm run validate:plugins     # Plugin structure validation
+```
+
+**Requirements:**
+
+- Must NOT skip failing tests
+- Must NOT delete tests to pass
+- Must NOT weaken validation standards
+- If a failure is a pre-existing issue (not caused by the current tool), it must be documented separately in the Tool Completion Report — do NOT fix it silently in the same change
+- If a command fails, explain: **what failed**, **what scope is affected**, and **whether it is related to the current tool**
+
+---
+
+## 5. AI Development Constraints
+
+When developing a tool with AI assistance, the following rules apply:
+
+**Before coding:**
+- [ ] Read this document first (`docs/development/tool-development-guidelines.md`)
+- [ ] Output an implementation plan before making changes
+- [ ] Clearly list which files will be created, modified, or deleted
+- [ ] Prefer minimal changes — do not over-engineer
+
+**During coding:**
+- [ ] Follow the 5-step workflow in order (Section 2)
+- [ ] Do NOT refactor unrelated architecture
+- [ ] Do NOT modify unrelated tools
+- [ ] Do NOT introduce unnecessary dependencies
+- [ ] After each step, output the list of modified files
+
+**Quality gates:**
+- [ ] Do NOT weaken quality standards to make tests pass
+- [ ] Do NOT delete existing tests
+- [ ] Run all quality gate commands (Section 4)
+- [ ] Report the result of each validation command
+- [ ] If a behavior cannot be auto-verified, list it as a manual smoke test item (Section 2, Step 5)
+
+**After completion:**
+- [ ] Output the **Tool Completion Report** using the mandatory template (Section 8)
+- [ ] If the tool does not meet the Definition of Done, set Status to `Not Ready` and explain why
+
+---
+
+## 6. Recommended Directory Structure
+
+Follow the existing project convention. The reference structure is the **Base64 tool**:
+
+```
+src/features/<tool-name>/
+├── logic.ts                  # Pure logic functions (Step 1)
+├── types.ts                  # Type definitions
+├── index.ts                  # Plugin feature export
+├── <ToolName>Feature.ts      # Feature class (extends BaseFeature)
+├── <ToolName>View.vue        # UI component (Step 3)
+├── composables.ts            # Vue composables (state management)
+├── settings.ts               # Settings schema
+├── history.ts                # History support
+├── toolbar.ts                # Toolbar configuration
+├── README.md                 # Tool documentation
+├── CHANGELOG.md              # Version history
+└── __tests__/
+    ├── logic.test.ts         # Unit tests (Step 2)
+    └── composables.test.ts   # Component interaction tests (Step 4)
+```
+
+**Requirements:**
+
+- New tools should follow the Base64 structure — do not invent a new layout
+- Tool logic, types, tests, and UI components must have clear boundaries
+- Do NOT restructure existing tools to match this template
+- Do NOT reorganize the project to match a different convention
+
+---
+
+## 7. Example: Base64 Tool
+
+The Base64 tool demonstrates the standard workflow:
+
+| Step | What was done |
+|------|---------------|
+| **1. Pure Logic** | `encode()`, `decode()`, `validate()`, `validateBase64()`, `tryDecode()`, `getStats()`, `formatSize()` in `logic.ts` — all pure functions, zero side effects |
+| **2. Unit Tests** | `logic.test.ts` covers: ASCII, Chinese, emoji, empty input, invalid Base64, error messages, edge cases |
+| **3. UI** | `Base64View.vue` with Encode/Decode mode switch, input/output textareas, Run/Clear/Copy/Swap buttons — all Design Tokens, SVG icons only |
+| **4. Component Tests** | `composables.test.ts` covers: default state, Run, Clear, Copy, error display, Enter shortcut |
+| **5. Manual Smoke Test** | Visual check, interaction flow, error messages, Copy feedback — completed before merge |
+
+**Key takeaway from Base64:**
+- `logic.ts` is the single source of truth for encoding/decoding
+- The Vue component only wires state — it does not contain business logic
+- `tryDecode()` returns a discriminated union instead of throwing, so the UI can display friendly errors
+
+---
+
+## 8. Tool Completion Report (Mandatory)
+
+> **Rule**: After every tool is created or significantly modified, AI must output a report using the exact template below. This template is **mandatory** and must not be omitted.
+
+```markdown
+# Tool Completion Report
+
+## 1. Tool Name
+
+- Tool:
+- Category:
+- Status: Ready / Not Ready
+
+## 2. Modified Files
+
+| File | Type | Description |
+|---|---|---|
+|  | Created / Modified / Deleted |  |
+
+## 3. Pure Logic
+
+- Util / service file:
+- Core functions:
+- Error handling strategy:
+- UI-independent: Yes / No
+
+## 4. Pure Logic Tests
+
+| Case | Covered | Notes |
+|---|---|---|
+| Normal input | Yes / No |  |
+| Empty input | Yes / No |  |
+| Chinese input | Yes / No |  |
+| Emoji input | Yes / No |  |
+| Special characters | Yes / No |  |
+| Invalid input | Yes / No |  |
+| Error result | Yes / No |  |
+| Edge cases | Yes / No |  |
+
+## 5. UI Integration
+
+- Layout:
+- Input:
+- Output:
+- Primary action:
+- Secondary actions:
+- Error state:
+- Empty state:
+- Copy behavior:
+- Clear behavior:
+- Shortcut behavior:
+
+## 6. Interaction Tests by Layer
+
+> **Rule**: Interactive features require tests above the pure-function layer (see Section 2a). Distinguish which layers are covered.
+
+### 6a. Composable / State Tests
+
+| State transition | Covered | Notes |
+|---|---|---|
+| Default/initial state | Yes / No |  |
+| Input change updates state | Yes / No |  |
+| Mode switch updates state | Yes / No / N/A |  |
+| Swap I/O updates state | Yes / No / N/A |  |
+| Clear resets state | Yes / No |  |
+| Transform result updates state | Yes / No |  |
+
+### 6b. Wiring / Action Dispatch Tests
+
+| Action | Handler invoked | Notes |
+|---|---|---|
+| Run / Convert | Yes / No |  |
+| Copy | Yes / No |  |
+| Clear | Yes / No |  |
+| Swap I/O | Yes / No / N/A |  |
+| Mode switch | Yes / No / N/A |  |
+| Shortcut → action | Yes / No / N/A |  |
+
+### 6c. Component / DOM Tests
+
+| Interaction | Covered | Notes |
+|---|---|---|
+| Default state renders | Yes / No |  |
+| Input typing renders | Yes / No |  |
+| Primary action via real click | Yes / No |  |
+| Error display renders | Yes / No |  |
+| Invalid input does not crash UI | Yes / No |  |
+
+> If the project has no component/DOM test framework, mark all rows in 6c as `Not Run` and list each as a manual smoke test item in Section 8.
+
+## 7. Validation Commands
+
+| Command | Result | Notes |
+|---|---|---|
+| npx vue-tsc --noEmit | Passed / Failed / Not Run |  |
+| npm test | Passed / Failed / Not Run |  |
+| npm run build | Passed / Failed / Not Run |  |
+| npm run validate:arch | Passed / Failed / Not Run |  |
+| npm run validate:design | Passed / Failed / Not Run |  |
+| npm run validate:plugins | Passed / Failed / Not Run |  |
+
+## 8. Manual Smoke Test
+
+| Item | Status | Notes |
+|---|---|---|
+| Visual check | Passed / Failed / Pending |  |
+| Interaction check | Passed / Failed / Pending |  |
+| Error message check | Passed / Failed / Pending |  |
+| Copy feedback check | Passed / Failed / Pending |  |
+| macOS check | Passed / Failed / Pending / N/A |  |
+| Windows check | Passed / Failed / Pending / N/A |  |
+
+## 9. Known Issues
+
+- 
+
+## 10. Final Status
+
+- Ready / Not Ready:
+- Remaining issues:
+- Next recommended tool:
+```
+
+**Template usage rules:**
+
+| Rule | Description |
+|------|-------------|
+| **Not Run** | If a check was not executed, mark it `Not Run` and explain why |
+| **Pending** | If a manual check is deferred, mark it `Pending` with a reason |
+| **No vague answers** | Do NOT write "all passed" without listing individual commands and results |
+| **Not Ready** | If the tool has not met the Definition of Done (Section 3), Status **must** be `Not Ready` |
+| **Known Issues** | Pre-existing issues discovered during development must be listed separately — do not silently bundle fixes |
+
+---
+
+> **Version**: v1.0 — 2026-07-02
+> **Maintained by**: Dev Toolbox team
+> **Next review**: After the next 3 tools are developed using these guidelines

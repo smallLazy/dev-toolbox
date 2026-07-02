@@ -381,6 +381,7 @@ GitHub Actions runs the full quality gate on every PR and push to `master`:
 | `docs/sdk/plugin-sdk-v1.md` | Plugin SDK API reference |
 | `docs/product/plugin-definition-of-done-v1.md` | Plugin DoD checklist |
 | `docs/release/release-engineering-v1.md` | Release engineering guide |
+| `docs/development/tool-development-guidelines.md` | Standard workflow and completion report template for Dev Toolbox tools |
 
 ## License
 

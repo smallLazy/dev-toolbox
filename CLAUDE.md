@@ -20,6 +20,7 @@ Claude must read these before coding (in order):
 [ ] docs/ai/AI_PLUGIN_GUIDE.md             ← How to create Plugins
 [ ] docs/ai/AI_UI_GUIDE.md                 ← Design System compliance
 [ ] docs/design/ui-copy-guidelines.md      ← UI Copy Language Consistency
+[ ] docs/development/tool-development-guidelines.md  ← Tool dev workflow & completion report
 ```
 
 For full context: `docs/ai/AI_CONTEXT_GRAPH.md`
@@ -153,6 +154,50 @@ Technical terms (Section 5 of the guidelines) remain English even on Chinese pag
 
 ---
 
+## Tool Development Rules
+
+> **Reference**: `docs/development/tool-development-guidelines.md` — full spec with workflow, DoD, and mandatory completion report template.
+
+When developing any Dev Toolbox tool, always follow the standard workflow:
+
+```
+1. Pure Logic First     → Implement util/service/logic functions
+2. Unit Tests           → Write tests before connecting UI
+3. UI Integration       → Connect UI only after logic tests pass
+4. Component Tests      → Add interaction tests for critical paths
+5. Manual Smoke Test    → Visual and UX validation
+```
+
+### Before Implementing a New Tool
+
+```
+[ ] Read docs/development/tool-development-guidelines.md
+[ ] Output an implementation plan (files to create/modify)
+[ ] Prefer minimal changes — do not over-engineer
+```
+
+### During Implementation
+
+```
+[ ] Implement pure util/service/logic functions first (Step 1)
+[ ] Add unit tests before UI integration (Step 2)
+[ ] Integrate UI only after logic tests pass (Step 3)
+[ ] Add component interaction tests for critical paths (Step 4)
+[ ] Interactive UI actions require wiring-level or component-level tests; pure unit tests alone are not enough
+[ ] Run all quality gates: vue-tsc, npm test, validate:arch, validate:design, validate:plugins
+[ ] Report manual smoke test items separately (Step 5)
+```
+
+### After Completion
+
+```
+[ ] Output the Tool Completion Report (mandatory template)
+[ ] If DoD not met, Status must be "Not Ready" with explanation
+[ ] Pre-existing issues listed in Known Issues — not silently fixed
+```
+
+---
+
 ## Claude Checklist
 
 ### Before Starting Work
@@ -195,6 +240,7 @@ Technical terms (Section 5 of the guidelines) remain English even on Chinese pag
 [ ] No mixed CN/EN UI copy (see docs/design/ui-copy-guidelines.md)
 [ ] Plugin README.md and CHANGELOG.md exist
 [ ] Search keywords registered (8+, CN + EN)
+[ ] Tool Completion Report filled (docs/development/tool-development-guidelines.md §8)
 ```
 
 ---
