@@ -305,6 +305,9 @@ A tool is **Ready** only when ALL of the following conditions are met:
 - [ ] Zero hardcoded colors, spacing, or emoji icons
 - [ ] UI layout is consistent with the selected reference tool in the same category (Section 3a)
 - [ ] Configuration controls, action placement, output section, spacing, and visual grouping match the reference pattern unless explicitly justified
+- [ ] Sidebar label uses short, scannable name; Page Title uses full capability name (Section 3b)
+- [ ] plugin `id`, route, and feature `id` are stable and unchanged by display name modifications
+- [ ] Keywords cover short name, full capability, action verbs, and technical terms (Section 3b)
 - [ ] No unrelated tools modified
 - [ ] No unnecessary dependencies introduced
 - [ ] All quality gates pass (see Section 4)
@@ -397,6 +400,62 @@ Before marking a tool Ready, verify:
 - [ ] "Copied" feedback matches reference
 - [ ] Any divergences are justified, documented, and covered by smoke tests
 - [ ] Layout smoke test (`SMOKE-LAYOUT-01`) passed
+
+---
+
+## 3b. Tool Naming Consistency
+
+> **Rule**: Tool names in the Sidebar, Page Title, and keywords must follow a consistent naming convention. The Sidebar uses a short name; the Page Title uses the full capability name.
+
+### Naming Convention
+
+| UI Element | Format | Example (HTML Encode) | Example (JSON) |
+|------------|--------|----------------------|-----------------|
+| **Sidebar label** | Short name (no verb) | `HTML` | `JSON Formatter` |
+| **Page Title** | Full capability name (with action) | `HTML Encode / Decode` | `JSON Formatter` |
+| **plugin `id`** | kebab-case, unchanging | `html-encode` | `json` |
+| **route** | `/kebab-case`, unchanging | `/html-encode` | `/json` |
+| **feature id** | matches plugin id | `html-encode` | `json` |
+
+### Principles
+
+1. **Sidebar** uses a short, scannable name — no verb, no action prefix. Users scan the sidebar to find a tool; a shorter name is faster to locate.
+2. **Page Title** uses the full capability name — includes the action (Encode / Decode, Format, Convert) so users know exactly what the tool does when they land on the page.
+3. **plugin `id`**, **route**, and **feature `id`** are stable identifiers. They must **never** change just because the display name changed. Stability of identifiers prevents broken links, lost history, and plugin resolution failures.
+4. **keywords / aliases** must cover **both** the short name and the full capability name to ensure search discoverability regardless of what the user types.
+
+### Keywords Coverage Requirements
+
+Every tool's `keywords` array must include at minimum:
+
+| Keyword Type | Required | Example (HTML Encode) |
+|---|---|---|
+| Short name | ✅ | `html` |
+| Full capability | ✅ | `html-encode`, `html-decode` |
+| Action verbs | ✅ | `encode`, `decode` |
+| Technical terms | ✅ | `entity`, `entities`, `escape`, `unescape` |
+| CN search terms | ✅ (8+ total CN+EN) | `HTML编码`, `HTML解码`, `HTML实体` |
+
+### Renaming an Existing Tool
+
+When changing a tool's display name (Sidebar label or Page Title):
+
+1. **Do NOT change** `plugin id`, `route`, or feature `id` — these are stable identifiers.
+2. **Update `name`** in the plugin manifest for the new Sidebar label.
+3. **Update `searchKeywords`** to cover both old and new names.
+4. **Update `description`** if the short name alone is ambiguous.
+5. Do NOT modify `Sidebar.vue`, `workspace.ts`, or any shared layout code — the Sidebar reads `name` from the plugin manifest automatically.
+
+### Naming Consistency Checklist
+
+Before marking a tool Ready, verify:
+
+- [ ] Sidebar label is a short, scannable name (no verb unless essential)
+- [ ] Page Title is the full capability name with action
+- [ ] plugin `id`, route, feature `id` are stable and unchanged
+- [ ] `keywords` cover short name, full capability, action verbs, technical terms
+- [ ] CN search keywords cover both short and full name
+- [ ] Any name change did not break search, route, or plugin resolution
 
 ---
 
@@ -560,6 +619,19 @@ The Base64 tool demonstrates the standard workflow:
 - Copy behavior:
 - Clear behavior:
 - Shortcut behavior:
+
+### 5a. Naming Consistency
+
+- Sidebar label:
+- Page title:
+- plugin `id`:
+- route:
+- feature `id`:
+- `name` / `id` relationship:
+- Keywords coverage (short name):
+- Keywords coverage (full capability):
+- Keywords coverage (CN):
+- Naming checklist passed: Yes / No
 
 ## 6. Interaction Tests by Layer
 

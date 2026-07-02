@@ -188,6 +188,7 @@ When developing any Dev Toolbox tool, always follow the standard workflow:
 [ ] Report manual smoke test items separately (Step 5)
 [ ] Manual smoke tests must include steps, expected results, actual results, and status before a tool can be marked Ready
 [ ] Tools in the same category must match the layout pattern of an existing reference tool; configuration controls, action placement, output sections, spacing, and visual grouping must stay consistent unless a difference is explicitly justified
+[ ] Sidebar label: short scannable name; Page Title: full capability name; plugin id/route/feature id: stable; keywords: cover both short and full names (Section 3b)
 ```
 
 ### After Completion
