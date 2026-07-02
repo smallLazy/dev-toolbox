@@ -81,6 +81,7 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ✅ Run npm run validate before committing
 ✅ Formatter tools use JSON Formatter as the reference layout unless explicitly justified
 ✅ Mode controls must follow the shared layout rule: single Mode controls use full width, Mode+Variant controls use two columns; action labels must use Title Case and shared labels such as Run Encode, Copy Output, and Swap I/O
+✅ Copy Output and Swap I/O are output-dependent actions: hide them when there is no output, and hide Swap I/O when the current mode output is not suitable as input (e.g., Validate mode)
 ```
 
 ### UI Copy Language Consistency

@@ -470,6 +470,31 @@ All button labels must use Title Case. Do NOT use lowercase-leading labels such 
 
 If a mode produces output that is not suitable as input (e.g., Validate mode outputs plain text like "Valid JSON / Type: object"), hide Swap I/O for that mode. Document the reason in the Tool Completion Report.
 
+### Action Visibility Rules
+
+> **Rule**: Copy Output and Swap I/O are output-dependent actions. They must be hidden (`v-if`) when there is no output — never shown as disabled (`:disabled`).
+
+| Action | Visibility Rule |
+|--------|----------------|
+| Primary (Run Encode, Format, etc.) | Always visible |
+| Clear | Always visible |
+| Copy Output | Visible only when output exists (`v-if="output"`) |
+| Swap I/O | Visible only when output exists and the output is suitable as input (`v-if="output"`) |
+
+**Additional rules:**
+
+- Modes that produce informational output (e.g., JSON Validate) must hide Swap I/O: `v-if="output && mode !== 'validate'"`.
+- **Prefer hiding unavailable actions (`v-if`) over showing disabled buttons (`:disabled`).** All reference tools (URL, Base64, HTML, Unicode) use `v-if` for Copy Output and Swap I/O.
+- If a tool uses `:disabled` instead of `v-if`, it must be explicitly justified in the Implementation Plan and Tool Completion Report.
+- Empty state (no input, no output) must show only: Primary action + Clear.
+
+**Updated Definition of Done checks:**
+
+- [ ] Copy Output is visible only when output exists (uses `v-if`, not `:disabled`)
+- [ ] Swap I/O is visible only when output exists and the output is suitable as input
+- [ ] Unavailable actions are hidden, not disabled
+- [ ] Empty state shows only Primary action + Clear
+
 ---
 
 ## 3b. Tool Naming Consistency

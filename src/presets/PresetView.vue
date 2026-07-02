@@ -114,9 +114,9 @@ const swapAction = usePointerSafeAction()
           @click="clearAction.handleClick(() => clear())"
         >Clear</button>
         <button
+          v-if="output"
           type="button"
           class="btn-secondary"
-          :disabled="!output"
           aria-label="Swap input and output"
           @pointerdown="swapAction.handlePointerDown($event, () => swap())"
           @click="swapAction.handleClick(() => swap())"
