@@ -120,7 +120,7 @@ const swapAction = usePointerSafeAction()
           aria-label="Swap input and output"
           @pointerdown="swapAction.handlePointerDown($event, () => swap())"
           @click="swapAction.handleClick(() => swap())"
-        >Swap</button>
+        >Swap I/O</button>
       </ToolActions>
 
       <!-- Error -->

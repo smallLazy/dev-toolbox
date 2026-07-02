@@ -401,6 +401,75 @@ Before marking a tool Ready, verify:
 - [ ] Any divergences are justified, documented, and covered by smoke tests
 - [ ] Layout smoke test (`SMOKE-LAYOUT-01`) passed
 
+### Mode Control Layout Rules
+
+> **Rule**: Mode controls must follow a consistent layout pattern depending on the number of configuration items.
+
+**Single Mode control (no Variant):**
+
+If a tool has only one segmented control in the configuration area (e.g., Mode: Encode / Decode, Mode: Format / Minify / Validate), it should use full available width:
+
+```
+✅ HTML Encode:    [ Configuration ]  ← ToolSection title="Configuration"
+                   Mode: [Encode|Decode]    ← full-width segmented control
+
+✅ PHP Codec:      [ Configuration ]  ← ToolSection title="Configuration"
+                   Mode: [Encode|Decode]    ← full-width segmented control
+
+✅ JSON Formatter: [ Configuration ]  ← ToolSection title="Configuration"
+                   Mode: [Format|Minify|Validate]  ← full-width segmented control
+```
+
+Structure:
+```html
+<ToolSection title="Configuration">
+  <div class="field">
+    <label class="field-label">Mode</label>
+    <ToolSegmentedControl ... />
+  </div>
+</ToolSection>
+```
+
+**Mode + Variant controls (two items):**
+
+If a tool has both Mode and Variant controls, they must appear in one row with two equal columns:
+
+```
+✅ URL Encode:     [ Configuration    ]
+                   Mode: [Encode|Decode] | Variant: [Component|URI]
+                   ← equal columns, same row →
+```
+
+### Action Label Rules
+
+> **Rule**: Action button labels must use consistent naming and Title Case across all tools.
+
+**Shared action labels:**
+
+| Action | Label | Notes |
+|--------|-------|-------|
+| Clear input and output | `Clear` | |
+| Copy output to clipboard | `Copy Output` | Shown only when output is non-empty |
+| Swap input and output | `Swap I/O` | Do NOT use `Swap`, `Swap Input/Output`, or other variants |
+
+**Mode-specific primary action labels:**
+
+| Mode | Label |
+|------|-------|
+| Encode | `Run Encode` |
+| Decode | `Run Decode` |
+| Format | `Format` |
+| Minify | `Minify` |
+| Validate | `Validate` |
+
+**Title Case requirement:**
+
+All button labels must use Title Case. Do NOT use lowercase-leading labels such as `run Encode`, `copy output`, or `clear`.
+
+**Swap I/O visibility by mode:**
+
+If a mode produces output that is not suitable as input (e.g., Validate mode outputs plain text like "Valid JSON / Type: object"), hide Swap I/O for that mode. Document the reason in the Tool Completion Report.
+
 ---
 
 ## 3b. Tool Naming Consistency
