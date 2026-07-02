@@ -186,6 +186,7 @@ When developing any Dev Toolbox tool, always follow the standard workflow:
 [ ] Interactive UI actions require wiring-level or component-level tests; pure unit tests alone are not enough
 [ ] Run all quality gates: vue-tsc, npm test, validate:arch, validate:design, validate:plugins
 [ ] Report manual smoke test items separately (Step 5)
+[ ] Manual smoke tests must include steps, expected results, actual results, and status before a tool can be marked Ready
 ```
 
 ### After Completion

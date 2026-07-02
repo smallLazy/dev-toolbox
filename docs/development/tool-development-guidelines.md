@@ -148,24 +148,46 @@ After UI integration, add component interaction tests covering critical paths.
 
 ### Step 5 — Manual Smoke Test
 
-After all automated tests pass, conduct a quick manual smoke test.
+After all automated tests pass, a structured manual smoke test must be prepared and executed.
 
-**Manual smoke test focus areas:**
+**AI responsibility (before handoff):**
 
-| Area | What to Check |
-|------|---------------|
-| Visual | Does the page look correct? |
-| Interaction | Does the workflow feel natural? |
-| Copy | Is the UI copy clear and unambiguous? |
-| Errors | Are error messages understandable? |
-| Copy feedback | Is the "Copied" feedback visible and clear? |
-| Platform | Basic operations work on macOS and Windows |
+AI must produce a set of manual smoke test cases as part of the Tool Completion Report. Each case must include:
+
+- **Case ID** — a short unique identifier (e.g., `SMOKE-01`, `SMOKE-02`)
+- **Scenario** — what is being tested, in plain language
+- **Steps** — numbered, repeatable steps a human can follow
+- **Expected Result** — what should happen if the tool works correctly
+
+**Human tester responsibility (after AI handoff):**
+
+- Follow each test case step by step
+- Record the **Actual Result** — what actually happened
+- Set the **Status** to one of: `Passed`, `Failed`, `Pending`, or `N/A`
+- If `Failed`, explain the failure in Notes
+- If `N/A`, explain why the case does not apply
+
+**Minimum required smoke test cases:**
+
+| Case ID | Scenario |
+|---------|----------|
+| SMOKE-01 | Default / idle state renders correctly |
+| SMOKE-02 | Primary action (Run / Convert / Format) produces correct output |
+| SMOKE-03 | Clear action resets input and output |
+| SMOKE-04 | Copy action copies output to clipboard with visible feedback |
+| SMOKE-05 | Invalid input shows a user-friendly error (no crash, no white screen) |
+| SMOKE-06 | Empty input is handled safely (no crash, clear feedback) |
+| SMOKE-07 | Mode switch works correctly (if the tool has modes) |
+| SMOKE-08 | Keyboard shortcut triggers primary action (if supported) |
+| SMOKE-09 | Visual layout matches the existing tool design (macOS) |
+| SMOKE-10 | Visual layout matches the existing tool design (Windows) |
 
 **Important:**
 
 - Manual testing supplements — it does NOT replace — unit tests and component tests
 - Manual testing is only for visual and experiential validation
 - If a behavior cannot be verified by an automated test, it must be explicitly listed as a manual smoke test item
+- If the manual smoke test has **any** `Pending` or `Failed` item in a required case, the tool Status is **`Not Ready`**
 
 ---
 
@@ -496,14 +518,22 @@ The Base64 tool demonstrates the standard workflow:
 
 ## 8. Manual Smoke Test
 
-| Item | Status | Notes |
-|---|---|---|
-| Visual check | Passed / Failed / Pending |  |
-| Interaction check | Passed / Failed / Pending |  |
-| Error message check | Passed / Failed / Pending |  |
-| Copy feedback check | Passed / Failed / Pending |  |
-| macOS check | Passed / Failed / Pending / N/A |  |
-| Windows check | Passed / Failed / Pending / N/A |  |
+> **Rule**: Every case must have steps and expected results filled by AI. The human tester fills Actual Result and Status. Status values: `Pending`, `Passed`, `Failed`, `N/A`.
+
+| Case ID | Scenario | Steps | Expected Result | Actual Result | Status | Notes |
+|---|---|---|---|---|---|---|
+| SMOKE-01 | Default state | 1. Open tool page | Idle state renders with input, output, and action buttons visible |  | Pending |  |
+| SMOKE-02 | Primary action | 1. Enter valid input 2. Click Run/Convert | Correct output appears in output area |  | Pending |  |
+| SMOKE-03 | Clear | 1. Enter input 2. Click Clear | Input and output areas are cleared |  | Pending |  |
+| SMOKE-04 | Copy | 1. Produce output 2. Click Copy | Output copied to clipboard; "Copied" feedback visible |  | Pending |  |
+| SMOKE-05 | Invalid input | 1. Enter invalid input 2. Click Run/Convert | User-friendly error message displayed; no crash, no white screen |  | Pending |  |
+| SMOKE-06 | Empty input | 1. Leave input empty 2. Click Run/Convert | Safe handling; clear feedback; no crash |  | Pending |  |
+| SMOKE-07 | Mode switch | 1. Switch mode (e.g., Encode → Decode) | Mode changes; labels and behavior update correctly |  | Pending / N/A |  |
+| SMOKE-08 | Keyboard shortcut | 1. Enter input 2. Press shortcut (e.g., ⌘Enter) | Primary action triggered |  | Pending / N/A |  |
+| SMOKE-09 | Visual — macOS | 1. Open tool on macOS 2. Compare with design reference | Layout, spacing, colors match existing tools |  | Pending |  |
+| SMOKE-10 | Visual — Windows | 1. Open tool on Windows 2. Compare with design reference | Layout, spacing, colors match existing tools |  | Pending / N/A |  |
+
+> **Readiness gate**: If any row with a required case has Status `Pending` or `Failed`, the tool is **Not Ready**. Mark rows as `N/A` only with a justification in Notes (e.g., "Tool has no mode switch").
 
 ## 9. Known Issues
 
@@ -521,8 +551,11 @@ The Base64 tool demonstrates the standard workflow:
 | Rule | Description |
 |------|-------------|
 | **Not Run** | If a check was not executed, mark it `Not Run` and explain why |
-| **Pending** | If a manual check is deferred, mark it `Pending` with a reason |
-| **No vague answers** | Do NOT write "all passed" without listing individual commands and results |
+| **Pending** | If a manual check is deferred, mark it `Pending` with a reason. Any `Pending` required case → tool is `Not Ready`. |
+| **Passed** | Actual result matches expected result |
+| **Failed** | Actual result does not match expected. Must explain the failure in Notes. Any `Failed` required case → tool is `Not Ready`. |
+| **N/A** | Case does not apply. Must explain why in Notes. |
+| **No vague answers** | Do NOT write "all passed" or "manual testing passed" without listing individual cases and results. Every row must be filled. |
 | **Not Ready** | If the tool has not met the Definition of Done (Section 3), Status **must** be `Not Ready` |
 | **Known Issues** | Pre-existing issues discovered during development must be listed separately — do not silently bundle fixes |
 
