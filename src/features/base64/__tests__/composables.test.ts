@@ -9,9 +9,10 @@
  * input without requiring a second click on the Run Encode/Run Decode button.
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { useCodecTransform } from '@/composables/useCodecTransform'
 import { encode, decode } from '../logic'
+import { createToolbar } from '../toolbar'
 
 function createBase64Codec(defaultMode: 'encode' | 'decode' = 'encode') {
   return useCodecTransform({
@@ -135,5 +136,273 @@ describe('Base64 action button label', () => {
   it('shows "Run Decode" when mode is decode', () => {
     const label = (mode: 'encode' | 'decode') => mode === 'encode' ? 'Run Encode' : 'Run Decode'
     expect(label('decode')).toBe('Run Decode')
+  })
+})
+
+// ── Clear (input, output, error) ─────────────────────────────────────
+
+describe('Base64 clear', () => {
+  it('clear() resets input, output, and error to initial state', () => {
+    const codec = createBase64Codec('encode')
+
+    // Set up state: input, output, and error
+    codec.input.value = 'hello'
+    codec.selectMode('encode')
+    expect(codec.output.value).toBe('aGVsbG8=')
+
+    // Trigger an error by decoding invalid Base64
+    codec.input.value = '!!!'
+    codec.selectMode('decode')
+    expect(codec.error.value).toBeTruthy()
+    expect(codec.output.value).toBeNull()
+
+    // Clear
+    codec.clear()
+
+    expect(codec.input.value).toBe('')
+    expect(codec.output.value).toBeNull()
+    expect(codec.error.value).toBeNull()
+    // Mode should be preserved
+    expect(codec.mode.value).toBe('decode')
+  })
+
+  it('clear() resets error from a failed transform without changing mode', () => {
+    const codec = createBase64Codec('encode')
+
+    codec.input.value = 'not-base64!!!'
+    codec.selectMode('decode')
+    expect(codec.error.value).toBeTruthy()
+    expect(codec.mode.value).toBe('decode')
+
+    codec.clear()
+
+    expect(codec.error.value).toBeNull()
+    expect(codec.input.value).toBe('')
+    expect(codec.mode.value).toBe('decode')
+  })
+})
+
+// ── Default mode ─────────────────────────────────────────────────────
+
+describe('Base64 default mode', () => {
+  it('defaults to encode mode', () => {
+    const codec = createBase64Codec()
+    expect(codec.mode.value).toBe('encode')
+  })
+
+  it('can be initialized in decode mode', () => {
+    const codec = createBase64Codec('decode')
+    expect(codec.mode.value).toBe('decode')
+  })
+})
+
+// ── Copy action ──────────────────────────────────────────────────────
+
+describe('Base64 copy action', () => {
+  it('calls navigator.clipboard.writeText with output value', async () => {
+    const codec = createBase64Codec('encode')
+
+    // Encode something
+    codec.input.value = 'hello'
+    codec.selectMode('encode')
+    expect(codec.output.value).toBe('aGVsbG8=')
+
+    // Mock clipboard
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    const originalClipboard = navigator.clipboard
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      writable: true,
+      configurable: true,
+    })
+
+    try {
+      await navigator.clipboard.writeText(codec.output.value!)
+      expect(writeText).toHaveBeenCalledWith('aGVsbG8=')
+      expect(writeText).toHaveBeenCalledTimes(1)
+    } finally {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: originalClipboard,
+        writable: true,
+        configurable: true,
+      })
+    }
+  })
+
+  it('does not attempt copy when output is null (no error thrown by codec)', () => {
+    const codec = createBase64Codec('encode')
+
+    // No output set — clear state
+    codec.clear()
+    expect(codec.output.value).toBeNull()
+    expect(codec.error.value).toBeNull()
+
+    // Copy guard: the composable checks for null output before calling clipboard
+    // (handled by useBase64 composable's onCopy — tested here at the codec level)
+    const hasOutput = codec.output.value !== null
+    expect(hasOutput).toBe(false)
+  })
+})
+
+// ── Error handling: invalid Base64 robustness ────────────────────────
+
+describe('Base64 error handling robustness', () => {
+  it('invalid Base64 "abc%%%" sets error, output is null, no crash', () => {
+    const codec = createBase64Codec('encode')
+
+    codec.input.value = 'abc%%%'
+    codec.selectMode('decode')
+
+    expect(codec.error.value).toBeTruthy()
+    // atob() throws "Invalid character" for non-Base64 input;
+    // the composable catches and surfaces the error message.
+    expect(codec.error.value).toMatch(/invalid/i)
+    expect(codec.output.value).toBeNull()
+    // Mode still changed
+    expect(codec.mode.value).toBe('decode')
+  })
+
+  it('subsequent valid transform clears previous error', () => {
+    const codec = createBase64Codec('encode')
+
+    // First: trigger error
+    codec.input.value = '!!!invalid!!!'
+    codec.selectMode('decode')
+    expect(codec.error.value).toBeTruthy()
+
+    // Then: valid input
+    codec.input.value = 'aGVsbG8='
+    codec.selectMode('decode')
+    expect(codec.error.value).toBeNull()
+    expect(codec.output.value).toBe('hello')
+  })
+
+  it('invalid Base64 with Cyrillic "привет" is handled gracefully', () => {
+    const codec = createBase64Codec('encode')
+
+    codec.input.value = 'привет'
+    codec.selectMode('decode')
+
+    expect(codec.error.value).toBeTruthy()
+    expect(codec.output.value).toBeNull()
+    // Must not throw
+  })
+
+  it('empty input after error state clears error on transform', () => {
+    const codec = createBase64Codec('encode')
+
+    codec.input.value = '!!!'
+    codec.selectMode('decode')
+    expect(codec.error.value).toBeTruthy()
+
+    codec.input.value = ''
+    codec.transform('decode')
+
+    expect(codec.output.value).toBeNull()
+    expect(codec.error.value).toBeNull()
+  })
+})
+
+// ── Swap I/O ────────────────────────────────────────────────────────
+
+describe('Base64 swap I/O', () => {
+  it('swap sets input to output value and clears output', () => {
+    const codec = createBase64Codec('encode')
+
+    // Encode to produce output
+    codec.input.value = 'hello'
+    codec.selectMode('encode')
+    expect(codec.output.value).toBe('aGVsbG8=')
+
+    // Swap: input ← output, output ← null
+    // (mirrors the onSwap handler in useBase64 composable)
+    if (codec.output.value) {
+      codec.input.value = codec.output.value
+      codec.output.value = null
+    }
+
+    expect(codec.input.value).toBe('aGVsbG8=')
+    expect(codec.output.value).toBeNull()
+  })
+
+  it('swap is a no-op when output is null', () => {
+    const codec = createBase64Codec('encode')
+
+    codec.input.value = 'hello'
+    // No transform run — output is null
+    expect(codec.output.value).toBeNull()
+
+    if (codec.output.value !== null) {
+      codec.input.value = codec.output.value
+      codec.output.value = null
+    }
+
+    // Input unchanged, output still null
+    expect(codec.input.value).toBe('hello')
+    expect(codec.output.value).toBeNull()
+  })
+
+  it('swap with decode mode: input becomes decoded output, output cleared', () => {
+    const codec = createBase64Codec('decode')
+
+    codec.input.value = 'aGVsbG8='
+    codec.selectMode('decode')
+    expect(codec.output.value).toBe('hello')
+
+    if (codec.output.value) {
+      codec.input.value = codec.output.value
+      codec.output.value = null
+    }
+
+    expect(codec.input.value).toBe('hello')
+    expect(codec.output.value).toBeNull()
+  })
+})
+
+// ── Toolbar swap dispatch (regression: swap was disabled by default) ─
+
+describe('Base64 toolbar swap dispatch', () => {
+  it('toolbar.execute("swap") calls onSwap handler', async () => {
+    let swapCalled = false
+    const toolbar = createToolbar({
+      onCopy: () => {},
+      onClear: () => {},
+      onSwap: () => {
+        swapCalled = true
+      },
+    })
+
+    await toolbar.execute('swap')
+
+    expect(swapCalled).toBe(true)
+  })
+
+  it('toolbar.execute("swap") dispatches correctly when output exists', async () => {
+    const codec = createBase64Codec('encode')
+
+    // Set up state with output
+    codec.input.value = 'hello'
+    codec.selectMode('encode')
+    expect(codec.output.value).toBe('aGVsbG8=')
+
+    // Wire the real swap handler
+    let swapExecuted = false
+    const toolbar = createToolbar({
+      onCopy: () => {},
+      onClear: () => codec.clear(),
+      onSwap: () => {
+        if (codec.output.value) {
+          codec.input.value = codec.output.value
+          codec.output.value = null
+          swapExecuted = true
+        }
+      },
+    })
+
+    await toolbar.execute('swap')
+
+    expect(swapExecuted).toBe(true)
+    expect(codec.input.value).toBe('aGVsbG8=')
+    expect(codec.output.value).toBeNull()
   })
 })

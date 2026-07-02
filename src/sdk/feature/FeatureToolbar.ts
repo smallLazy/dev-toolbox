@@ -52,7 +52,7 @@ export function createFeatureToolbar(
     copy: true,
     paste: false,
     clear: true,
-    swap: false,
+    swap: true,
     favorite: true,
     history: true,
     settings: true,
@@ -74,7 +74,7 @@ export function createFeatureToolbar(
       { id: 'export', label: '导出', icon: '📤', enabled: enabled.export, handler: handlers.export ?? (() => {}) },
       { id: 'import', label: '导入', icon: '📥', enabled: enabled.import, handler: handlers.import ?? (() => {}) },
     ]
-    return all.filter((a) => a.enabled)
+    return all.filter((a) => a.enabled && handlers[a.id] !== undefined)
   }
 
   let actions = buildActions()

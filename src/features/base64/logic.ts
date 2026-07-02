@@ -158,6 +158,45 @@ export function getStats(input: string): TextStats {
 }
 
 /**
+ * Result type for safe decode operations that must never throw.
+ */
+export type TryDecodeResult =
+  | { success: true; value: string }
+  | { success: false; error: string }
+
+/**
+ * Safely decode Base64 to plain text — never throws.
+ *
+ * Combines validateBase64() + decode() into a single call that returns
+ * a discriminated union instead of throwing on invalid input.
+ *
+ * Use this when you need a friendly error message rather than a thrown
+ * exception (e.g. for UI error display).
+ *
+ * @param input - Base64-encoded string (valid or invalid)
+ */
+export function tryDecode(input: string): TryDecodeResult {
+  // Empty input is valid and decodes to empty string
+  if (input.length === 0) {
+    return { success: true, value: '' }
+  }
+
+  // Validate Base64 alphabet, length, and padding
+  const validation = validateBase64(input)
+  if (!validation.valid) {
+    return { success: false, error: validation.error!.message }
+  }
+
+  // Decode — atob() may still throw on edge cases despite valid alphabet
+  try {
+    const value = decode(input)
+    return { success: true, value }
+  } catch (e) {
+    return { success: false, error: (e as Error).message || 'Decode failed' }
+  }
+}
+
+/**
  * Format byte count for display (e.g. "1.2 KB").
  */
 export function formatSize(bytes: number): string {
