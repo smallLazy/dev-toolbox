@@ -58,7 +58,7 @@ const PLUGIN_ROUTES: Record<string, string> = {
 // Active plugins: those with explicit router records pointing to real views
 const ACTIVE_PLUGINS = new Set([
   'base64', 'crypto', 'hash', 'hello', 'html-encode', 'json', 'jwt',
-  'preset-php-compatible', 'sql', 'timestamp', 'url',
+  'preset-php-compatible', 'sql', 'timestamp', 'unicode', 'url',
 ])
 
 // Stub view file names — auto-generated placeholders that must never render
@@ -69,7 +69,7 @@ const STUB_VIEW_NAMES = [
   'MarkdownView.vue', 'PromptView.vue', 'QrcodeView.vue',
   'RegexView.vue', 'RequestDecoderView.vue', 'ReviewView.vue',
   'RsaView.vue', 'SentryView.vue', 'Sm2View.vue', 'Sm3View.vue',
-  'Sm4View.vue', 'TranslateView.vue', 'UnicodeView.vue',
+  'Sm4View.vue', 'TranslateView.vue',
   'UuidView.vue', 'WebsocketView.vue', 'WecomView.vue',
   'XmlView.vue', 'YamlView.vue', 'ZentaoView.vue',
 ]

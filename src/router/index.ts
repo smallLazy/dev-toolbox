@@ -58,6 +58,11 @@ const router = createRouter({
       component: () => import("../features/url/UrlView.vue"),
     },
     {
+      path: "/unicode",
+      name: "unicode",
+      component: () => import("../features/unicode/UnicodeView.vue"),
+    },
+    {
       path: "/timestamp",
       name: "timestamp",
       component: () => import("../features/timestamp/TimestampView.vue"),
