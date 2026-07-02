@@ -303,12 +303,100 @@ A tool is **Ready** only when ALL of the following conditions are met:
 - [ ] `Copy` and `Clear` work correctly
 - [ ] Keyboard shortcuts (if supported) match tool documentation
 - [ ] Zero hardcoded colors, spacing, or emoji icons
+- [ ] UI layout is consistent with the selected reference tool in the same category (Section 3a)
+- [ ] Configuration controls, action placement, output section, spacing, and visual grouping match the reference pattern unless explicitly justified
 - [ ] No unrelated tools modified
 - [ ] No unnecessary dependencies introduced
 - [ ] All quality gates pass (see Section 4)
 - [ ] Manual smoke test completed, OR pending items explicitly listed
 
 > **If any condition is not met, the tool Status is `Not Ready`.**
+
+---
+
+## 3a. Layout Consistency Rules
+
+> **Rule**: Tools in the same category must share the same visual layout. A user switching between URL Encode and Unicode Encode should feel like using the same tool.
+
+### Reference Tool Requirement
+
+Before implementing a new tool, you **must**:
+
+1. Select an existing, completed tool in the same category as the **reference tool**.
+2. State the reference tool in the Implementation Plan.
+3. Align the new tool's layout to the reference tool's pattern.
+
+**Category → reference tool mapping (current):**
+
+| Category | Reference Tool |
+|----------|---------------|
+| Encoding | URL Encode / Decode |
+| Formatter | JSON Formatter |
+| Crypto | AES |
+| Converter | Timestamp |
+
+### Configuration Layout
+
+Configuration controls (Mode, Variant, options) must follow the reference tool's internal grouping:
+
+| Rule | Correct | Wrong |
+|------|---------|-------|
+| Control grouping | Mode and Variant on the **same row**, left-right two-column layout (as in URL Encode) | One tool uses same-row, another uses stacked rows |
+| Label placement | Labels above or beside controls — must match the reference | Different label positions for tools in the same category |
+| Spacing | Same `gap` and `padding` as reference | Custom spacing per tool |
+
+**Example — Encoding category:**
+
+```
+✅ URL Encode:    [ Mode: Encode | Variant: encodeURIComponent ]   ← same row
+✅ Unicode Encode: [ Mode: Encode | Variant: UTF-8            ]   ← same row, matching
+
+❌ Unicode Encode:  Mode:   Encode                                 ← stacked rows
+                    Variant: UTF-8                                   (does not match URL)
+```
+
+### Action Button Placement
+
+Primary and secondary action buttons must match the reference tool in position, order, and visibility conditions:
+
+| Aspect | Requirement |
+|--------|-------------|
+| **Position** | Same location relative to input/output (e.g., between input and output, or below output) |
+| **Order** | Run / Convert first, then Clear, Copy, Swap — same order as reference |
+| **Visibility** | Same conditions (e.g., Copy visible only when output is non-empty) |
+| **Swap I/O** | If the reference tool has Swap, the new tool must also have it in the same position |
+
+### Output Section
+
+The output area must match the reference:
+
+- Same placement (e.g., below actions, or right column)
+- Same empty state message style
+- Same error display location and style
+- Same "Copied" feedback mechanism (toast, inline, etc.)
+
+### Divergence Policy
+
+If the new tool **cannot** fully align with the reference due to functional differences:
+
+1. The difference must be **explicitly justified** in the Implementation Plan.
+2. Each divergence must be listed in the Tool Completion Report (Section 5 — Differences from reference).
+3. Each divergence must have a corresponding manual smoke test case (`SMOKE-LAYOUT-02`, etc.).
+4. "I didn't notice" or "I forgot to check" are **not** valid justifications.
+
+### Layout Consistency Checklist
+
+Before marking a tool Ready, verify:
+
+- [ ] Reference tool selected and stated in Implementation Plan
+- [ ] Configuration controls (Mode, Variant, options) match reference grouping and spacing
+- [ ] Action buttons (Run, Clear, Copy, Swap) match reference position and order
+- [ ] Output section placement matches reference
+- [ ] Empty state style matches reference
+- [ ] Error state style matches reference
+- [ ] "Copied" feedback matches reference
+- [ ] Any divergences are justified, documented, and covered by smoke tests
+- [ ] Layout smoke test (`SMOKE-LAYOUT-01`) passed
 
 ---
 
@@ -456,6 +544,12 @@ The Base64 tool demonstrates the standard workflow:
 
 ## 5. UI Integration
 
+- Reference tool:
+- Layout consistency:
+- Configuration layout:
+- Action placement:
+- Output placement:
+- Differences from reference:
 - Layout:
 - Input:
 - Output:
@@ -532,6 +626,7 @@ The Base64 tool demonstrates the standard workflow:
 | SMOKE-08 | Keyboard shortcut | 1. Enter input 2. Press shortcut (e.g., ⌘Enter) | Primary action triggered |  | Pending / N/A |  |
 | SMOKE-09 | Visual — macOS | 1. Open tool on macOS 2. Compare with design reference | Layout, spacing, colors match existing tools |  | Pending |  |
 | SMOKE-10 | Visual — Windows | 1. Open tool on Windows 2. Compare with design reference | Layout, spacing, colors match existing tools |  | Pending / N/A |  |
+| SMOKE-LAYOUT-01 | Layout matches reference tool | 1. Open the reference tool 2. Open the new tool side by side 3. Compare configuration controls, action buttons, output section, spacing, and grouping | New tool layout matches the reference; any differences are documented and justified |  | Pending |  |
 
 > **Readiness gate**: If any row with a required case has Status `Pending` or `Failed`, the tool is **Not Ready**. Mark rows as `N/A` only with a justification in Notes (e.g., "Tool has no mode switch").
 
