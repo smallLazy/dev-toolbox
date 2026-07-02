@@ -78,7 +78,7 @@ const FORBIDDEN_NAME_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /\bWecom\b/, label: '"Wecom" — use "WeCom"' },
   { pattern: /\bZentao\b/, label: '"Zentao" — use "ZenTao"' },
   { pattern: /\bQrcode\b/, label: '"Qrcode" — use "QR Code"' },
-  { pattern: /\bHtmlEncode\b/, label: '"HtmlEncode" — use "HTML Encode"' },
+  { pattern: /\bHtmlEncode\b/, label: '"HtmlEncode" — use "HTML"' },
   { pattern: /\bCurl\b/, label: '"Curl" — use "cURL"' },
 ]
 

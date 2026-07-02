@@ -21,7 +21,7 @@ export function useHtmlEncode() {
   // Context & Feature
   const context = createFeatureContext<HtmlEncodeConfig>({
     id: 'html-encode',
-    name: 'HTML Encode',
+    name: 'HTML',
     description: 'Encode and decode HTML entities',
     icon: 'CodeXml',
     version: '1.0.0',

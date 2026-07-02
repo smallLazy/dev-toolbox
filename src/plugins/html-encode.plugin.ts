@@ -6,7 +6,7 @@ import { definePlugin } from '@/sdk/plugin'
 
 export default definePlugin({
   id: 'html-encode',
-  name: 'HTML Encode',
+  name: 'HTML',
   icon: 'CodeXml',
   version: '1.0.0',
   description: 'Encode and decode HTML entities',
