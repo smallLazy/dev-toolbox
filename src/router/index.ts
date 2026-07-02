@@ -48,6 +48,11 @@ const router = createRouter({
       component: () => import("../features/base64/Base64View.vue"),
     },
     {
+      path: "/html-encode",
+      name: "html-encode",
+      component: () => import("../features/html-encode/HtmlEncodeView.vue"),
+    },
+    {
       path: "/url",
       name: "url",
       component: () => import("../features/url/UrlView.vue"),

@@ -57,7 +57,7 @@ const PLUGIN_ROUTES: Record<string, string> = {
 
 // Active plugins: those with explicit router records pointing to real views
 const ACTIVE_PLUGINS = new Set([
-  'base64', 'crypto', 'hash', 'hello', 'json', 'jwt',
+  'base64', 'crypto', 'hash', 'hello', 'html-encode', 'json', 'jwt',
   'preset-php-compatible', 'sql', 'timestamp', 'url',
 ])
 
@@ -65,7 +65,7 @@ const ACTIVE_PLUGINS = new Set([
 const STUB_VIEW_NAMES = [
   'AgentView.vue', 'ColorView.vue', 'CurlView.vue', 'DiffView.vue',
   'ExplainView.vue', 'GiteeView.vue', 'GithubView.vue', 'GraphqlView.vue',
-  'HtmlEncodeView.vue', 'HttpClientView.vue', 'JiraView.vue',
+  'HttpClientView.vue', 'JiraView.vue',
   'MarkdownView.vue', 'PromptView.vue', 'QrcodeView.vue',
   'RegexView.vue', 'RequestDecoderView.vue', 'ReviewView.vue',
   'RsaView.vue', 'SentryView.vue', 'Sm2View.vue', 'Sm3View.vue',
