@@ -19,7 +19,7 @@ export function usePrompt() {
     id: 'prompt',
     name: 'Prompt',
     description: 'AI tools — chat, completion, and generation',
-    icon: '🤖',
+    icon: 'MessagesSquare',
     version: '1.0.0',
     category: 'generator',
   })

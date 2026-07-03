@@ -63,16 +63,16 @@ export function createFeatureToolbar(
 
   function buildActions(): ToolbarActionConfig[] {
     const all: ToolbarActionConfig[] = [
-      { id: 'copy', label: '复制', icon: '📋', shortcut: '⌘C', enabled: enabled.copy, handler: handlers.copy ?? (() => {}) },
-      { id: 'paste', label: '粘贴', icon: '📄', enabled: enabled.paste, handler: handlers.paste ?? (() => {}) },
-      { id: 'clear', label: '清空', icon: '🗑', enabled: enabled.clear, handler: handlers.clear ?? (() => {}) },
-      { id: 'swap', label: '切换', icon: '⇄', enabled: enabled.swap, handler: handlers.swap ?? (() => {}) },
-      { id: 'favorite', label: '收藏', icon: '⭐', enabled: enabled.favorite, handler: handlers.favorite ?? (() => {}) },
-      { id: 'history', label: '历史', icon: '🕐', enabled: enabled.history, handler: handlers.history ?? (() => {}) },
-      { id: 'settings', label: '设置', icon: '⚙', enabled: enabled.settings, handler: handlers.settings ?? (() => {}) },
-      { id: 'refresh', label: '刷新', icon: '🔄', enabled: enabled.refresh, handler: handlers.refresh ?? (() => {}) },
-      { id: 'export', label: '导出', icon: '📤', enabled: enabled.export, handler: handlers.export ?? (() => {}) },
-      { id: 'import', label: '导入', icon: '📥', enabled: enabled.import, handler: handlers.import ?? (() => {}) },
+      { id: 'copy', label: '复制', icon: 'Copy', shortcut: '⌘C', enabled: enabled.copy, handler: handlers.copy ?? (() => {}) },
+      { id: 'paste', label: '粘贴', icon: 'Copy', enabled: enabled.paste, handler: handlers.paste ?? (() => {}) },
+      { id: 'clear', label: '清空', icon: 'Trash', enabled: enabled.clear, handler: handlers.clear ?? (() => {}) },
+      { id: 'swap', label: '切换', icon: 'Refresh', enabled: enabled.swap, handler: handlers.swap ?? (() => {}) },
+      { id: 'favorite', label: '收藏', icon: 'Star', enabled: enabled.favorite, handler: handlers.favorite ?? (() => {}) },
+      { id: 'history', label: '历史', icon: 'History', enabled: enabled.history, handler: handlers.history ?? (() => {}) },
+      { id: 'settings', label: '设置', icon: 'Settings', enabled: enabled.settings, handler: handlers.settings ?? (() => {}) },
+      { id: 'refresh', label: '刷新', icon: 'Refresh', enabled: enabled.refresh, handler: handlers.refresh ?? (() => {}) },
+      { id: 'export', label: '导出', icon: 'Upload', enabled: enabled.export, handler: handlers.export ?? (() => {}) },
+      { id: 'import', label: '导入', icon: 'Download', enabled: enabled.import, handler: handlers.import ?? (() => {}) },
     ]
     return all.filter((a) => a.enabled && handlers[a.id] !== undefined)
   }

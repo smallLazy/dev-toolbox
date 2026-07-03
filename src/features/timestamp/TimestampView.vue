@@ -183,10 +183,10 @@ onMounted(() => init())
 .field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
 
 .segmented-control { display: flex; gap: 0; }
-.segmented-control button { flex: 1; padding: var(--space-1) var(--space-4); font-size: var(--text-body); font-weight: var(--weight-medium); background: var(--color-neutral-25); color: var(--color-neutral-70); border: var(--border-width-thin) solid var(--border-color-default); cursor: pointer; transition: all var(--duration-fast); }
+.segmented-control button { flex: 1; padding: var(--space-1) var(--space-4); font-size: var(--text-body); font-weight: var(--weight-medium); background: var(--color-neutral-25); color: var(--color-neutral-70); border: var(--border-width-thin) solid var(--border-color-default); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard); }
 .segmented-control button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
 .segmented-control button:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
-.segmented-control button.active { background: var(--accent-primary); color: var(--color-neutral-120); border-color: var(--accent-primary); }
+.segmented-control button.active { background: var(--color-accent-primary); color: var(--color-neutral-120); border-color: var(--color-accent-primary); }
 
 .action-bar { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 

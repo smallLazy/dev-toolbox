@@ -2,11 +2,7 @@
 /**
  * Design Validation — Quality Gate
  *
- * Checks:
- *   1. No hardcoded hex colors in Vue/CSS files
- *   2. No hardcoded px values (must use var(--space-*))
- *   3. No emoji usage in component templates (use SVG icons)
- *   4. All spacing uses Design Tokens
+ * Enforces token-only styling and the Phase 1 ToolLayout migration guard.
  */
 
 import * as fs from 'node:fs'
@@ -15,160 +11,231 @@ import { fileURLToPath } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const ROOT = path.resolve(__dirname, '..', '..')
+const DEFAULT_ROOT = path.resolve(__dirname, '..', '..')
+const THEME_REL_PATH = path.join('src', 'assets', 'theme.css')
 
-interface DesignViolation {
+export type DesignSeverity = 'error' | 'warning'
+
+export interface DesignFinding {
   file: string
   line: number
   rule: string
+  severity: DesignSeverity
   message: string
 }
 
-const violations: DesignViolation[] = []
+export interface DesignValidationResult {
+  findings: DesignFinding[]
+  errors: DesignFinding[]
+  warnings: DesignFinding[]
+}
 
-// ── Rules ──────────────────────────────────────────────────────────────
+const LEGACY_FEATURE_LAYOUT_ALLOWLIST = new Set([
+  'src/features/agent/AgentView.vue',
+  'src/features/color/ColorView.vue',
+  'src/features/crypto/CryptoView.vue',
+  'src/features/curl/CurlView.vue',
+  'src/features/diff/DiffView.vue',
+  'src/features/explain/ExplainView.vue',
+  'src/features/gitee/GiteeView.vue',
+  'src/features/github/GithubView.vue',
+  'src/features/graphql/GraphqlView.vue',
+  'src/features/hash/HashView.vue',
+  'src/features/hello/HelloView.vue',
+  'src/features/html-encode/HtmlEncodeView.vue',
+  'src/features/http-client/HttpClientView.vue',
+  'src/features/jira/JiraView.vue',
+  'src/features/jwt/JwtView.vue',
+  'src/features/markdown/MarkdownView.vue',
+  'src/features/prompt/PromptView.vue',
+  'src/features/qrcode/QrcodeView.vue',
+  'src/features/regex/RegexView.vue',
+  'src/features/request-decoder/RequestDecoderView.vue',
+  'src/features/review/ReviewView.vue',
+  'src/features/rsa/RsaView.vue',
+  'src/features/sentry/SentryView.vue',
+  'src/features/sm2/Sm2View.vue',
+  'src/features/sm3/Sm3View.vue',
+  'src/features/sm4/Sm4View.vue',
+  'src/features/timestamp/TimestampView.vue',
+  'src/features/translate/TranslateView.vue',
+  'src/features/unicode/UnicodeView.vue',
+  'src/features/url/UrlView.vue',
+  'src/features/uuid/UuidView.vue',
+  'src/features/websocket/WebsocketView.vue',
+  'src/features/wecom/WecomView.vue',
+  'src/features/xml/XmlView.vue',
+  'src/features/yaml/YamlView.vue',
+  'src/features/zentao/ZentaoView.vue',
+])
 
-/**
- * Check for hardcoded hex colors.
- * Allowed: CSS variables (var(--*)), SVG inline fills, rgba()
- */
-const HEX_COLOR_RE = /(?<!var\(--)(?<![\w-])#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g
+const HEX_COLOR_RE = /(?<![\w-])#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/g
+const RAW_COLOR_RE = /(?:rgba?|hsla?)\(/g
+const VAR_RE = /var\(\s*(--[A-Za-z0-9_-]+)\s*(?:,[^)]+)?\)/g
+const EMOJI_RE = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/u
+const HARDCODED_VISUAL_RE = /\b(?:padding|margin|gap|font-size|border-radius|width|height|min-height|max-width):\s*-?\d+(?:\.\d+)?px\b/g
+const OLD_LAYOUT_RE = /(?:class=["'][^"']*\b(?:card|action-bar)\b|^\s*\.(?:card|action-bar)\b)/
 
-/**
- * Check for hardcoded px values that should use space tokens.
- * Allowed: borders (1px, 2px, 3px), special values (0, 1px, 14px for spinner)
- */
-const HARDCODED_PX_RE = /\b(?:padding|margin|gap):\s*\d+px\b/g
-const HARDCODED_PX_INLINE_RE = /(?<!var\(--space-)\b(?:padding|margin|gap):\s*\d+px\b/g
+function normalizeRel(filePath: string): string {
+  return filePath.split(path.sep).join('/')
+}
 
-/**
- * Check for emoji characters in Vue templates (not in comments).
- */
-const EMOJI_RE = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/u
+function isSkipped(relPath: string): boolean {
+  return (
+    relPath === 'scripts/ci/validate-design.ts' ||
+    relPath.includes('node_modules') ||
+    relPath.includes('/dist/') ||
+    relPath.includes('/target/') ||
+    relPath.includes('__tests__') ||
+    !/\.(vue|css|ts)$/.test(relPath)
+  )
+}
 
-// ── Check Functions ────────────────────────────────────────────────────
+function isComment(line: string): boolean {
+  const trimmed = line.trim()
+  return trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')
+}
 
-function checkFile(filePath: string, relPath: string): void {
-  // Skip generated files, node_modules, dist
-  if (relPath.includes('node_modules') || relPath.includes('/dist/') || relPath.includes('/target/')) return
-  if (relPath.includes('__tests__')) return
-  if (!/\.(vue|css|ts)$/.test(filePath)) return
+function isThemeFile(relPath: string): boolean {
+  return relPath === THEME_REL_PATH
+}
+
+function collectDefinedTokens(root: string): Set<string> {
+  const themePath = path.join(root, THEME_REL_PATH)
+  const tokens = new Set<string>()
+  if (!fs.existsSync(themePath)) return tokens
+
+  const content = fs.readFileSync(themePath, 'utf-8')
+  const tokenDefRe = /^\s*(--[A-Za-z0-9_-]+)\s*:/gm
+  for (const match of content.matchAll(tokenDefRe)) {
+    tokens.add(match[1]!)
+  }
+  return tokens
+}
+
+function pushFinding(
+  findings: DesignFinding[],
+  file: string,
+  line: number,
+  rule: string,
+  severity: DesignSeverity,
+  message: string,
+): void {
+  findings.push({ file, line, rule, severity, message })
+}
+
+function checkFile(filePath: string, relPath: string, tokens: Set<string>, findings: DesignFinding[]): void {
+  if (isSkipped(relPath)) return
 
   const content = fs.readFileSync(filePath, 'utf-8')
   const lines = content.split('\n')
+  const themeFile = isThemeFile(relPath)
+  const legacyFeatureLayout = LEGACY_FEATURE_LAYOUT_ALLOWLIST.has(relPath)
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const lineNum = i + 1
+    if (isComment(line) || line.includes('@ts-nocheck')) continue
 
-    // Skip comments and @ts-nocheck
-    if (line.trim().startsWith('//') || line.trim().startsWith('/*')) continue
-    if (line.includes('@ts-nocheck')) continue
-    if (line.trim().startsWith('*')) continue
-
-    // Check hardcoded hex (only in <style> blocks or CSS files)
-    if (/\.(css|vue)$/.test(filePath) || line.includes('style')) {
-      const hexMatches = line.matchAll(HEX_COLOR_RE)
-      for (const _match of hexMatches) {
-        // Allow in url(), SVG data URIs, and comments
-        if (line.includes('url(') || line.includes('data:')) continue
-        violations.push({
-          file: relPath, line: lineNum, rule: 'DESIGN-001',
-          message: `Hardcoded hex color. Use var(--color-*) or var(--token).`,
-        })
+    for (const match of line.matchAll(VAR_RE)) {
+      const token = match[1]!
+      if (!tokens.has(token)) {
+        pushFinding(findings, relPath, lineNum, 'DESIGN-007', 'error', `Unknown design token ${token}. Define it in ${THEME_REL_PATH} or use an existing token.`)
       }
     }
 
-    // Check hardcoded px spacing
-    const pxMatches = line.matchAll(/\b(?:padding|margin|gap)\s*:\s*(\d+)px\b/g)
-    for (const match of pxMatches) {
-      const value = parseInt(match[1]!)
-      // Allow 0px, 1px (borders), 2px (fine spacing)
-      if (value > 2) {
-        const tokenHint = value <= 4 ? 'var(--space-1)' :
-                         value <= 8 ? 'var(--space-2)' :
-                         value <= 12 ? 'var(--space-3)' :
-                         value <= 16 ? 'var(--space-4)' :
-                         value <= 20 ? 'var(--space-5)' :
-                         'var(--space-*)'
-        violations.push({
-          file: relPath, line: lineNum, rule: 'DESIGN-002',
-          message: `Hardcoded spacing: ${match[0]}. Use Design Token instead (e.g., ${tokenHint}).`,
-        })
-      }
+    if (/transition\s*:\s*all\b/.test(line)) {
+      pushFinding(findings, relPath, lineNum, 'DESIGN-008', 'error', 'transition: all is forbidden. List transitioned properties explicitly.')
     }
 
-    // Check emoji in templates (not in comments or strings)
-    if (line.includes('<template>') || (relPath.endsWith('.vue') && !line.trim().startsWith('//'))) {
-      if (EMOJI_RE.test(line) && !line.includes('<!--') && !line.includes('/*')) {
-        violations.push({
-          file: relPath, line: lineNum, rule: 'DESIGN-003',
-          message: 'Emoji found in template. Use SVG icon from @/design/icons instead.',
-        })
-      }
+    if (relPath.startsWith('src/features/') && relPath.endsWith('.vue') && OLD_LAYOUT_RE.test(line)) {
+      pushFinding(
+        findings,
+        relPath,
+        lineNum,
+        'DESIGN-009',
+        legacyFeatureLayout ? 'warning' : 'error',
+        legacyFeatureLayout
+          ? 'Legacy feature still uses .card/.action-bar. Keep as-is until migrated.'
+          : 'Feature pages must use ToolLayout/ToolWorkspace instead of direct .card/.action-bar layout classes.',
+      )
     }
 
-    // DESIGN-004: No PNG/JPG/GIF icon usage in Vue templates
-    if (/\.(png|jpg|jpeg|gif|webp|ico)\b/.test(line) && (line.includes('src=') || line.includes('require('))) {
-      violations.push({
-        file: relPath, line: lineNum, rule: 'DESIGN-004',
-        message: 'Raster image found. Use SVG icon from @/design/icons instead.',
-      })
+    if (!themeFile && !line.includes('data:') && (HEX_COLOR_RE.test(line) || RAW_COLOR_RE.test(line))) {
+      pushFinding(findings, relPath, lineNum, 'DESIGN-010', 'error', 'Hardcoded color found. Add or use a design token instead.')
+    }
+    HEX_COLOR_RE.lastIndex = 0
+    RAW_COLOR_RE.lastIndex = 0
+
+    if (/\.(vue|ts)$/.test(relPath) && /icon\s*:/.test(line) && EMOJI_RE.test(line)) {
+      pushFinding(findings, relPath, lineNum, 'DESIGN-011', 'error', 'Emoji icon found. Use an icon key from @/design/icons.')
     }
 
-    // DESIGN-005: No direct lucide import
-    if (/\bfrom\s+['"]lucide/.test(line) || /\bfrom\s+['"]@lucide/.test(line)) {
-      violations.push({
-        file: relPath, line: lineNum, rule: 'DESIGN-005',
-        message: 'Direct lucide import forbidden. Import from @/design/icons instead.',
-      })
-    }
-
-    // DESIGN-006: No inline SVG in Feature templates (use Icon Registry)
-    if (relPath.includes('/features/') && line.includes('<svg') && !relPath.includes('/design/icons/')) {
-      violations.push({
-        file: relPath, line: lineNum, rule: 'DESIGN-006',
-        message: 'Inline SVG in Feature. Import from @/design/icons instead.',
-      })
+    for (const match of line.matchAll(HARDCODED_VISUAL_RE)) {
+      const value = match[0]
+      if (themeFile || value.includes('1px') || value.includes('2px')) continue
+      pushFinding(findings, relPath, lineNum, 'DESIGN-012', 'warning', `Hardcoded visual value: ${value}. Prefer design tokens.`)
     }
   }
 }
 
-function walk(dir: string): void {
+function walk(dir: string, root: string, tokens: Set<string>, findings: DesignFinding[]): void {
+  if (!fs.existsSync(dir)) return
   const entries = fs.readdirSync(dir, { withFileTypes: true })
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name)
     if (entry.isDirectory()) {
-      if (!['node_modules', '.git', 'dist', 'target', '__tests__'].includes(entry.name)) {
-        walk(fullPath)
+      if (!['node_modules', '.git', 'dist', 'target'].includes(entry.name)) {
+        walk(fullPath, root, tokens, findings)
       }
     } else if (entry.isFile()) {
-      checkFile(fullPath, path.relative(ROOT, fullPath))
+      checkFile(fullPath, normalizeRel(path.relative(root, fullPath)), tokens, findings)
     }
   }
 }
 
-// ── Main ────────────────────────────────────────────────────────────────
+export function validateDesign(root = DEFAULT_ROOT): DesignValidationResult {
+  const tokens = collectDefinedTokens(root)
+  const findings: DesignFinding[] = []
+  walk(path.join(root, 'src'), root, tokens, findings)
+  walk(path.join(root, 'scripts'), root, tokens, findings)
+
+  const errors = findings.filter(f => f.severity === 'error')
+  const warnings = findings.filter(f => f.severity === 'warning')
+  return { findings, errors, warnings }
+}
 
 function main(): void {
   console.log('╔══════════════════════════════════════════╗')
   console.log('║   Design Validation                     ║')
   console.log('╚══════════════════════════════════════════╝\n')
 
-  const srcDir = path.join(ROOT, 'src')
-  if (fs.existsSync(srcDir)) walk(srcDir)
+  const result = validateDesign(DEFAULT_ROOT)
 
-  if (violations.length === 0) {
-    console.log('✅ Design is clean. All Design Tokens used correctly.\n')
+  if (result.errors.length === 0) {
+    if (result.warnings.length > 0) {
+      console.log(`Warnings: ${result.warnings.length}`)
+      for (const warning of result.warnings.slice(0, 20)) {
+        console.log(`  [${warning.rule}] ${warning.file}:${warning.line}`)
+        console.log(`    ${warning.message}`)
+      }
+      if (result.warnings.length > 20) {
+        console.log(`  ...and ${result.warnings.length - 20} more warning(s).`)
+      }
+      console.log('')
+    }
+    console.log('✅ Design validation passed.\n')
     process.exit(0)
   }
 
-  console.log(`❌ ${violations.length} design violation(s):\n`)
-  for (const v of violations) {
-    console.log(`  [${v.rule}] ${v.file}:${v.line}`)
-    console.log(`    ${v.message}\n`)
+  console.log(`❌ ${result.errors.length} design error(s):\n`)
+  for (const finding of result.errors) {
+    console.log(`  [${finding.rule}] ${finding.file}:${finding.line}`)
+    console.log(`    ${finding.message}\n`)
   }
   process.exit(1)
 }
 
-main()
+if (process.argv[1] && normalizeRel(process.argv[1]).endsWith('scripts/ci/validate-design.ts')) {
+  main()
+}

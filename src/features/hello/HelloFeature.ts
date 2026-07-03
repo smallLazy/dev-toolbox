@@ -43,7 +43,7 @@ export class HelloFeature extends BaseFeature<HelloConfig, string, string> {
         id: 'hello',
         name: 'Hello Plugin',
         description: 'Framework Validation',
-        icon: '👋',
+        icon: 'Beaker',
         version: '1.0.0',
         category: 'utility',
       },

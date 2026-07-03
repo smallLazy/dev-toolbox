@@ -19,7 +19,7 @@ export function useRegex() {
     id: 'regex',
     name: 'Regex',
     description: 'Inspector tool — parse and display structured data',
-    icon: '🔍',
+    icon: 'Search',
     version: '1.0.0',
     category: 'analyzer',
   })

@@ -19,7 +19,7 @@ export function useZentao() {
     id: 'zentao',
     name: 'Zentao',
     description: 'Enterprise tool — external service integration',
-    icon: '🏢',
+    icon: 'Package',
     version: '1.0.0',
     category: 'utility',
   })

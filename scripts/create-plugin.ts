@@ -49,8 +49,8 @@ interface PluginConfig {
 
 const TEMPLATES: Record<TemplateType, TemplateConfig> = {
   transform: {
-    icon: '🔐', category: 'crypto',
-    description: '数据转换工具 — 输入、转换、输出',
+    icon: 'Lock', category: 'crypto',
+    description: 'Transform tool — input, transform, output',
     commands: [
       { id: '{name}:execute', label: '{Name}: Execute', description: 'Execute transformation', shortcut: 'Cmd+Enter' },
       { id: '{name}:swap', label: '{Name}: Swap I/O', description: 'Swap input and output' },
@@ -61,14 +61,14 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     keywords: ['{name}', 'transform', 'convert', 'encode', 'decode', 'encrypt', 'decrypt'],
     permissions: ['clipboard:read', 'clipboard:write'],
     settings: {
-      mode: { key: 'mode', type: 'select', label: '默认模式', default: 'encrypt' },
-      inputEncoding: { key: 'inputEncoding', type: 'select', label: '输入编码', default: 'utf8' },
-      outputEncoding: { key: 'outputEncoding', type: 'select', label: '输出编码', default: 'base64' },
+      mode: { key: 'mode', type: 'select', label: 'Default Mode', default: 'encrypt' },
+      inputEncoding: { key: 'inputEncoding', type: 'select', label: 'Input Encoding', default: 'utf8' },
+      outputEncoding: { key: 'outputEncoding', type: 'select', label: 'Output Encoding', default: 'base64' },
     },
   },
   editor: {
-    icon: '📝', category: 'formatter',
-    description: '编辑器工具 — 格式化、压缩与验证',
+    icon: 'FileJson', category: 'formatter',
+    description: 'Editor — format, minify, and validate',
     commands: [
       { id: '{name}:format', label: '{Name}: Format', description: 'Format content', shortcut: 'Cmd+Shift+F' },
       { id: '{name}:minify', label: '{Name}: Minify', description: 'Minify/compress content' },
@@ -80,13 +80,13 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     keywords: ['{name}', 'format', 'minify', 'validate', 'editor', 'formatter', 'beautify'],
     permissions: ['clipboard:read', 'clipboard:write', 'file:export'],
     settings: {
-      indentSize: { key: 'indentSize', type: 'select', label: '缩进', default: 2 },
-      autoFormat: { key: 'autoFormat', type: 'toggle', label: '自动格式化', default: true },
+      indentSize: { key: 'indentSize', type: 'select', label: 'Indent Size', default: 2 },
+      autoFormat: { key: 'autoFormat', type: 'toggle', label: 'Auto Format', default: true },
     },
   },
   converter: {
-    icon: '🔄', category: 'converter',
-    description: '格式互转工具 — 两种格式之间互相转换',
+    icon: 'Refresh', category: 'converter',
+    description: 'Format converter — convert between formats',
     commands: [
       { id: '{name}:convert', label: '{Name}: Convert', description: 'Convert format', shortcut: 'Cmd+Enter' },
       { id: '{name}:swap', label: '{Name}: Swap Direction', description: 'Swap conversion direction' },
@@ -97,12 +97,12 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     keywords: ['{name}', 'convert', 'converter', 'transform', 'switch', '互转'],
     permissions: ['clipboard:read', 'clipboard:write'],
     settings: {
-      defaultDirection: { key: 'defaultDirection', type: 'select', label: '默认方向', default: 'forward' },
+      defaultDirection: { key: 'defaultDirection', type: 'select', label: 'Default Direction', default: 'forward' },
     },
   },
   inspector: {
-    icon: '🔍', category: 'analyzer',
-    description: '检查器工具 — 解析并结构化展示数据',
+    icon: 'Search', category: 'analyzer',
+    description: 'Inspector — parse and display structured data',
     commands: [
       { id: '{name}:parse', label: '{Name}: Parse', description: 'Parse and inspect', shortcut: 'Cmd+Enter' },
     ],
@@ -112,12 +112,12 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     keywords: ['{name}', 'inspect', 'parse', 'analyze', 'decode', '解析', '分析'],
     permissions: ['clipboard:read', 'clipboard:write'],
     settings: {
-      autoParse: { key: 'autoParse', type: 'toggle', label: '粘贴自动解析', default: true },
+      autoParse: { key: 'autoParse', type: 'toggle', label: 'Auto Parse on Paste', default: true },
     },
   },
   viewer: {
-    icon: '👁', category: 'utility',
-    description: '查看器工具 — 预览文件和元数据',
+    icon: 'Eye', category: 'utility',
+    description: 'Viewer — preview files and metadata',
     commands: [
       { id: '{name}:open', label: '{Name}: Open File', description: 'Open file for viewing', shortcut: 'Cmd+O' },
     ],
@@ -127,12 +127,12 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     keywords: ['{name}', 'view', 'preview', 'open', 'file', '查看', '预览'],
     permissions: ['file:read'],
     settings: {
-      autoPreview: { key: 'autoPreview', type: 'toggle', label: '自动预览', default: true },
+      autoPreview: { key: 'autoPreview', type: 'toggle', label: 'Auto Preview', default: true },
     },
   },
   ai: {
-    icon: '🤖', category: 'ai',
-    description: 'AI 工具 — 对话、补全与生成',
+    icon: 'MessagesSquare', category: 'ai',
+    description: 'AI tools — chat, completion, and generation',
     commands: [
       { id: '{name}:chat', label: '{Name}: Chat', description: 'Start AI chat', shortcut: 'Cmd+Enter' },
       { id: '{name}:clear', label: '{Name}: Clear History', description: 'Clear chat history' },
@@ -143,13 +143,13 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     keywords: ['{name}', 'ai', 'chat', 'generate', 'llm', 'gpt', '智能'],
     permissions: ['ai:chat', 'network'],
     settings: {
-      model: { key: 'model', type: 'select', label: '模型', default: 'default' },
+      model: { key: 'model', type: 'select', label: 'Model', default: 'default' },
       temperature: { key: 'temperature', type: 'number', label: 'Temperature', default: 0.7 },
     },
   },
   network: {
-    icon: '🌐', category: 'network',
-    description: '网络工具 — HTTP 请求与响应分析',
+    icon: 'Globe', category: 'network',
+    description: 'Network tool — HTTP request and response analysis',
     commands: [
       { id: '{name}:send', label: '{Name}: Send Request', description: 'Send HTTP request', shortcut: 'Cmd+Enter' },
     ],
@@ -159,13 +159,13 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     keywords: ['{name}', 'http', 'request', 'api', 'curl', 'rest', 'fetch', '请求'],
     permissions: ['network', 'clipboard:write'],
     settings: {
-      defaultMethod: { key: 'defaultMethod', type: 'select', label: '默认方法', default: 'GET' },
-      timeout: { key: 'timeout', type: 'number', label: '超时(ms)', default: 10000 },
+      defaultMethod: { key: 'defaultMethod', type: 'select', label: 'Default Method', default: 'GET' },
+      timeout: { key: 'timeout', type: 'number', label: 'Timeout (ms)', default: 10000 },
     },
   },
   enterprise: {
-    icon: '🏢', category: 'utility',
-    description: '企业工具 — 外部服务集成',
+    icon: 'Package', category: 'utility',
+    description: 'Enterprise tool — external service integration',
     commands: [
       { id: '{name}:connect', label: '{Name}: Connect', description: 'Connect to service' },
       { id: '{name}:sync', label: '{Name}: Sync', description: 'Sync data' },
@@ -176,7 +176,7 @@ const TEMPLATES: Record<TemplateType, TemplateConfig> = {
     settings: {
       apiEndpoint: { key: 'apiEndpoint', type: 'input', label: 'API Endpoint', default: '' },
       apiKey: { key: 'apiKey', type: 'input', label: 'API Key', default: '' },
-      autoConnect: { key: 'autoConnect', type: 'toggle', label: '自动连接', default: false },
+      autoConnect: { key: 'autoConnect', type: 'toggle', label: 'Auto Connect', default: false },
     },
   },
 }
@@ -500,9 +500,9 @@ function generateView(config: PluginConfig): string {
 
   // Action button text varies by template
   const actionText: Record<string, string> = {
-    transform: '执行', editor: '格式化', converter: '转换',
-    inspector: '解析', viewer: '打开', ai: '发送',
-    network: '发送', enterprise: '连接',
+    transform: 'Run', editor: 'Format', converter: 'Convert',
+    inspector: 'Parse', viewer: 'Open', ai: 'Send',
+    network: 'Send', enterprise: 'Connect',
   }
 
   return `<script setup lang="ts">
@@ -510,97 +510,161 @@ function generateView(config: PluginConfig): string {
  * ${config.Name} Plugin — Main View (${t} template)
  *
  * Auto-generated by Plugin Generator.
- * ALL UI from Design System. Zero custom components.
+ * Uses the standard ToolLayout desktop workspace.
  */
 
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { use${config.Name} } from './composables'
+import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
+import ToolLayout from '@/templates/ToolLayout.vue'
+import ToolWorkspace from '@/templates/ToolWorkspace.vue'
+import InputOutputPanel from '@/templates/InputOutputPanel.vue'
+import ToolActionBar from '@/templates/ToolActionBar.vue'
+import ToolStatusBar from '@/templates/ToolStatusBar.vue'
+import type { ToolAction } from '@/templates/types'
 
 const { input, output, error, loading, stats, toolbar, execute, init, dispose } = use${config.Name}()
+
+const {
+  inputEl,
+  handleCompositionStart,
+  handleCompositionEnd,
+  handleInputBlur,
+  handlePointerDown,
+  handleClick,
+  handleShortcut,
+} = useTextActionTrigger({ model: input, loading, execute })
+
+const statusPhase = ref<'idle' | 'loading' | 'success' | 'error' | 'copied'>('idle')
+const statusMessage = ref<string | null>(null)
+
+const primaryAction = computed<ToolAction>(() => ({
+  id: 'execute',
+  label: '${actionText[t] || 'Run'}',
+  busy: loading.value,
+  disabled: loading.value,
+  shortcut: 'Cmd Enter',
+  ariaLabel: '${actionText[t] || 'Run'} ${config.Name}',
+}))
+
+const secondaryActions = computed<ToolAction[]>(() => [
+  { id: 'copy', label: 'Copy Output', disabled: !output.value || loading.value },
+  { id: 'clear', label: 'Clear', disabled: loading.value },
+  { id: 'swap', label: 'Swap I/O', disabled: !output.value || loading.value },
+])
+
+const outputStats = computed(() => output.value ? { chars: output.value.length } : null)
+const visibleStatusPhase = computed(() => {
+  if (loading.value) return 'loading'
+  if (error.value) return 'error'
+  return statusPhase.value
+})
+const visibleStatusMessage = computed(() => {
+  if (loading.value) return 'Processing...'
+  if (error.value) return error.value
+  return statusMessage.value
+})
 
 onMounted(() => init())
 onUnmounted(() => dispose())
 
-function onKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); execute() }
+async function handleSecondaryAction(id: string) {
+  if (id === 'copy') {
+    await toolbar.execute('copy')
+    if (!error.value) {
+      statusPhase.value = 'copied'
+      statusMessage.value = 'Copied to clipboard.'
+    }
+    return
+  }
+  if (id === 'clear') {
+    await toolbar.execute('clear')
+    statusPhase.value = 'idle'
+    statusMessage.value = null
+    return
+  }
+  if (id === 'swap') {
+    await toolbar.execute('swap')
+  }
+}
+
+function clearStatus() {
+  error.value = null
+  statusPhase.value = 'idle'
+  statusMessage.value = null
 }
 </script>
 
 <template>
-  <div class="page" @keydown="onKeydown">
-    <header class="page-header">
-      <h1 class="page-title">${config.Name}</h1>
-      <p class="page-desc">${template.description} &mdash; <kbd>⌘Enter</kbd> 执行</p>
-    </header>
-
-    <div class="page-content">
-      <!-- Card: Input -->
-      <div class="card">
-        <div class="card-header">输入</div>
-        <div class="card-body">
+  <ToolLayout
+    title="${config.Name}"
+    description="${template.description}"
+    :shortcut-hints="['Cmd Enter to ${actionText[t]?.toLowerCase() || 'run'}']"
+    layout="io"
+    @keydown="handleShortcut"
+  >
+    <template #workspace>
+      <ToolWorkspace layout="io">
+        <template #input>
+          <InputOutputPanel
+            title="Input"
+            :stats="{ chars: input.length }"
+            :invalid="!!error"
+            aria-label="${config.Name} input"
+          >
           <textarea
+            ref="inputEl"
             v-model="input"
-            class="dt-textarea"
-            rows="10"
-            :placeholder="'输入要处理的${template.description.includes('转换') ? '数据' : '内容'}...'"
+            class="dt-textarea tool-textarea"
+            rows="12"
+            placeholder="Enter input..."
+            aria-label="${config.Name} input"
             spellcheck="false"
+            @blur="handleInputBlur"
+            @compositionstart="handleCompositionStart"
+            @compositionend="handleCompositionEnd"
           />
-        </div>
-      </div>
+          </InputOutputPanel>
+        </template>
+        <template #output>
+          <InputOutputPanel
+            title="Output"
+            :value="output ?? ''"
+            readonly
+            placeholder="Output will appear here."
+            :stats="outputStats"
+            aria-label="${config.Name} output"
+          />
+        </template>
+      </ToolWorkspace>
+    </template>
 
-      <!-- Action Bar -->
-      <div class="action-bar">
-        <button class="btn-accent" @click="execute" :disabled="loading">
-          <span v-if="loading" class="spinner"></span>
-          {{ loading ? '处理中...' : '${actionText[t] || '执行'}' }}
-        </button>
-        <button class="btn-secondary" @click="toolbar.execute('clear')">清空</button>
-        <button v-if="output" class="btn-secondary" @click="toolbar.execute('copy')">复制输出</button>
-        <button v-if="output" class="btn-secondary" @click="toolbar.execute('swap')">交换</button>
-      </div>
+    <template #actions>
+      <ToolActionBar
+        :primary="primaryAction"
+        :secondary="secondaryActions"
+        @primary-pointer-down="handlePointerDown"
+        @primary-click="handleClick"
+        @action="handleSecondaryAction"
+      />
+    </template>
 
-      <!-- Error -->
-      <div v-if="error" class="alert-error">{{ error }}</div>
-
-      <!-- Card: Output -->
-      <div class="card card-output" v-if="output">
-        <div class="card-header">输出</div>
-        <div class="card-body">
-          <textarea :value="output" class="dt-textarea" rows="10" readonly spellcheck="false" />
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div class="card" v-if="!output && !error && !input">
-        <div class="card-body empty-hint">
-          <p>${template.icon} ${template.description}</p>
-          <p class="hint-desc">输入内容后点击「${actionText[t] || '执行'}」或按 <kbd>⌘Enter</kbd></p>
-        </div>
-      </div>
-    </div>
-  </div>
+    <template #status>
+      <ToolStatusBar
+        :phase="visibleStatusPhase"
+        :message="visibleStatusMessage"
+        :clearable="!!visibleStatusMessage"
+        @clear="clearStatus"
+      />
+    </template>
+  </ToolLayout>
 </template>
 
 <style scoped>
-.page { max-width: var(--content-max-width); margin: 0 auto; }
-.page-header { margin-bottom: var(--space-6); }
-.page-title { font-size: var(--text-title); font-weight: var(--weight-semibold); color: var(--color-neutral-110); margin-bottom: var(--space-1); letter-spacing: -0.01em; }
-.page-desc { font-size: var(--text-body); color: var(--color-neutral-70); }
-.page-desc kbd { font-size: var(--text-caption); padding: 1px 5px; background: var(--color-neutral-40); border: var(--border-width-thin) solid var(--border-color-default); border-radius: var(--radius-sm); font-family: var(--font-mono); }
-.page-content { display: flex; flex-direction: column; gap: var(--space-3); }
-
-.card { background: var(--color-neutral-35); border: var(--border-width-thin) solid rgba(255,255,255,0.05); border-radius: var(--radius-xl); overflow: hidden; }
-.card-header { padding: 9px var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid rgba(255,255,255,0.04); }
-.card-body { padding: var(--space-4) var(--space-5); }
-.card-output { border-color: var(--border-color-focus); }
-.card-output .card-body { background: var(--color-neutral-15); }
-.card-output .card-body textarea { background: var(--color-neutral-10); border-color: var(--border-color-focus); }
-
-.action-bar { display: flex; gap: 8px; flex-wrap: wrap; }
-
-.empty-hint { text-align: center; padding: var(--space-8) 0; }
-.empty-hint p { font-size: var(--text-base); color: var(--color-neutral-90); }
-.empty-hint .hint-desc { font-size: var(--text-body); color: var(--color-neutral-70); margin-top: var(--space-1); }
+.tool-textarea {
+  flex: 1;
+  min-height: var(--tool-textarea-min-height);
+}
 </style>
 `
 }
@@ -792,7 +856,7 @@ function generate(config: PluginConfig): void {
   const pluginDir = path.join(root, 'src', 'plugins')
   const testDir = path.join(featureDir, '__tests__')
 
-  console.log(`\n🔧 Creating plugin: ${config.name} (${config.template})\n`)
+  console.log(`\nCreating plugin: ${config.name} (${config.template})\n`)
 
   // Create directories
   fs.mkdirSync(featureDir, { recursive: true })
@@ -818,10 +882,10 @@ function generate(config: PluginConfig): void {
   for (const [filePath, content] of Object.entries(files)) {
     const fullPath = path.join(root, filePath)
     fs.writeFileSync(fullPath, content, 'utf-8')
-    console.log(`  ✅ ${filePath}`)
+    console.log(`  created ${filePath}`)
   }
 
-  console.log(`\n📦 Plugin "${config.name}" created successfully!`)
+  console.log(`\nPlugin "${config.name}" created successfully!`)
   console.log(`   Template: ${config.template}`)
   console.log(`   Feature:  src/features/${config.name}/`)
   console.log(`   Plugin:   src/plugins/${config.name}.plugin.ts`)
@@ -906,7 +970,7 @@ function main(): void {
   // Check if already exists
   const root = path.resolve(__dirname, '..')
   if (fs.existsSync(path.join(root, config.featureDir))) {
-    console.error(`\n❌ Error: Feature "${name}" already exists at ${config.featureDir}`)
+    console.error(`\nError: Feature "${name}" already exists at ${config.featureDir}`)
     console.error('   Use a different name or remove the existing directory.\n')
     process.exit(1)
   }
@@ -914,15 +978,15 @@ function main(): void {
   generate(config)
 
   // Validation summary
-  console.log('🔍 Validation:')
-  console.log('   ✅ Feature extends BaseFeature')
-  console.log('   ✅ Plugin uses definePlugin()')
-  console.log('   ✅ Zero Core/Registry/Service imports')
-  console.log('   ✅ All colors from Design Tokens')
-  console.log('   ✅ Card+Section layout')
-  console.log('   ✅ All 12 abstract methods implemented')
-  console.log('   ⚠️  logic.ts needs custom business logic')
-  console.log('   ⚠️  Unit tests need test vectors')
+  console.log('Validation:')
+  console.log('   ok Feature extends BaseFeature')
+  console.log('   ok Plugin uses definePlugin()')
+  console.log('   ok Zero Core/Registry/Service imports')
+  console.log('   ok All colors from Design Tokens')
+  console.log('   ok ToolLayout desktop workspace')
+  console.log('   ok All 12 abstract methods implemented')
+  console.log('   todo logic.ts needs custom business logic')
+  console.log('   todo Unit tests need test vectors')
 }
 
 main()

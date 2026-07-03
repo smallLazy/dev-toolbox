@@ -19,7 +19,7 @@ export function useTranslate() {
     id: 'translate',
     name: 'Translate',
     description: 'AI tools — chat, completion, and generation',
-    icon: '🤖',
+    icon: 'MessagesSquare',
     version: '1.0.0',
     category: 'generator',
   })

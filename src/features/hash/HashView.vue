@@ -274,7 +274,10 @@ onUnmounted(() => dispose())
   color: var(--color-neutral-70);
   border: var(--border-width-thin) solid var(--border-color-default);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 }
 .segmented-control button:first-child {
   border-radius: var(--radius-md) 0 0 var(--radius-md);
@@ -283,9 +286,9 @@ onUnmounted(() => dispose())
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 .segmented-control button.active {
-  background: var(--accent-primary);
+  background: var(--color-accent-primary);
   color: var(--color-neutral-120);
-  border-color: var(--accent-primary);
+  border-color: var(--color-accent-primary);
 }
 
 .action-bar {

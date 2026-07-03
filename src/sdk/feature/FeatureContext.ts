@@ -229,7 +229,7 @@ export function createFeatureContext<TConfig extends FeatureConfig = FeatureConf
 
     theme: {
       mode: 'dark',
-      accentColor: '#0078D4',
+      accentColor: 'var(--color-accent-primary)',
     },
 
     events: {

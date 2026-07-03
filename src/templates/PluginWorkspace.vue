@@ -81,7 +81,13 @@
 .page-header { margin-bottom: var(--space-6); }
 .page-content { display: flex; flex-direction: column; gap: var(--space-3); }
 
-.card { background: var(--color-neutral-35); border: var(--border-width-thin) solid var(--border-color-subtle); border-radius: var(--radius-xl); overflow: hidden; transition: all var(--duration-normal) var(--ease-decelerate); }
+.card {
+  background: var(--color-neutral-35);
+  border: var(--border-width-thin) solid var(--border-color-subtle);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: border-color var(--duration-normal) var(--ease-decelerate);
+}
 .card:hover { border-color: var(--border-color-hover); }
 .card-header { padding: var(--space-card-header-y) var(--space-5); font-size: var(--text-caption); font-weight: var(--weight-medium); color: var(--color-neutral-60); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: var(--border-width-thin) solid var(--border-color-subtle); }
 .card-body { padding: var(--space-4) var(--space-5); }

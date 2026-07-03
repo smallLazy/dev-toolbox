@@ -19,7 +19,7 @@ export function useGraphql() {
     id: 'graphql',
     name: 'Graphql',
     description: 'Network tool — HTTP request and response analysis',
-    icon: '🌐',
+    icon: 'Globe',
     version: '1.0.0',
     category: 'network',
   })

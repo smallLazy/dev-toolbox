@@ -19,7 +19,7 @@ export function useColor() {
     id: 'color',
     name: 'Color',
     description: 'Format converter — convert between formats',
-    icon: '🔄',
+    icon: 'Refresh',
     version: '1.0.0',
     category: 'converter',
   })

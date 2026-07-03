@@ -19,7 +19,7 @@ export function useDiff() {
     id: 'diff',
     name: 'Diff',
     description: 'Editor tool — format, minify, and validate',
-    icon: '📝',
+    icon: 'FileCode',
     version: '1.0.0',
     category: 'formatter',
   })

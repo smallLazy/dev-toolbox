@@ -176,7 +176,7 @@ const {
   display: flex; align-items: center; gap: var(--space-4);
   padding: var(--space-5); border-radius: var(--radius-xl);
 }
-.status-banner.success { background: var(--color-success-bg); border: var(--border-width-thin) solid rgba(92,187,92,0.3); }
+.status-banner.success { background: var(--color-success-bg); border: var(--border-width-thin) solid var(--color-success-border); }
 .status-banner.failed { background: var(--color-danger-bg); border: var(--border-width-thin) solid var(--color-danger-border); }
 .status-banner-icon { font-size: 32px; }
 .status-banner-title { font-size: var(--text-subtitle); font-weight: var(--weight-semibold); color: var(--color-neutral-110); }
@@ -203,8 +203,8 @@ const {
 /* Checklist */
 .checklist { display: flex; flex-direction: column; gap: 2px; }
 .checklist-item { display: flex; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); }
-.checklist-item.pass { background: rgba(92,187,92,0.04); }
-.checklist-item.fail { background: rgba(224,115,128,0.06); }
+.checklist-item.pass { background: var(--color-success-bg); }
+.checklist-item.fail { background: var(--color-danger-bg); }
 .checklist-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; }
 .checklist-check { font-size: var(--text-body); font-weight: var(--weight-medium); color: var(--color-neutral-100); }
 .checklist-detail { font-size: var(--text-label); color: var(--color-neutral-70); margin-top: 1px; }
@@ -215,9 +215,9 @@ const {
 .interactive-value { font-size: var(--text-base); color: var(--color-neutral-100); font-weight: var(--weight-medium); }
 
 /* Info Card */
-.info-card { background: var(--color-info-bg); border: var(--border-width-thin) solid rgba(107,165,231,0.15); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); }
+.info-card { background: var(--color-info-bg); border: var(--border-width-thin) solid var(--color-info-border); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); }
 .info-card h4 { font-size: var(--text-body); color: var(--color-info-text); margin-bottom: var(--space-2); font-weight: var(--weight-medium); }
 .info-card ul { font-size: var(--text-label); color: var(--color-neutral-80); padding-left: var(--space-5); }
 .info-card li { margin-bottom: 2px; }
-.info-card code { font-family: var(--font-mono); background: rgba(0,0,0,.3); padding: 1px 5px; border-radius: var(--radius-sm); font-size: var(--text-caption); color: var(--color-info-text); }
+.info-card code { font-family: var(--font-mono); background: var(--color-surface-code); padding: var(--space-kbd-y) var(--space-kbd-x); border-radius: var(--radius-sm); font-size: var(--text-caption); color: var(--color-info-text); }
 </style>

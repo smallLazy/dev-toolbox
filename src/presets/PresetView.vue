@@ -217,7 +217,7 @@ const swapAction = usePointerSafeAction()
   padding: var(--space-3) var(--space-4);
   background: var(--color-info-bg);
   color: var(--color-info-text);
-  border: var(--border-width-thin) solid rgba(107, 165, 231, 0.15);
+  border: var(--border-width-thin) solid var(--color-info-border);
   border-radius: var(--radius-md);
   font-size: var(--text-body);
 }
@@ -238,7 +238,7 @@ const swapAction = usePointerSafeAction()
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   color: var(--color-neutral-90);
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--color-surface-code-subtle);
   padding: var(--space-compact) var(--space-2);
   border-radius: var(--radius-sm);
   word-break: break-all;
@@ -256,7 +256,7 @@ const swapAction = usePointerSafeAction()
 /* ── Info card (preserved: unique to PHP Codec) ─────────────────────── */
 .info-card {
   background: var(--color-info-bg);
-  border: var(--border-width-thin) solid rgba(107, 165, 231, 0.15);
+  border: var(--border-width-thin) solid var(--color-info-border);
   border-radius: var(--radius-xl);
   padding: var(--space-4) var(--space-5);
 }
@@ -270,11 +270,11 @@ const swapAction = usePointerSafeAction()
 }
 .info-card .pipeline code {
   font-size: var(--text-label); font-family: var(--font-mono); color: var(--color-neutral-100);
-  background: rgba(0, 0, 0, 0.3); padding: var(--space-compact) var(--space-2); border-radius: var(--radius-sm);
+  background: var(--color-surface-code); padding: var(--space-compact) var(--space-2); border-radius: var(--radius-sm);
 }
 .info-card ul { font-size: var(--text-label); color: var(--color-neutral-80); padding-left: var(--space-5); }
 .info-card li { margin-bottom: 2px; }
-.info-card code { font-family: var(--font-mono); background: rgba(0, 0, 0, 0.3); padding: 1px 5px; border-radius: var(--radius-sm); font-size: var(--text-caption); color: var(--color-info-text); }
+.info-card code { font-family: var(--font-mono); background: var(--color-surface-code); padding: var(--space-kbd-y) var(--space-kbd-x); border-radius: var(--radius-sm); font-size: var(--text-caption); color: var(--color-info-text); }
 
 /* ── Utility ────────────────────────────────────────────────────────── */
 .btn-copy { margin-top: var(--space-3); }

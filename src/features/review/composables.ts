@@ -19,7 +19,7 @@ export function useReview() {
     id: 'review',
     name: 'Review',
     description: 'AI tools — chat, completion, and generation',
-    icon: '🤖',
+    icon: 'MessagesSquare',
     version: '1.0.0',
     category: 'generator',
   })

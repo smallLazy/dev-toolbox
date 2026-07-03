@@ -19,7 +19,7 @@ export function useGithub() {
     id: 'github',
     name: 'Github',
     description: 'Enterprise tool — external service integration',
-    icon: '🏢',
+    icon: 'Package',
     version: '1.0.0',
     category: 'utility',
   })

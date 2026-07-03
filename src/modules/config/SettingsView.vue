@@ -114,7 +114,10 @@ const tabs = [
   border: none; background: transparent; color: var(--color-neutral-80);
   font-size: var(--text-body); font-family: var(--font-sans); cursor: pointer;
   border-radius: var(--radius-md); text-align: left;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 }
 .tab-item:hover { background: var(--border-color-subtle); color: var(--color-neutral-100); }
 .tab-item.active { background: var(--color-accent-dim); color: var(--color-accent-primary); }

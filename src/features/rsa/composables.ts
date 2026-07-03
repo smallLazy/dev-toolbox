@@ -19,7 +19,7 @@ export function useRsa() {
     id: 'rsa',
     name: 'Rsa',
     description: 'Data conversion tool — input, convert, output',
-    icon: '🔐',
+    icon: 'Lock',
     version: '1.0.0',
     category: 'crypto',
   })

@@ -19,7 +19,7 @@ export function useSm4() {
     id: 'sm4',
     name: 'Sm4',
     description: 'Data conversion tool — input, convert, output',
-    icon: '🔐',
+    icon: 'Lock',
     version: '1.0.0',
     category: 'crypto',
   })

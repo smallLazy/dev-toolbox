@@ -19,7 +19,7 @@ export function useXml() {
     id: 'xml',
     name: 'Xml',
     description: 'Editor tool — format, minify, and validate',
-    icon: '📝',
+    icon: 'FileCode',
     version: '1.0.0',
     category: 'formatter',
   })

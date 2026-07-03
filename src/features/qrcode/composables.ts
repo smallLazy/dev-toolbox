@@ -19,7 +19,7 @@ export function useQrcode() {
     id: 'qrcode',
     name: 'Qrcode',
     description: 'Viewer tool — preview files and metadata',
-    icon: '👁',
+    icon: 'Eye',
     version: '1.0.0',
     category: 'utility',
   })

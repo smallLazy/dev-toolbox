@@ -19,7 +19,7 @@ export function useSm2() {
     id: 'sm2',
     name: 'Sm2',
     description: 'Data conversion tool — input, convert, output',
-    icon: '🔐',
+    icon: 'Lock',
     version: '1.0.0',
     category: 'crypto',
   })

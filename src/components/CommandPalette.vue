@@ -141,7 +141,7 @@ function onFocusOut(e: FocusEvent) {
   display: flex;
   justify-content: center;
   padding-top: 15vh;
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--color-surface-overlay);
 }
 
 /* ── Panel ────────────────────────────────────────────────────────── */

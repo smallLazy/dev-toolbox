@@ -78,7 +78,10 @@ function handleClick(value: string) {
   color: var(--color-neutral-70);
   border: var(--border-width-thin) solid var(--border-color-default);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
 }
 
 .segmented-control button:first-child {

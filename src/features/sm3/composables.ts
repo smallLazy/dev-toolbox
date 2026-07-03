@@ -19,7 +19,7 @@ export function useSm3() {
     id: 'sm3',
     name: 'Sm3',
     description: 'Data conversion tool — input, convert, output',
-    icon: '🔐',
+    icon: 'Lock',
     version: '1.0.0',
     category: 'crypto',
   })
