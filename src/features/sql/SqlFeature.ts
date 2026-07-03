@@ -1,5 +1,5 @@
 /**
- * SqlFeature — SQL IN Builder + future Formatter.
+ * SqlFeature — SQL IN Builder.
  */
 
 import {
@@ -48,7 +48,7 @@ export class SqlFeature extends BaseFeature<SqlConfig, string, SqlResult> {
 
   async run(input: string, config: SqlConfig): Promise<SqlResult> {
     const result = transformSql(input, config)
-    const stats = getStats(result.output)
+    const stats = getStats(result.output ?? '')
     this._toolState.outputSize = stats.size
     return result
   }

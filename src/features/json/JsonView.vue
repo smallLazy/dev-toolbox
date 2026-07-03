@@ -14,6 +14,7 @@
 import { onMounted, onUnmounted, computed } from 'vue'
 import { useJsonPlugin } from './composables'
 import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
+import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
 import ToolPage from '@/templates/ToolPage.vue'
 import ToolHeader from '@/templates/ToolHeader.vue'
 import ToolSection from '@/templates/ToolSection.vue'
@@ -26,6 +27,17 @@ const {
   input, output, error, loading, mode, stats,
   toolbar, execute, selectMode, init, dispose,
 } = useJsonPlugin()
+
+// ── useTextActionTrigger for primary Format/Minify/Validate button ───
+const {
+  inputEl,
+  handleCompositionStart,
+  handleCompositionEnd,
+  handleInputBlur,
+  handlePointerDown,
+  handleClick,
+  handleShortcut,
+} = useTextActionTrigger({ model: input, loading, execute: () => execute() })
 
 const copyAction = usePointerSafeAction()
 const clearAction = usePointerSafeAction({ disabled: () => loading.value })
@@ -45,14 +57,6 @@ function handleModeChange(newMode: string) {
   selectMode(newMode as JsonMode)
 }
 
-// ── Keyboard Shortcuts ─────────────────────────────────────────────────
-function onKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-    e.preventDefault()
-    execute()
-  }
-}
-
 // ── Derived stats for ToolOutputPanel ──────────────────────────────────
 const outputPanelStats = computed(() => {
   if (!stats.value || stats.value.chars === 0) return null
@@ -61,7 +65,7 @@ const outputPanelStats = computed(() => {
 </script>
 
 <template>
-  <ToolPage @keydown="onKeydown">
+  <ToolPage @keydown="handleShortcut">
     <ToolHeader
       title="JSON Formatter"
       description="Format, minify, and validate JSON —"
@@ -89,12 +93,16 @@ const outputPanelStats = computed(() => {
       <ToolSection title="Input">
         <!-- Monaco Editor integration point: replace this textarea -->
         <textarea
+          ref="inputEl"
           v-model="input"
           class="dt-textarea mono-editor"
           rows="14"
           :aria-label="`JSON input for ${mode}`"
           placeholder='Paste JSON text... e.g. {"name": "Dev Toolbox", "version": "1.0"}'
           spellcheck="false"
+          @blur="handleInputBlur"
+          @compositionstart="handleCompositionStart"
+          @compositionend="handleCompositionEnd"
         />
         <div class="char-count">chars: {{ input.length }}</div>
       </ToolSection>
@@ -106,7 +114,8 @@ const outputPanelStats = computed(() => {
           class="btn-accent"
           :disabled="loading"
           :aria-label="`Run ${mode}: ${mode} JSON`"
-          @click="execute()"
+          @pointerdown="handlePointerDown"
+          @click="handleClick"
         >
           <span v-if="loading" class="spinner"></span>
           {{ loading ? 'Processing...' : mode === 'format' ? 'Format' : mode === 'minify' ? 'Minify' : 'Validate' }}

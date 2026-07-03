@@ -2,33 +2,47 @@
  * SQL Plugin — Pure Logic
  *
  * SQL IN Builder: batch values → SQL IN list.
- * TODO: add formatSql() for SQL Formatter mode.
  */
 
 import type {
   SqlConfig,
   SqlInConfig,
   SqlResult,
+  SqlBuildOutcome,
   SqlValidationResult,
 } from './types'
 
 // ── SQL IN Builder ───────────────────────────────────────────────────
 
-/** Parse batch input into individual items */
+/**
+ * Parse batch input into individual items.
+ * Line-by-line: each line is one item. Trim whitespace, skip empty lines.
+ * Does NOT split on commas, spaces, or semicolons within a line.
+ */
 export function parseSqlInItems(text: string, dedupe: boolean): string[] {
-  const raw = text
-    .split(/[\s,，;；]+/)
-    .map((item) => item.trim())
+  const lines = text
+    .split(/\r?\n/)
+    .map((s) => s.trim())
     .filter(Boolean)
 
-  if (!dedupe) return raw
+  if (!dedupe) return lines
 
   const seen = new Set<string>()
-  return raw.filter((item) => {
+  return lines.filter((item) => {
     if (seen.has(item)) return false
     seen.add(item)
     return true
   })
+}
+
+/**
+ * Check whether a string represents a valid number for SQL IN purposes.
+ * Accepts integers and decimals, with optional negative sign.
+ * Examples: "1001", "-1", "3.14", "0", "-0.5"
+ * Rejects: "abc", "12a", ".5", "1.2.3", ""
+ */
+export function isValidNumber(s: string): boolean {
+  return /^-?\d+(\.\d+)?$/.test(s)
 }
 
 /** Format a single item for SQL IN list */
@@ -41,24 +55,61 @@ export function formatSqlInItem(
   return `'${item.replace(/'/g, "''")}'`
 }
 
-/** Build the full SQL IN list string */
-export function buildSqlInList(input: string, config: SqlInConfig): string {
-  const items = parseSqlInItems(input, config.dedupe)
-  if (items.length === 0) {
-    throw new Error('No valid items found in input')
+/**
+ * Build the full SQL IN list string.
+ *
+ * Returns a discriminated union:
+ * - { success: true, output, itemCount }  — valid output
+ * - { success: false, empty: true }       — no items (safe no-op, not an error)
+ * - { success: false, error }             — validation failure (invalid number)
+ */
+export function buildSqlInList(input: string, config: SqlInConfig): SqlBuildOutcome {
+  // Number validation with line tracking (before dedupe, for accurate line numbers)
+  if (config.valueType === 'number') {
+    const rawLines = input.split(/\r?\n/)
+    for (let i = 0; i < rawLines.length; i++) {
+      const trimmed = rawLines[i].trim()
+      if (trimmed === '') continue
+      if (!isValidNumber(trimmed)) {
+        return { success: false, error: `Invalid number at line ${i + 1}: ${trimmed}` }
+      }
+    }
   }
 
-  const separator = config.lineMode === 'single' ? ',' : ',\n'
-  const body = items.map((item) => formatSqlInItem(item, config.valueType)).join(separator)
-  return config.wrapWithParentheses ? `(${body})` : body
+  const items = parseSqlInItems(input, config.dedupe)
+  if (items.length === 0) {
+    return { success: false, empty: true }
+  }
+
+  const formatted = items.map((item) => formatSqlInItem(item, config.valueType))
+
+  if (config.lineMode === 'multi') {
+    if (config.wrapWithParentheses) {
+      const body = formatted.map((v) => `  ${v}`).join(',\n')
+      return { success: true, output: `(\n${body}\n)`, itemCount: items.length }
+    }
+    // Multi-line, no wrap: no leading spaces
+    const body = formatted.join(',\n')
+    return { success: true, output: body, itemCount: items.length }
+  }
+
+  // Single line: space after comma
+  const body = formatted.join(', ')
+  const output = config.wrapWithParentheses ? `(${body})` : body
+  return { success: true, output, itemCount: items.length }
 }
 
 // ── Dispatch ─────────────────────────────────────────────────────────
 
 export function transformSql(input: string, config: SqlConfig): SqlResult {
-  // Future: if config.mode === 'format' → formatSql(...)
-  const output = buildSqlInList(input, config.inConfig)
-  return { input, output, config }
+  const outcome = buildSqlInList(input, config.inConfig)
+  if (outcome.success) {
+    return { input, output: outcome.output, config, itemCount: outcome.itemCount }
+  }
+  if ('empty' in outcome && outcome.empty) {
+    return { input, output: null, config }
+  }
+  return { input, output: null, config, error: (outcome as { error: string }).error }
 }
 
 // ── Validation ──────────────────────────────────────────────────────
@@ -67,19 +118,8 @@ export function validateSqlInput(
   input: string,
   _config: SqlConfig,
 ): SqlValidationResult {
-  const items = parseSqlInItems(input, false)
-  if (items.length === 0) {
-    return {
-      valid: false,
-      errors: [
-        {
-          field: 'input',
-          code: 'EMPTY_INPUT',
-          message: 'No valid items found in input',
-        },
-      ],
-    }
-  }
+  // Empty input is not an error — the UI layer handles it as safe no-op.
+  // This function exists for cases where the Feature.validate() contract is needed.
   return { valid: true }
 }
 

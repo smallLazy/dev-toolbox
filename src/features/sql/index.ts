@@ -5,6 +5,7 @@ export { SqlFeature } from './SqlFeature'
 export { useSql } from './composables'
 export {
   parseSqlInItems,
+  isValidNumber,
   formatSqlInItem,
   buildSqlInList,
   transformSql,
@@ -12,4 +13,17 @@ export {
   getStats,
   formatSize,
 } from './logic'
-export type { SqlMode, SqlInConfig, SqlConfig, SqlResult, SqlValidationError, SqlValidationResult, SqlState } from './types'
+export type {
+  SqlInValueType,
+  SqlInLineMode,
+  SqlInConfig,
+  SqlConfig,
+  SqlResult,
+  SqlValidationError,
+  SqlValidationResult,
+  SqlBuildSuccess,
+  SqlBuildEmpty,
+  SqlBuildError,
+  SqlBuildOutcome,
+  SqlState,
+} from './types'

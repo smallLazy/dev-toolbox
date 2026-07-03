@@ -1,80 +1,99 @@
 /**
- * JSON Plugin — Composable Tests
+ * SQL Plugin — Composable Tests
  *
  * Test layers:
  *   Layer 1 (Pure Logic)   — covered in logic.test.ts
- *   Layer 2 (Composable/State) — mode switch, clear, swap, copy, execute
+ *   Layer 2 (Composable/State) — clear, swap, copy, execute, config changes
  *   Layer 3 (Wiring/Dispatch)  — toolbar.execute() → handler invocation
  *   Layer 4 (Component/DOM)    — NOT covered; listed as manual smoke test items
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { transformJson, getJsonStats } from '../logic'
-import { createJsonToolbar } from '../toolbar'
-import type { JsonMode } from '../types'
+import { transformSql } from '../logic'
+import { createToolbar } from '../toolbar'
+import type { SqlInConfig, SqlConfig } from '../types'
 
 // ── State simulation helpers (mirrors composable behavior) ────────────────
 
-interface JsonState {
+interface SqlState {
   input: string
   output: string | null
   error: string | null
-  mode: JsonMode
+  inConfig: SqlInConfig
 }
 
-function createState(): JsonState {
-  return { input: '', output: null, error: null, mode: 'format' }
+function createState(): SqlState {
+  return {
+    input: '',
+    output: null,
+    error: null,
+    inConfig: {
+      valueType: 'string',
+      lineMode: 'single',
+      wrapWithParentheses: true,
+      dedupe: false,
+    },
+  }
+}
+
+function makeConfig(state: SqlState): SqlConfig {
+  return { mode: 'in-builder', inConfig: { ...state.inConfig } }
 }
 
 /** Simulate composable.execute() behavior */
-function simulateExecute(state: JsonState) {
+function simulateExecute(state: SqlState) {
   state.error = null
   state.output = null
 
-  const result = transformJson(state.input, state.mode)
-  if (result.success) {
-    state.output = result.output
-  } else if (result.error) {
+  const config = makeConfig(state)
+  const result = transformSql(state.input, config)
+  if (result.error) {
     state.error = result.error
+  } else if (result.output !== null) {
+    state.output = result.output
   }
-  // empty input: output=null, error=null
-}
-
-/** Simulate composable.selectMode() behavior */
-function simulateSelectMode(state: JsonState, nextMode: JsonMode) {
-  state.mode = nextMode
-  if (state.input.trim()) {
-    simulateExecute(state)
-  } else {
-    state.output = null
-    state.error = null
-  }
+  // Empty input: output=null, error=null — safe no-op
 }
 
 /** Simulate composable clear handler */
-function simulateClear(state: JsonState) {
+function simulateClear(state: SqlState) {
   state.input = ''
   state.output = null
   state.error = null
 }
 
 /** Simulate composable swap handler */
-function simulateSwap(state: JsonState) {
+function simulateSwap(state: SqlState) {
   if (state.output) {
     state.input = state.output
     state.output = null
+    state.error = null
   }
-  // mode is NOT toggled
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Layer 2 — Composable / State Tests
 // ═══════════════════════════════════════════════════════════════════════════
 
-describe('JSON default state', () => {
-  it('defaults to format mode', () => {
+describe('SQL default state', () => {
+  it('defaults to string value type', () => {
     const state = createState()
-    expect(state.mode).toBe('format')
+    expect(state.inConfig.valueType).toBe('string')
+  })
+
+  it('defaults to single line mode', () => {
+    const state = createState()
+    expect(state.inConfig.lineMode).toBe('single')
+  })
+
+  it('defaults to wrap with parentheses enabled', () => {
+    const state = createState()
+    expect(state.inConfig.wrapWithParentheses).toBe(true)
+  })
+
+  it('defaults to dedupe disabled', () => {
+    const state = createState()
+    expect(state.inConfig.dedupe).toBe(false)
   })
 
   it('default input/output/error are empty', () => {
@@ -85,189 +104,152 @@ describe('JSON default state', () => {
   })
 })
 
-// ── Mode Switch ───────────────────────────────────────────────────────────
+// ── Execute ──────────────────────────────────────────────────────────────
 
-describe('JSON mode switch', () => {
-  it('switching mode auto-executes on current input (format → minify)', () => {
+describe('SQL execute', () => {
+  it('builds string single-line with parentheses', () => {
     const state = createState()
-    state.input = '{"name":"Dev Toolbox"}'
-    state.mode = 'format'
-
-    // First format
+    state.input = '1001\n1002\n1003'
     simulateExecute(state)
-    expect(state.output).toContain('\n')
-
-    // Switch to minify — should auto-execute
-    simulateSelectMode(state, 'minify')
-    expect(state.mode).toBe('minify')
-    expect(state.output).not.toContain('\n')
+    expect(state.output).toBe("('1001', '1002', '1003')")
     expect(state.error).toBeNull()
   })
 
-  it('switching mode auto-executes on current input (format → validate)', () => {
+  it('builds number single-line with parentheses', () => {
     const state = createState()
-    state.input = '{"a":1,"b":2}'
-    state.mode = 'format'
-
-    simulateSelectMode(state, 'validate')
-    expect(state.mode).toBe('validate')
-    expect(state.output).toContain('Valid JSON')
-    expect(state.output).toContain('Type: object')
+    state.inConfig.valueType = 'number'
+    state.input = '1001\n1002\n1003'
+    simulateExecute(state)
+    expect(state.output).toBe('(1001, 1002, 1003)')
     expect(state.error).toBeNull()
   })
 
-  it('switching mode with empty input clears output silently', () => {
+  it('builds string multi-line with parentheses', () => {
+    const state = createState()
+    state.inConfig.lineMode = 'multi'
+    state.input = '1001\n1002\n1003'
+    simulateExecute(state)
+    expect(state.output).toBe("(\n  '1001',\n  '1002',\n  '1003'\n)")
+    expect(state.error).toBeNull()
+  })
+
+  it('builds number multi-line with parentheses', () => {
+    const state = createState()
+    state.inConfig.valueType = 'number'
+    state.inConfig.lineMode = 'multi'
+    state.input = '1001\n1002\n1003'
+    simulateExecute(state)
+    expect(state.output).toBe('(\n  1001,\n  1002,\n  1003\n)')
+    expect(state.error).toBeNull()
+  })
+
+  it('builds without parentheses', () => {
+    const state = createState()
+    state.inConfig.wrapWithParentheses = false
+    state.input = 'a\nb'
+    simulateExecute(state)
+    expect(state.output).toBe("'a', 'b'")
+    expect(state.error).toBeNull()
+  })
+
+  it('builds multi-line without parentheses (no leading spaces)', () => {
+    const state = createState()
+    state.inConfig.lineMode = 'multi'
+    state.inConfig.wrapWithParentheses = false
+    state.input = '1001\n1002\n1003'
+    simulateExecute(state)
+    expect(state.output).toBe("'1001',\n'1002',\n'1003'")
+    expect(state.error).toBeNull()
+  })
+
+  it('dedupes values', () => {
+    const state = createState()
+    state.inConfig.dedupe = true
+    state.input = 'a\nb\na'
+    simulateExecute(state)
+    expect(state.output).toBe("('a', 'b')")
+    expect(state.error).toBeNull()
+  })
+
+  it('escapes single quotes', () => {
+    const state = createState()
+    state.inConfig.wrapWithParentheses = false
+    state.input = "O'Reilly"
+    simulateExecute(state)
+    expect(state.output).toBe("'O''Reilly'")
+    expect(state.error).toBeNull()
+  })
+
+  it('empty input: output null, error null (safe no-op)', () => {
     const state = createState()
     state.input = ''
-
-    simulateSelectMode(state, 'minify')
+    simulateExecute(state)
     expect(state.output).toBeNull()
     expect(state.error).toBeNull()
-    expect(state.mode).toBe('minify')
   })
 
-  it('mode switch preserves input value', () => {
+  it('whitespace-only input: output null, error null (safe no-op)', () => {
     const state = createState()
-    state.input = '{"a":1}'
-
-    simulateSelectMode(state, 'validate')
-    expect(state.input).toBe('{"a":1}')
-  })
-})
-
-// ── Execute per mode ──────────────────────────────────────────────────────
-
-describe('JSON execute', () => {
-  it('format: produces pretty-printed output', () => {
-    const state = createState()
-    state.input = '{"name":"Dev Toolbox","version":"1.0"}'
-    state.mode = 'format'
-
+    state.input = '  \n  \n  '
     simulateExecute(state)
-    expect(state.output).toContain('"name"')
-    expect(state.output).toContain('\n')
+    expect(state.output).toBeNull()
     expect(state.error).toBeNull()
   })
 
-  it('minify: produces compact single-line output', () => {
+  it('invalid number sets error with line number', () => {
     const state = createState()
-    state.input = '{\n  "a": 1,\n  "b": 2\n}'
-    state.mode = 'minify'
-
+    state.inConfig.valueType = 'number'
+    state.input = '1001\nabc\n1003'
     simulateExecute(state)
-    expect(state.output).toBe('{"a":1,"b":2}')
-    expect(state.error).toBeNull()
-  })
-
-  it('validate: produces validation result with stats', () => {
-    const state = createState()
-    state.input = '{"a":1,"b":2}'
-    state.mode = 'validate'
-
-    simulateExecute(state)
-    expect(state.output).toContain('Valid JSON')
-    expect(state.output).toContain('Type: object')
-    expect(state.output).toContain('Keys: 2')
-    expect(state.error).toBeNull()
-  })
-
-  it('validate array: shows Items count', () => {
-    const state = createState()
-    state.input = '[1,2,3,4,5]'
-    state.mode = 'validate'
-
-    simulateExecute(state)
-    expect(state.output).toContain('Type: array')
-    expect(state.output).toContain('Items: 5')
-  })
-
-  it('validate primitive string: shows type', () => {
-    const state = createState()
-    state.input = '"hello"'
-    state.mode = 'validate'
-
-    simulateExecute(state)
-    expect(state.output).toContain('Type: string')
-    // No "Keys:" or "Items:" for primitives
-    expect(state.output).not.toContain('Keys:')
-    expect(state.output).not.toContain('Items:')
-  })
-
-  it('invalid JSON sets error and null output', () => {
-    const state = createState()
-    state.input = '{"name":}'
-    state.mode = 'format'
-
-    simulateExecute(state)
-    expect(state.error).toBeTruthy()
+    expect(state.error).toBe('Invalid number at line 2: abc')
     expect(state.output).toBeNull()
   })
 
   it('valid input clears previous error', () => {
     const state = createState()
-    state.input = '{broken'
-    state.mode = 'format'
+    state.inConfig.valueType = 'number'
+    state.input = 'abc'
     simulateExecute(state)
     expect(state.error).toBeTruthy()
 
     // Now valid input
-    state.input = '{"a":1}'
+    state.input = '1001\n1002'
     simulateExecute(state)
     expect(state.error).toBeNull()
-    expect(state.output).toBeTruthy()
+    expect(state.output).toBe('(1001, 1002)')
   })
 
-  it('empty input: output null, error null, no crash', () => {
+  it('accepts negative and decimal numbers', () => {
     const state = createState()
-    state.input = ''
-    state.mode = 'format'
-
+    state.inConfig.valueType = 'number'
+    state.input = '-1\n0\n3.14'
     simulateExecute(state)
-    expect(state.output).toBeNull()
-    expect(state.error).toBeNull()
-  })
-
-  it('top-level array formats correctly', () => {
-    const state = createState()
-    state.input = '[1,2,3]'
-    state.mode = 'format'
-
-    simulateExecute(state)
-    expect(state.output).toContain('[\n')
+    expect(state.output).toBe('(-1, 0, 3.14)')
     expect(state.error).toBeNull()
   })
 
-  it('Chinese content preserved', () => {
+  it('preserves line content with spaces (line-by-line only)', () => {
     const state = createState()
-    state.input = '{"text":"你好"}'
-    state.mode = 'format'
-
+    state.inConfig.wrapWithParentheses = false
+    state.input = 'hello world\nfoo bar'
     simulateExecute(state)
-    expect(state.output).toContain('你好')
-  })
-
-  it('emoji content preserved', () => {
-    const state = createState()
-    state.input = '{"text":"😀"}'
-    state.mode = 'format'
-
-    simulateExecute(state)
-    expect(state.output).toContain('😀')
+    expect(state.output).toBe("'hello world', 'foo bar'")
+    expect(state.error).toBeNull()
   })
 })
 
 // ── Clear ─────────────────────────────────────────────────────────────────
 
-describe('JSON clear', () => {
-  it('clear() resets input, output, and error to initial state', () => {
+describe('SQL clear', () => {
+  it('clear() resets input, output, and error', () => {
     const state = createState()
-    state.input = '{"a":1}'
-    state.mode = 'format'
+    state.input = '1001\n1002'
     simulateExecute(state)
     expect(state.output).toBeTruthy()
 
-    // Trigger error too
-    state.input = '{broken'
+    // Trigger error
+    state.inConfig.valueType = 'number'
+    state.input = 'abc'
     simulateExecute(state)
     expect(state.error).toBeTruthy()
 
@@ -277,14 +259,16 @@ describe('JSON clear', () => {
     expect(state.error).toBeNull()
   })
 
-  it('clear() preserves mode', () => {
+  it('clear() preserves config', () => {
     const state = createState()
-    state.input = '{"a":1}'
-    state.mode = 'minify'
+    state.inConfig.valueType = 'number'
+    state.inConfig.lineMode = 'multi'
+    state.input = '1\n2'
     simulateExecute(state)
 
     simulateClear(state)
-    expect(state.mode).toBe('minify')
+    expect(state.inConfig.valueType).toBe('number')
+    expect(state.inConfig.lineMode).toBe('multi')
     expect(state.input).toBe('')
     expect(state.output).toBeNull()
   })
@@ -292,11 +276,10 @@ describe('JSON clear', () => {
 
 // ── Swap I/O ──────────────────────────────────────────────────────────────
 
-describe('JSON swap I/O', () => {
+describe('SQL swap I/O', () => {
   it('swap moves output to input and clears output', () => {
     const state = createState()
-    state.input = '{"name":"Dev Toolbox"}'
-    state.mode = 'format'
+    state.input = '1001\n1002\n1003'
     simulateExecute(state)
     const originalOutput = state.output
     expect(originalOutput).toBeTruthy()
@@ -304,57 +287,36 @@ describe('JSON swap I/O', () => {
     simulateSwap(state)
     expect(state.input).toBe(originalOutput)
     expect(state.output).toBeNull()
+    expect(state.error).toBeNull()
   })
 
-  it('swap does NOT change mode', () => {
+  it('swap does NOT change config', () => {
     const state = createState()
-    state.input = '{"a":1}'
-    state.mode = 'format'
+    state.inConfig.valueType = 'number'
+    state.input = '1\n2'
     simulateExecute(state)
 
     simulateSwap(state)
-    expect(state.mode).toBe('format')
-  })
-
-  it('swap with minify mode does not change mode', () => {
-    const state = createState()
-    state.input = '{"a":1}'
-    state.mode = 'minify'
-    simulateExecute(state)
-
-    simulateSwap(state)
-    expect(state.mode).toBe('minify')
+    expect(state.inConfig.valueType).toBe('number')
   })
 
   it('swap is a no-op when output is null', () => {
     const state = createState()
-    state.input = '{"a":1}'
-    state.mode = 'format'
+    state.input = '1001\n1002'
     // No execute — output is null
 
     simulateSwap(state)
-    expect(state.input).toBe('{"a":1}')
+    expect(state.input).toBe('1001\n1002')
     expect(state.output).toBeNull()
-  })
-
-  it('swap preserves mode after swap from validate', () => {
-    const state = createState()
-    state.input = '{"a":1}'
-    state.mode = 'validate'
-    simulateExecute(state)
-
-    simulateSwap(state)
-    expect(state.mode).toBe('validate')
   })
 })
 
 // ── Copy ──────────────────────────────────────────────────────────────────
 
-describe('JSON copy action', () => {
+describe('SQL copy action', () => {
   it('calls navigator.clipboard.writeText with output value', async () => {
     const state = createState()
-    state.input = '{"name":"Dev Toolbox"}'
-    state.mode = 'format'
+    state.input = '1001\n1002\n1003'
     simulateExecute(state)
     expect(state.output).toBeTruthy()
 
@@ -381,7 +343,7 @@ describe('JSON copy action', () => {
 
   it('does not attempt copy when output is null', () => {
     const state = createState()
-    state.input = ''
+    state.input = '  \n  '
     simulateExecute(state)
     expect(state.output).toBeNull()
 
@@ -394,10 +356,10 @@ describe('JSON copy action', () => {
 // Layer 3 — Wiring / Action Dispatch Tests
 // ═══════════════════════════════════════════════════════════════════════════
 
-describe('JSON toolbar wiring', () => {
+describe('SQL toolbar wiring', () => {
   it('toolbar.execute("copy") calls onCopy handler', async () => {
     let copyCalled = false
-    const toolbar = createJsonToolbar({
+    const toolbar = createToolbar({
       onCopy: () => { copyCalled = true },
       onClear: () => {},
       onSwap: () => {},
@@ -409,7 +371,7 @@ describe('JSON toolbar wiring', () => {
 
   it('toolbar.execute("clear") calls onClear handler', async () => {
     let clearCalled = false
-    const toolbar = createJsonToolbar({
+    const toolbar = createToolbar({
       onCopy: () => {},
       onClear: () => { clearCalled = true },
       onSwap: () => {},
@@ -421,7 +383,7 @@ describe('JSON toolbar wiring', () => {
 
   it('toolbar.execute("swap") calls onSwap handler', async () => {
     let swapCalled = false
-    const toolbar = createJsonToolbar({
+    const toolbar = createToolbar({
       onCopy: () => {},
       onClear: () => {},
       onSwap: () => { swapCalled = true },
@@ -431,15 +393,14 @@ describe('JSON toolbar wiring', () => {
     expect(swapCalled).toBe(true)
   })
 
-  it('toolbar.execute("swap") dispatches correctly and swaps state', async () => {
+  it('toolbar.execute("swap") dispatches and swaps state', async () => {
     const state = createState()
-    state.input = '{"name":"Dev Toolbox"}'
-    state.mode = 'format'
+    state.input = '1001\n1002\n1003'
     simulateExecute(state)
     expect(state.output).toBeTruthy()
 
     let swapExecuted = false
-    const toolbar = createJsonToolbar({
+    const toolbar = createToolbar({
       onCopy: () => {},
       onClear: () => simulateClear(state),
       onSwap: () => {
@@ -452,20 +413,17 @@ describe('JSON toolbar wiring', () => {
 
     expect(swapExecuted).toBe(true)
     expect(state.output).toBeNull()
-    // Output became input (reformatted JSON)
+    // Output became input
     expect(state.input).toBeTruthy()
-    // mode unchanged
-    expect(state.mode).toBe('format')
   })
 
   it('toolbar.execute("clear") dispatches and resets state', async () => {
     const state = createState()
-    state.input = '{"a":1}'
-    state.mode = 'minify'
+    state.input = '1001\n1002'
     simulateExecute(state)
     expect(state.output).toBeTruthy()
 
-    const toolbar = createJsonToolbar({
+    const toolbar = createToolbar({
       onCopy: () => {},
       onClear: () => simulateClear(state),
       onSwap: () => {},
@@ -476,11 +434,10 @@ describe('JSON toolbar wiring', () => {
     expect(state.input).toBe('')
     expect(state.output).toBeNull()
     expect(state.error).toBeNull()
-    expect(state.mode).toBe('minify') // preserved
   })
 
   it('all toolbar actions have enabled handlers that are callable', () => {
-    const toolbar = createJsonToolbar({
+    const toolbar = createToolbar({
       onCopy: () => {},
       onClear: () => {},
       onSwap: () => {},
@@ -494,7 +451,7 @@ describe('JSON toolbar wiring', () => {
   })
 
   it('toolbar does NOT have paste, import, or export actions', () => {
-    const toolbar = createJsonToolbar({
+    const toolbar = createToolbar({
       onCopy: () => {},
       onClear: () => {},
       onSwap: () => {},
@@ -507,17 +464,16 @@ describe('JSON toolbar wiring', () => {
   })
 })
 
-// ── Note on Run action ────────────────────────────────────────────────────
+// ── Note on Convert action ────────────────────────────────────────────────
 //
-// Run (Format / Minify / Validate) is NOT a toolbar action. It is a
-// page-level button wired directly via the composable's execute() function:
+// Convert is NOT a toolbar action. It is a page-level button wired directly
+// via the composable's execute() function:
 //
-//   @pointerdown → handlePointerDown → syncInputFromDom → execute()
-//   @click → handleClick (keyboard fallback only)
+//   @click → execute()
 //
-// Run is tested at:
-//   Layer 1 (Pure Logic)     — transformJson logic tests
+// Convert is tested at:
+//   Layer 1 (Pure Logic)     — transformSql logic tests
 //   Layer 2 (State)          — simulateExecute tests above
-//   Layer 3 (Wiring)         — N/A (useTextActionTrigger wires pointerdown+click, not toolbar)
+//   Layer 3 (Wiring)         — N/A (no toolbar action for Convert)
 //   Layer 4 (Component/DOM)  — listed as manual smoke test item
-//   Layer 5 (Manual Smoke)   — DOM click, first-click verification, button label, visual feedback
+//   Layer 5 (Manual Smoke)   — DOM click, button label, visual feedback

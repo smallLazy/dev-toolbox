@@ -289,6 +289,94 @@ it('swap() swaps input and output in state', () => {
 
 ---
 
+## 2b. Primary Action Click Reliability
+
+> **Rule**: Primary action buttons (Run / Convert / Format / Minify / Validate / Encode / Decode) in text-transform tools must use `useTextActionTrigger`. Plain `@click="execute()"` is insufficient as the sole entry point.
+
+### Why
+
+| Problem | Explanation |
+|---------|-------------|
+| **First click lost** | Without `@pointerdown`, the first mouse click on the button triggers textarea `blur` but does not execute the action. The user must click a second time. This happens because `v-model` syncs asynchronously — the `@click` fires before the model has the latest DOM value, or the blur side effects interfere. |
+| **IME composition race** | CJK (Chinese/Japanese/Korean) IMEs hold text in a composition buffer. A plain `@click` may fire before `compositionend`, losing uncommitted text. |
+| **No DOM sync** | `useTextActionTrigger` calls `syncInputFromDom()` before execution, reading `textarea.value` directly. This guarantees the model has the latest input regardless of Vue's async update queue. |
+
+### Correct Pattern
+
+```html
+<textarea
+  ref="inputEl"
+  v-model="input"
+  @blur="handleInputBlur"
+  @compositionstart="handleCompositionStart"
+  @compositionend="handleCompositionEnd"
+/>
+
+<button
+  @pointerdown="handlePointerDown"
+  @click="handleClick"
+>
+  Format
+</button>
+```
+
+```typescript
+import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
+
+const {
+  inputEl,
+  handleCompositionStart,
+  handleCompositionEnd,
+  handleInputBlur,
+  handlePointerDown,
+  handleClick,
+  handleShortcut,
+} = useTextActionTrigger({ model: input, loading, execute })
+```
+
+### Wrong Pattern
+
+```html
+<!-- ❌ Plain @click loses the first click — do not use as sole entry -->
+<button @click="execute()">Format</button>
+```
+
+### How It Works
+
+| Event | Role |
+|-------|------|
+| `@pointerdown` | **Primary entry**. Fires before textarea `blur`. Syncs DOM `.value` → model, then executes. |
+| `@click` | **Fallback only**. Used for keyboard activation (Enter on focused button) where `pointerdown` may not fire. Skipped when `pointerdown` already ran. |
+| `@blur` | Syncs DOM `.value` → model when user clicks away from textarea. |
+| `@compositionstart/end` | Tracks IME state. `compositionend` syncs the finalized text to the model. |
+| `handleShortcut` | `@keydown` handler for `Cmd/Ctrl+Enter`. Syncs DOM → model → execute. Includes loading guard. |
+
+### Usage Constraints
+
+| `useTextActionTrigger` option | Type | Required | Notes |
+|-------------------------------|------|----------|-------|
+| `model` | `Ref<string>` | Yes | The `v-model` ref bound to the textarea |
+| `loading` | `Ref<boolean>` | No | When `true`, all execution paths are skipped (prevents double-submission) |
+| `execute` | `() => void \| Promise<void>` | Yes | The action to run. Wrap parameterized functions: `() => myExecute(arg)` |
+
+### DoD Additions
+
+- [ ] Primary action button uses `useTextActionTrigger` (not plain `@click`)
+- [ ] Primary action executes on the first mouse click (no second-click requirement)
+- [ ] Keyboard shortcut (`⌘Enter` / `Ctrl+Enter`) still works via `handleShortcut`
+- [ ] Textarea binds `ref="inputEl"`, `@blur`, `@compositionstart`, `@compositionend`
+- [ ] Manual smoke includes first-click verification (`SMOKE-POINTER-01`)
+- [ ] Manual smoke includes IME composition + click verification (`SMOKE-IME-01`, when CJK IME is available)
+
+### Manual Smoke Additions
+
+| Case ID | Scenario | Steps | Expected Result |
+|---------|----------|-------|-----------------|
+| SMOKE-POINTER-01 | First click executes | 1. Enter valid input in textarea 2. Mouse-click primary action **once** | Output appears immediately; no need to click twice |
+| SMOKE-IME-01 | IME composition + primary click | 1. Use CJK IME to type text 2. Without confirming IME, directly mouse-click primary action | IME buffer text is included in input; action executes on first click; no lost content |
+
+---
+
 ## 3. Definition of Done
 
 A tool is **Ready** only when ALL of the following conditions are met:
@@ -298,6 +386,8 @@ A tool is **Ready** only when ALL of the following conditions are met:
 - [ ] UI integrated into the unified tool layout
 - [ ] Component interaction tests cover all critical paths (Step 4 checklist)
 - [ ] Wiring / action dispatch tests cover Copy, Clear, Swap, Run, and mode switch (Section 2a)
+- [ ] Primary action button uses `useTextActionTrigger` with `@pointerdown` + `@click` (Section 2b)
+- [ ] Textarea binds `ref="inputEl"`, `@blur`, `@compositionstart`, `@compositionend` (Section 2b)
 - [ ] Error handling is user-friendly (no raw exceptions, no `alert()`)
 - [ ] Empty input is safe (no crash, no white screen)
 - [ ] `Copy` and `Clear` work correctly
@@ -792,6 +882,8 @@ The Base64 tool demonstrates the standard workflow:
 | SMOKE-08 | Keyboard shortcut | 1. Enter input 2. Press shortcut (e.g., ⌘Enter) | Primary action triggered |  | Pending / N/A |  |
 | SMOKE-09 | Visual — macOS | 1. Open tool on macOS 2. Compare with design reference | Layout, spacing, colors match existing tools |  | Pending |  |
 | SMOKE-10 | Visual — Windows | 1. Open tool on Windows 2. Compare with design reference | Layout, spacing, colors match existing tools |  | Pending / N/A |  |
+| SMOKE-POINTER-01 | First click executes | 1. Enter valid input in textarea 2. Mouse-click primary action **once** | Output appears immediately; no need to click twice |  | Pending |  |
+| SMOKE-IME-01 | IME composition + primary click | 1. Use CJK IME to type text 2. Without confirming IME, directly mouse-click primary action | IME buffer text is included in input; action executes on first click; no lost content |  | Pending / N/A | N/A when CJK IME is not available |
 | SMOKE-LAYOUT-01 | Layout matches reference tool | 1. Open the reference tool 2. Open the new tool side by side 3. Compare configuration controls, action buttons, output section, spacing, and grouping | New tool layout matches the reference; any differences are documented and justified |  | Pending |  |
 
 > **Readiness gate**: If any row with a required case has Status `Pending` or `Failed`, the tool is **Not Ready**. Mark rows as `N/A` only with a justification in Notes (e.g., "Tool has no mode switch").

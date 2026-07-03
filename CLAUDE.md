@@ -64,6 +64,7 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ❌ Access Services directly
 ❌ Hand-write plugin directories (use Generator)
 ❌ Add manual route registrations
+❌ Use plain @click="execute()" as the sole event on primary text-transform buttons
 ```
 
 #### Always Do
@@ -80,6 +81,8 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ✅ Write 5+ unit tests per Plugin
 ✅ Run npm run validate before committing
 ✅ Formatter tools use JSON Formatter as the reference layout unless explicitly justified
+✅ Primary action buttons must use useTextActionTrigger (@pointerdown + @click), not plain @click
+✅ Textarea must bind ref="inputEl", @blur, @compositionstart, @compositionend (text-transform tools)
 ✅ Mode controls must follow the shared layout rule: single Mode controls use full width, Mode+Variant controls use two columns; action labels must use Title Case and shared labels such as Run Encode, Copy Output, and Swap I/O
 ✅ Copy Output and Swap I/O are output-dependent actions: hide them when there is no output, and hide Swap I/O when the current mode output is not suitable as input (e.g., Validate mode)
 ```

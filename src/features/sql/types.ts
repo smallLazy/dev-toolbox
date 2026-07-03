@@ -1,8 +1,5 @@
 /** SQL Plugin — Type Definitions */
 
-export type SqlMode = 'in-builder'
-// TODO: add 'format' mode when SQL Formatter is implemented
-
 export type SqlInValueType = 'string' | 'number'
 export type SqlInLineMode = 'single' | 'multi'
 
@@ -14,14 +11,16 @@ export interface SqlInConfig {
 }
 
 export interface SqlConfig {
-  mode: SqlMode
+  mode: 'in-builder'
   inConfig: SqlInConfig
 }
 
 export interface SqlResult {
   input: string
-  output: string
+  output: string | null
   config: SqlConfig
+  error?: string
+  itemCount?: number
 }
 
 export interface SqlValidationError {
@@ -33,6 +32,25 @@ export interface SqlValidationError {
 export type SqlValidationResult =
   | { valid: true }
   | { valid: false; errors: SqlValidationError[] }
+
+export interface SqlBuildSuccess {
+  success: true
+  output: string
+  itemCount: number
+}
+
+export interface SqlBuildEmpty {
+  success: false
+  empty: true
+}
+
+export interface SqlBuildError {
+  success: false
+  error: string
+  empty?: false
+}
+
+export type SqlBuildOutcome = SqlBuildSuccess | SqlBuildEmpty | SqlBuildError
 
 export interface SqlState {
   input: string

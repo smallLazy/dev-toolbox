@@ -9,7 +9,7 @@ export default definePlugin({
   name: 'SQL',
   icon: 'Database',
   version: '1.0.0',
-  description: 'SQL IN Builder and Formatter',
+  description: 'Build SQL IN lists from batch values',
   category: 'formatter',
   status: 'active',
 
@@ -32,6 +32,8 @@ export default definePlugin({
   keywords: [
     'sql', 'sql in', 'in builder', 'mysql in', 'quote list',
     'batch ids', 'comma separated', 'list', 'where in',
+    'build', 'convert', 'SQL IN构建', '批量转换', 'IN列表',
+    'SQL列表', '批量处理', '数据库查询',
   ],
 
   permissions: ['clipboard:read', 'clipboard:write'],
