@@ -22,9 +22,7 @@ jobs:
         with: { targets: 'aarch64-apple-darwin' }
 
       - run: npm ci
-      - run: npm run build
-      - run: cargo build --release
-        working-directory: src-tauri
+      - run: npx tauri build --bundles dmg,app --target aarch64-apple-darwin
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -32,7 +30,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: dev-toolbox-macos-arm64
-          path: src-tauri/target/release/bundle/
+          path: src-tauri/target/aarch64-apple-darwin/release/bundle/
           retention-days: 90
 
   # ── macOS Intel ──────────────────────────────────────────────────────
@@ -50,9 +48,7 @@ jobs:
         with: { targets: 'x86_64-apple-darwin' }
 
       - run: npm ci
-      - run: npm run build
-      - run: cargo build --release --target x86_64-apple-darwin
-        working-directory: src-tauri
+      - run: npx tauri build --bundles dmg,app --target x86_64-apple-darwin
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -108,9 +104,7 @@ jobs:
         run: sudo apt update && sudo apt install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
 
       - run: npm ci
-      - run: npm run build
-      - run: cargo build --release
-        working-directory: src-tauri
+      - run: npx tauri build --bundles deb,appimage
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
