@@ -127,14 +127,19 @@ onUnmounted(() => dispose())
             @update:model-value="handleLineModeChange"
           />
         </div>
-        <label class="tool-check-field">
-          <input v-model="inConfig.wrapWithParentheses" type="checkbox" />
-          <span>Wrap parentheses</span>
-        </label>
-        <label class="tool-check-field">
-          <input v-model="inConfig.dedupe" type="checkbox" />
-          <span>Remove duplicates</span>
-        </label>
+        <div class="tool-field tool-checks-field">
+          <span class="tool-field-label">Options</span>
+          <div class="tool-check-options">
+            <label class="tool-check-field">
+              <input v-model="inConfig.wrapWithParentheses" type="checkbox" />
+              <span>Wrap parentheses</span>
+            </label>
+            <label class="tool-check-field">
+              <input v-model="inConfig.dedupe" type="checkbox" />
+              <span>Remove duplicates</span>
+            </label>
+          </div>
+        </div>
       </ToolOptionsRow>
     </template>
 
@@ -214,7 +219,16 @@ onUnmounted(() => dispose())
   gap: var(--space-2);
   color: var(--text-color-body);
   font-size: var(--text-body);
+  line-height: var(--leading-snug);
   cursor: pointer;
+  white-space: nowrap;
+}
+
+.tool-check-options {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
   min-height: var(--space-control-min-height);
 }
 
@@ -222,6 +236,11 @@ onUnmounted(() => dispose())
   width: var(--icon-sm);
   height: var(--icon-sm);
   accent-color: var(--color-accent-primary);
+  flex-shrink: 0;
+}
+
+.tool-field :deep(.segmented-control button) {
+  white-space: nowrap;
 }
 
 .tool-textarea {

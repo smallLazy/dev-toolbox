@@ -2,29 +2,26 @@
 /**
  * HTML Encode Plugin — Main View
  *
- * Layout uses shared ToolPage components for consistent visual spec:
- *   ToolPage > ToolHeader > ToolSection(Config) > ToolSection(Input)
- *   > ToolActions > ToolSection(Output)
- *
- * ALL UI from Design System. Zero custom components.
+ * Phase 2 migration: ToolLayout skeleton with unified status bar.
+ * Business logic and composables unchanged.
  */
 
-import { onMounted, onUnmounted } from 'vue'
-import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
-import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
-import ToolPage from '@/templates/ToolPage.vue'
-import ToolHeader from '@/templates/ToolHeader.vue'
-import ToolSection from '@/templates/ToolSection.vue'
-import ToolActions from '@/templates/ToolActions.vue'
-import ToolOutputPanel from '@/templates/ToolOutputPanel.vue'
-import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useHtmlEncode } from './composables'
+import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
+import ToolLayout from '@/templates/ToolLayout.vue'
+import ToolWorkspace from '@/templates/ToolWorkspace.vue'
+import InputOutputPanel from '@/templates/InputOutputPanel.vue'
+import ToolActionBar from '@/templates/ToolActionBar.vue'
+import ToolOptionsRow from '@/templates/ToolOptionsRow.vue'
+import ToolStatusBar from '@/templates/ToolStatusBar.vue'
+import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
+import type { ToolAction } from '@/templates/types'
 import type { HtmlMode } from './types'
 
 const { input, output, error, loading, mode, outputStats, toolbar, selectMode, execute, init, dispose } =
   useHtmlEncode()
 
-// ── Generic text-input + execute-button interaction ──────────────────
 const {
   inputEl,
   syncInputFromDom,
@@ -36,7 +33,6 @@ const {
   handleShortcut,
 } = useTextActionTrigger({ model: input, loading, execute })
 
-// ── Mode switch (Encode / Decode) via ToolSegmentedControl ───────────
 const modeOptions = [
   { label: 'Encode', value: 'encode' },
   { label: 'Decode', value: 'decode' },
@@ -47,188 +43,163 @@ function handleModeChange(newMode: string) {
   selectMode(newMode as HtmlMode)
 }
 
-// ── Pointer-safe toolbar actions (Copy, Clear, Swap) ──────────────
-const copyAction = usePointerSafeAction()
-const clearAction = usePointerSafeAction({ disabled: () => loading.value })
-const swapAction = usePointerSafeAction({ disabled: () => loading.value })
+// ── Unified status bar ───────────────────────────────────────────────
+const statusPhase = ref<'idle' | 'loading' | 'success' | 'error' | 'copied'>('idle')
+const statusMessage = ref<string | null>(null)
 
-// ── Lifecycle ────────────────────────────────────────────────────────
+const primaryAction = computed<ToolAction>(() => ({
+  id: 'run',
+  label: mode.value === 'encode' ? 'Run Encode' : 'Run Decode',
+  busy: loading.value,
+  disabled: loading.value,
+  shortcut: 'Cmd Enter',
+  ariaLabel: mode.value === 'encode' ? 'Encode HTML entities in input' : 'Decode HTML entities in input',
+}))
+
+const secondaryActions = computed<ToolAction[]>(() => [
+  { id: 'copy', label: 'Copy Output', disabled: !output.value || loading.value },
+  { id: 'clear', label: 'Clear', disabled: loading.value },
+  { id: 'swap', label: 'Swap I/O', disabled: !output.value || loading.value },
+])
+
+const outputPanelStats = computed(() => {
+  if (!output.value) return null
+  return { chars: output.value.length }
+})
+const visibleStatusPhase = computed(() => {
+  if (loading.value) return 'loading'
+  if (error.value) return 'error'
+  return statusPhase.value
+})
+const visibleStatusMessage = computed(() => {
+  if (loading.value) return 'Processing...'
+  if (error.value) return error.value
+  return statusMessage.value
+})
+
+async function handleSecondaryAction(id: string) {
+  if (id === 'copy') {
+    await toolbar.execute('copy')
+    if (!error.value) {
+      statusPhase.value = 'copied'
+      statusMessage.value = 'Copied to clipboard.'
+    }
+    return
+  }
+  if (id === 'clear') {
+    await toolbar.execute('clear')
+    statusPhase.value = 'idle'
+    statusMessage.value = null
+    return
+  }
+  if (id === 'swap') {
+    await toolbar.execute('swap')
+  }
+}
+
+function clearStatus() {
+  error.value = null
+  statusPhase.value = 'idle'
+  statusMessage.value = null
+}
+
 onMounted(() => init())
 onUnmounted(() => dispose())
 </script>
 
 <template>
-  <ToolPage @keydown="handleShortcut">
-    <ToolHeader
-      title="HTML Encode / Decode"
-      description="Encode and decode HTML entities —"
-    >
-      <template #default>
-        Encode and decode HTML entities &mdash;
-        <kbd>⌘Enter</kbd> to execute
-      </template>
-    </ToolHeader>
-
-    <div class="page-content">
-      <!-- Configuration -->
-      <ToolSection title="Configuration">
-        <div class="field">
-          <label class="field-label">Mode</label>
+  <ToolLayout
+    title="HTML Encode / Decode"
+    description="Encode and decode HTML entities."
+    :shortcut-hints="['Cmd Enter to run']"
+    layout="io"
+    @keydown="handleShortcut"
+  >
+    <template #options>
+      <ToolOptionsRow>
+        <div class="tool-field">
+          <label class="tool-field-label">Mode</label>
           <ToolSegmentedControl
             :model-value="mode"
             :options="modeOptions"
             @update:model-value="handleModeChange"
           />
         </div>
-      </ToolSection>
+      </ToolOptionsRow>
+    </template>
 
-      <!-- Input -->
-      <ToolSection title="Input">
-        <textarea
-          ref="inputEl"
-          v-model="input"
-          class="dt-textarea"
-          rows="6"
-          :aria-label="mode === 'encode' ? 'Plain HTML or text input' : 'HTML-entity-encoded input'"
-          :placeholder="mode === 'encode' ? 'Enter HTML or text to encode...' : 'Enter HTML-entity-encoded string to decode...'"
-          spellcheck="false"
-          @blur="handleInputBlur"
-          @compositionstart="handleCompositionStart"
-          @compositionend="handleCompositionEnd"
-        />
-        <div class="char-count">chars: {{ input.length }}</div>
-      </ToolSection>
-
-      <!-- Action Bar -->
-      <ToolActions>
-        <button
-          type="button"
-          class="btn-accent"
-          :disabled="loading"
-          :aria-label="mode === 'encode' ? 'Run Encode: encode HTML entities in input' : 'Run Decode: decode HTML entities in input'"
-          @pointerdown="handlePointerDown"
-          @click="handleClick"
-        >
-          <span v-if="loading" class="spinner"></span>
-          {{ loading ? 'Processing...' : mode === 'encode' ? 'Run Encode' : 'Run Decode' }}
-        </button>
-        <button
-          v-if="output"
-          class="btn-secondary"
-          @pointerdown="copyAction.handlePointerDown($event, () => toolbar.execute('copy'))"
-          @click="copyAction.handleClick(() => toolbar.execute('copy'))"
-          aria-label="Copy output to clipboard"
-        >
-          Copy Output
-        </button>
-        <button
-          class="btn-secondary"
-          @pointerdown="clearAction.handlePointerDown($event, () => toolbar.execute('clear'))"
-          @click="clearAction.handleClick(() => toolbar.execute('clear'))"
-          aria-label="Clear input and output"
-        >
-          Clear
-        </button>
-        <button
-          v-if="output"
-          class="btn-secondary"
-          @pointerdown="swapAction.handlePointerDown($event, () => toolbar.execute('swap'))"
-          @click="swapAction.handleClick(() => toolbar.execute('swap'))"
-          aria-label="Swap input and output"
-        >
-          Swap I/O
-        </button>
-      </ToolActions>
-
-      <!-- Error -->
-      <div v-if="error" class="alert-error" role="alert">{{ error }}</div>
-
-      <!-- Output -->
-      <ToolSection v-if="output" title="Output" variant="output">
-        <template #header-actions>
-          <span v-if="output" role="status" aria-live="assertive" class="sr-only">Output available</span>
+    <template #workspace>
+      <ToolWorkspace layout="io">
+        <template #input>
+          <InputOutputPanel
+            title="Input"
+            :stats="{ chars: input.length }"
+            :invalid="!!error"
+            :aria-label="mode === 'encode' ? 'Plain HTML or text input' : 'HTML-entity-encoded input'"
+          >
+            <textarea
+              ref="inputEl"
+              v-model="input"
+              class="dt-textarea tool-textarea"
+              rows="12"
+              :placeholder="mode === 'encode' ? 'Enter HTML or text to encode...' : 'Enter HTML-entity-encoded string to decode...'"
+              :aria-label="mode === 'encode' ? 'Plain HTML or text input' : 'HTML-entity-encoded input'"
+              spellcheck="false"
+              @blur="handleInputBlur"
+              @compositionstart="handleCompositionStart"
+              @compositionend="handleCompositionEnd"
+            />
+          </InputOutputPanel>
         </template>
-        <ToolOutputPanel
-          :value="output"
-          :stats="outputStats"
-          :aria-label="mode === 'encode' ? 'HTML-encoded output' : 'Decoded text output'"
-        />
-      </ToolSection>
+        <template #output>
+          <InputOutputPanel
+            title="Output"
+            :value="output ?? ''"
+            readonly
+            :placeholder="mode === 'encode' ? 'HTML-encoded output will appear here.' : 'Decoded text output will appear here.'"
+            :stats="output ? outputPanelStats : null"
+            :aria-label="mode === 'encode' ? 'HTML-encoded output' : 'Decoded text output'"
+          />
+        </template>
+      </ToolWorkspace>
+    </template>
 
-      <!-- Empty State -->
-      <ToolSection v-if="!output && !error && !input" title="">
-        <div class="empty-hint">
-          <p>HTML Encode / Decode</p>
-          <p class="hint-desc">
-            Enter HTML or text above and click <strong>{{ mode === 'encode' ? 'Run Encode' : 'Run Decode' }}</strong>
-            or press <kbd>⌘Enter</kbd>
-          </p>
-        </div>
-      </ToolSection>
-    </div>
-  </ToolPage>
+    <template #actions>
+      <ToolActionBar
+        :primary="primaryAction"
+        :secondary="secondaryActions"
+        @primary-pointer-down="handlePointerDown"
+        @primary-click="handleClick"
+        @action="handleSecondaryAction"
+      />
+    </template>
+
+    <template #status>
+      <ToolStatusBar
+        :phase="visibleStatusPhase"
+        :message="visibleStatusMessage"
+        :clearable="!!visibleStatusMessage"
+        @clear="clearStatus"
+      />
+    </template>
+  </ToolLayout>
 </template>
 
 <style scoped>
-.page-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.field {
+.tool-field {
   display: flex;
   flex-direction: column;
   gap: var(--space-compact);
 }
 
-.field-label {
+.tool-field-label {
   font-size: var(--text-label);
   font-weight: var(--weight-medium);
-  color: var(--color-neutral-80);
+  color: var(--text-color-label);
 }
 
-.char-count {
-  font-size: var(--text-caption);
-  color: var(--color-neutral-50);
-  margin-top: var(--space-1);
-  text-align: right;
-}
-
-.empty-hint {
-  text-align: center;
-  padding: var(--space-8) 0;
-}
-
-.empty-hint p {
-  font-size: var(--text-base);
-  color: var(--color-neutral-90);
-}
-
-.empty-hint .hint-desc {
-  font-size: var(--text-body);
-  color: var(--color-neutral-70);
-  margin-top: var(--space-1);
-}
-
-.empty-hint kbd {
-  font-size: var(--text-caption);
-  padding: 1px 5px;
-  background: var(--color-neutral-40);
-  border: var(--border-width-thin) solid var(--border-color-default);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+.tool-textarea {
+  flex: 1;
+  min-height: var(--tool-textarea-min-height);
 }
 </style>
