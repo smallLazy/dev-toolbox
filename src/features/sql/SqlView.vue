@@ -7,6 +7,7 @@ import ToolWorkspace from '@/templates/ToolWorkspace.vue'
 import InputOutputPanel from '@/templates/InputOutputPanel.vue'
 import ToolActionBar from '@/templates/ToolActionBar.vue'
 import ToolOptionsRow from '@/templates/ToolOptionsRow.vue'
+import ToolOptionGroup from '@/templates/ToolOptionGroup.vue'
 import ToolStatusBar from '@/templates/ToolStatusBar.vue'
 import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
 import type { SqlInValueType, SqlInLineMode } from './types'
@@ -111,22 +112,20 @@ onUnmounted(() => dispose())
   >
     <template #options>
       <ToolOptionsRow>
-        <div class="tool-field">
-          <label class="tool-field-label">Value Type</label>
+        <ToolOptionGroup label="Value Type">
           <ToolSegmentedControl
             :model-value="inConfig.valueType"
             :options="valueTypeOptions"
             @update:model-value="handleValueTypeChange"
           />
-        </div>
-        <div class="tool-field">
-          <label class="tool-field-label">Output Layout</label>
+        </ToolOptionGroup>
+        <ToolOptionGroup label="Output Layout">
           <ToolSegmentedControl
             :model-value="inConfig.lineMode"
             :options="outputLayoutOptions"
             @update:model-value="handleLineModeChange"
           />
-        </div>
+        </ToolOptionGroup>
         <div class="tool-field tool-checks-field">
           <span class="tool-field-label">Options</span>
           <div class="tool-check-options">
@@ -201,18 +200,6 @@ onUnmounted(() => dispose())
 </template>
 
 <style scoped>
-.tool-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-compact);
-}
-
-.tool-field-label {
-  font-size: var(--text-label);
-  font-weight: var(--weight-medium);
-  color: var(--text-color-label);
-}
-
 .tool-check-field {
   display: inline-flex;
   align-items: center;
@@ -237,10 +224,6 @@ onUnmounted(() => dispose())
   height: var(--icon-sm);
   accent-color: var(--color-accent-primary);
   flex-shrink: 0;
-}
-
-.tool-field :deep(.segmented-control button) {
-  white-space: nowrap;
 }
 
 .tool-textarea {

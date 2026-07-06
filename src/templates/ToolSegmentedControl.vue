@@ -65,12 +65,13 @@ function handleClick(value: string) {
 
 <style scoped>
 .segmented-control {
-  display: flex;
+  display: inline-flex;
   gap: 0;
 }
 
 .segmented-control button {
   flex: 1;
+  white-space: nowrap;
   padding: var(--space-1) var(--space-4);
   font-size: var(--text-body);
   font-weight: var(--weight-medium);

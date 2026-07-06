@@ -14,6 +14,7 @@ import ToolWorkspace from '@/templates/ToolWorkspace.vue'
 import InputOutputPanel from '@/templates/InputOutputPanel.vue'
 import ToolActionBar from '@/templates/ToolActionBar.vue'
 import ToolOptionsRow from '@/templates/ToolOptionsRow.vue'
+import ToolOptionGroup from '@/templates/ToolOptionGroup.vue'
 import ToolStatusBar from '@/templates/ToolStatusBar.vue'
 import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
 import type { ToolAction } from '@/templates/types'
@@ -124,14 +125,13 @@ onUnmounted(() => dispose())
   >
     <template #options>
       <ToolOptionsRow>
-        <div class="tool-field">
-          <label class="tool-field-label">Algorithm</label>
+        <ToolOptionGroup label="Algorithm">
           <ToolSegmentedControl
             :model-value="algorithm"
             :options="algorithmOptions"
             @update:model-value="(v: string) => handleAlgoClick(v as HashAlgorithm)"
           />
-        </div>
+        </ToolOptionGroup>
       </ToolOptionsRow>
     </template>
 
@@ -193,18 +193,6 @@ onUnmounted(() => dispose())
 </template>
 
 <style scoped>
-.tool-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-compact);
-}
-
-.tool-field-label {
-  font-size: var(--text-label);
-  font-weight: var(--weight-medium);
-  color: var(--text-color-label);
-}
-
 .tool-textarea {
   flex: 1;
   min-height: var(--tool-textarea-min-height);
