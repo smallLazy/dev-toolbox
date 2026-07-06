@@ -127,7 +127,7 @@ const cardDescription = computed(() => {
 .unavailable-desc {
   font-size: var(--text-body);
   color: var(--color-neutral-70);
-  max-width: 420px;
+  max-width: var(--tool-unavailable-max-width);
   margin: 0 auto var(--space-6);
   line-height: var(--leading-relaxed);
 }

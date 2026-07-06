@@ -77,8 +77,8 @@ const quickStartTools = computed(() =>
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 88px;
-  height: 88px;
+  width: var(--welcome-icon-size);
+  height: var(--welcome-icon-size);
   border-radius: var(--radius-2xl);
   background: var(--color-accent-dim);
   color: var(--color-accent-primary);
@@ -96,7 +96,7 @@ const quickStartTools = computed(() =>
 .welcome-desc {
   font-size: var(--text-base);
   color: var(--color-neutral-70);
-  max-width: 480px;
+  max-width: var(--welcome-content-max-width);
   margin: 0 auto;
   line-height: var(--leading-relaxed);
 }

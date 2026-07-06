@@ -75,7 +75,7 @@ function onInput(event: Event) {
 .io-panel {
   display: flex;
   flex-direction: column;
-  min-height: var(--tool-panel-min-height);
+  min-height: min(var(--tool-panel-min-height), 44vh);
   height: 100%;
   background: var(--color-surface-panel);
   border: var(--border-width-thin) solid var(--border-color-subtle);
@@ -119,7 +119,7 @@ function onInput(event: Event) {
 
 .io-panel-textarea {
   flex: 1;
-  min-height: var(--tool-textarea-min-height);
+  min-height: min(var(--tool-textarea-min-height), 32vh);
   resize: vertical;
 }
 

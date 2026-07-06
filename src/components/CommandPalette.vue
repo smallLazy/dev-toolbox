@@ -146,9 +146,9 @@ function onFocusOut(e: FocusEvent) {
 
 /* ── Panel ────────────────────────────────────────────────────────── */
 .palette-panel {
-  width: 560px;
+  width: var(--command-palette-width);
   max-width: calc(100vw - 40px);
-  max-height: 480px;
+  max-height: var(--command-palette-max-height);
   display: flex;
   flex-direction: column;
   background: var(--color-neutral-15);

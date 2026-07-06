@@ -23,6 +23,7 @@ import CommandPalette from "../components/CommandPalette.vue";
 
 .main-content {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   background: var(--color-neutral-30);
   padding: var(--content-padding-y) var(--content-padding-x);

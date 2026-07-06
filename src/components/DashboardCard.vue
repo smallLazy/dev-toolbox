@@ -111,8 +111,8 @@ function onCardKeydown(e: KeyboardEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: var(--card-icon-size-lg);
+  height: var(--card-icon-size-lg);
 }
 
 .card-header {
@@ -169,8 +169,8 @@ button.card-favorite {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--card-icon-size-sm);
+  height: var(--card-icon-size-sm);
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);

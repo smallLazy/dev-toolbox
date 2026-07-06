@@ -63,7 +63,7 @@ const iconComponent = computed<Component>(() => {
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  height: 40px;
+  height: var(--command-palette-item-height);
   padding: 0 var(--space-4);
   border: none;
   background: transparent;
@@ -123,7 +123,7 @@ const iconComponent = computed<Component>(() => {
 }
 
 .palette-badge {
-  font-size: 10px;
+  font-size: var(--text-micro);
   padding: 1px 5px;
   border-radius: var(--radius-full);
   font-weight: var(--weight-medium);
@@ -153,7 +153,7 @@ const iconComponent = computed<Component>(() => {
 }
 
 .palette-item-shortcut {
-  font-size: 10px;
+  font-size: var(--text-micro);
   padding: 1px 5px;
   background: var(--color-neutral-40);
   border: var(--border-width-thin) solid var(--sidebar-divider);

@@ -326,7 +326,7 @@ function isActive(path: string): boolean {
   font-size: var(--text-body);
   font-family: var(--font-sans);
   outline: none;
-  height: 30px;
+  height: var(--sidebar-search-height);
   transition: border-color var(--duration-fast), background var(--duration-fast), box-shadow var(--duration-fast);
 }
 .search-input:hover {
@@ -344,7 +344,7 @@ function isActive(path: string): boolean {
 .search-kbd {
   position: absolute;
   right: 8px;
-  font-size: 10px;
+  font-size: var(--text-micro);
   padding: 1px 5px;
   background: var(--color-neutral-40);
   border: var(--border-width-thin) solid var(--sidebar-divider);
@@ -359,7 +359,7 @@ function isActive(path: string): boolean {
   border: none;
   color: var(--sidebar-text-secondary);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--text-base);
   padding: 2px 4px;
 }
 
@@ -375,7 +375,7 @@ function isActive(path: string): boolean {
   align-items: center;
   gap: var(--space-control-x);
   width: 100%;
-  height: 34px;
+  height: var(--sidebar-item-height);
   padding: 0 var(--space-5);
   margin: 1px 0;
   border: none;
@@ -400,7 +400,7 @@ function isActive(path: string): boolean {
 
 .nav-item-sub {
   padding-left: 40px;
-  height: 30px;
+  height: var(--sidebar-search-height);
   font-size: var(--text-body);
 }
 
@@ -488,7 +488,7 @@ function isActive(path: string): boolean {
   text-align: left;
 }
 .category-count {
-  font-size: 10px;
+  font-size: var(--text-micro);
   color: var(--sidebar-badge-text);
   background: var(--sidebar-badge-bg);
   padding: 1px 5px;
