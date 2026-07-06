@@ -101,6 +101,19 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
+      - name: Rename macOS updater (include arch)
+        if: startsWith(matrix.target, 'macos-')
+        run: |
+          ARCH="${{ matrix.target == 'macos-arm64' && 'aarch64' || 'x64' }}"
+          BUNDLE="src-tauri/target/${{ matrix.rust-target }}/release/bundle/macos"
+          if [ -f "$BUNDLE/Dev Toolbox.app.tar.gz" ]; then
+            mv "$BUNDLE/Dev Toolbox.app.tar.gz" "$BUNDLE/Dev Toolbox_${ARCH}.app.tar.gz"
+          fi
+          if [ -f "$BUNDLE/Dev Toolbox.app.tar.gz.sig" ]; then
+            mv "$BUNDLE/Dev Toolbox.app.tar.gz.sig" "$BUNDLE/Dev Toolbox_${ARCH}.app.tar.gz.sig"
+          fi
+          echo "macOS updater artifacts renamed with arch: $ARCH"
+
       # ── Linux: use Tauri bundler to produce .deb / .AppImage ──────
       - name: Build Linux installer
         if: matrix.target == 'linux-x64'
@@ -123,12 +136,26 @@ jobs:
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/updater/*.zip
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/updater/*.sig
 
-      - name: Upload non-Windows artifacts
-        if: matrix.target != 'windows-x64'
+      - name: Upload macOS artifacts
+        if: startsWith(matrix.target, 'macos-')
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.target }}
-          path: src-tauri/target/${{ matrix.rust-target }}/release/bundle/
+          path: |
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/macos/*.app.tar.gz
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/macos/*.app.tar.gz.sig
+
+      - name: Upload Linux artifacts
+        if: matrix.target == 'linux-x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: |
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/deb/*.deb
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/appimage/*.AppImage
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/appimage/*.AppImage.tar.gz
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/appimage/*.AppImage.tar.gz.sig
 
   # ── Create GitHub Release ────────────────────────────────────────────
   release:
@@ -138,90 +165,108 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with: { path: artifacts, pattern: 'release-*', merge-multiple: true }
+      # ── Download artifacts (one dir per platform, no merge) ──────
+      - uses: actions/download-artifact@v4
+        with: { name: release-macos-arm64, path: artifacts/macos-arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: release-macos-x64, path: artifacts/macos-x64 }
+      - uses: actions/download-artifact@v4
+        with: { name: release-windows-x64, path: artifacts/windows-x64 }
+      - uses: actions/download-artifact@v4
+        with: { name: release-linux-x64, path: artifacts/linux-x64 }
 
-      - name: Display structure
-        run: find artifacts -type f | sort
-
-      # ── Generate latest.json for Tauri updater ──────────────────────
-      - name: Generate latest.json
-        id: manifest
+      # ── Stage release assets & generate latest.json ───────────────
+      - name: Stage assets & generate latest.json
         run: |
+          mkdir -p release-assets
           node -e '
           const fs = require("fs");
           const path = require("path");
+          const { execSync } = require("child_process");
 
           const VERSION = process.env.VERSION;
-          const NOW = new Date().toISOString();
           const BASE_URL = `https://github.com/smallLazy/dev-toolbox/releases/download/v${VERSION}`;
-
-          function findFile(patternDesc, namePattern, excludePattern) {
-            const { execSync } = require("child_process");
-            try {
-              const result = execSync(`find artifacts -name "${namePattern}" -not -name "${excludePattern || "*.sig"}" | head -1`, { encoding: "utf8" }).trim();
-              return result || null;
-            } catch { return null; }
-          }
-
-          function readSig(sigFile) {
-            if (!sigFile || !fs.existsSync(sigFile)) return "";
-            return fs.readFileSync(sigFile, "utf8").trim();
-          }
-
+          const ASSETS = "release-assets";
           const platforms = {};
 
-          // macOS aarch64
-          const macArmApp = findFile("macOS ARM", "*_aarch64.app.tar.gz");
-          if (macArmApp) {
-            platforms["darwin-aarch64"] = {
-              signature: readSig(macArmApp + ".sig"),
-              url: `${BASE_URL}/${path.basename(macArmApp)}`
-            };
+          function findOne(dir, namePattern) {
+            try {
+              const r = execSync(`find "${dir}" -name "${namePattern}" -type f 2>/dev/null | head -1`, { encoding: "utf8" }).trim();
+              return r || null;
+            } catch { return null; }
+          }
+          function findAll(dir, namePattern) {
+            try {
+              return execSync(`find "${dir}" -name "${namePattern}" -type f 2>/dev/null`, { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+            } catch { return []; }
+          }
+          function stage(filePath) {
+            if (!filePath || !fs.existsSync(filePath)) return null;
+            const name = path.basename(filePath);
+            fs.copyFileSync(filePath, path.join(ASSETS, name));
+            return name;
+          }
+          function readText(f) {
+            return (f && fs.existsSync(f)) ? fs.readFileSync(f, "utf8").trim() : "";
           }
 
-          // macOS x86_64
-          const macX64App = findFile("macOS x64", "*_x64.app.tar.gz");
-          if (macX64App) {
-            platforms["darwin-x86_64"] = {
-              signature: readSig(macX64App + ".sig"),
-              url: `${BASE_URL}/${path.basename(macX64App)}`
-            };
+          // ── macOS aarch64 ──────────────────────────────────────────
+          const macArm = "artifacts/macos-arm64";
+          const macArmUpdater = findOne(macArm, "*.app.tar.gz");
+          const macArmSig = findOne(macArm, "*.app.tar.gz.sig");
+          if (macArmUpdater) {
+            const n = stage(macArmUpdater); stage(macArmSig);
+            platforms["darwin-aarch64"] = { signature: readText(macArmSig), url: `${BASE_URL}/${encodeURIComponent(n)}` };
+          }
+          for (const f of findAll(macArm, "*.dmg")) stage(f);
+
+          // ── macOS x64 ──────────────────────────────────────────────
+          const macX64 = "artifacts/macos-x64";
+          const macX64Updater = findOne(macX64, "*.app.tar.gz");
+          const macX64Sig = findOne(macX64, "*.app.tar.gz.sig");
+          if (macX64Updater) {
+            const n = stage(macX64Updater); stage(macX64Sig);
+            platforms["darwin-x86_64"] = { signature: readText(macX64Sig), url: `${BASE_URL}/${encodeURIComponent(n)}` };
+          }
+          for (const f of findAll(macX64, "*.dmg")) stage(f);
+
+          // ── Windows ────────────────────────────────────────────────
+          const win = "artifacts/windows-x64";
+          const winUpdater = findOne(win, "*.msi.zip");
+          const winSig = findOne(win, "*.msi.zip.sig");
+          if (winUpdater) {
+            const n = stage(winUpdater); stage(winSig);
+            platforms["windows-x86_64"] = { signature: readText(winSig), url: `${BASE_URL}/${encodeURIComponent(n)}` };
+          }
+          for (const f of findAll(win, "*.msi")) stage(f);
+          for (const f of findAll(win, "*setup*.exe")) stage(f);
+
+          // ── Linux ──────────────────────────────────────────────────
+          const linux = "artifacts/linux-x64";
+          for (const f of findAll(linux, "*.deb")) stage(f);
+          for (const f of findAll(linux, "*.AppImage")) {
+            if (!f.endsWith(".tar.gz") && !f.endsWith(".sig")) stage(f);
+          }
+          const linuxUpdater = findOne(linux, "*.AppImage.tar.gz");
+          const linuxSig = findOne(linux, "*.AppImage.tar.gz.sig");
+          if (linuxUpdater) {
+            const n = stage(linuxUpdater); stage(linuxSig);
+            platforms["linux-x86_64"] = { signature: readText(linuxSig), url: `${BASE_URL}/${encodeURIComponent(n)}` };
           }
 
-          // Windows x86_64 (MSI updater)
-          const winMsi = findFile("Windows MSI", "*.msi.zip");
-          if (winMsi) {
-            platforms["windows-x86_64"] = {
-              signature: readSig(winMsi + ".sig"),
-              url: `${BASE_URL}/${path.basename(winMsi)}`
-            };
-          }
-
-          // Linux x86_64 (AppImage updater)
-          const linuxAppImage = findFile("Linux AppImage", "*.AppImage.tar.gz");
-          if (linuxAppImage) {
-            platforms["linux-x86_64"] = {
-              signature: readSig(linuxAppImage + ".sig"),
-              url: `${BASE_URL}/${path.basename(linuxAppImage)}`
-            };
-          }
-
-          const manifest = {
-            version: VERSION,
-            notes: `See https://github.com/smallLazy/dev-toolbox/releases/tag/v${VERSION}`,
-            pub_date: NOW,
-            platforms
-          };
-
-          fs.writeFileSync("latest.json", JSON.stringify(manifest, null, 2));
-          console.log("Generated latest.json:");
+          // ── latest.json ────────────────────────────────────────────
+          const manifest = { version: VERSION, notes: `See https://github.com/smallLazy/dev-toolbox/releases/tag/v${VERSION}`, pub_date: new Date().toISOString(), platforms };
+          const manifestPath = path.join(ASSETS, "latest.json");
+          fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
           console.log(JSON.stringify(manifest, null, 2));
+
+          console.log("\n=== Release assets ===");
+          for (const f of fs.readdirSync(ASSETS).sort()) console.log("  " + f);
           '
         env:
           VERSION: ${{ needs.version.outputs.version }}
 
+      # ── GitHub Release ────────────────────────────────────────────
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -234,7 +279,5 @@ jobs:
             ${{ needs.version.outputs.changelog }}
 
             🤖 Generated with [Claude Code](https://claude.com/claude-code)
-          files: |
-            artifacts/**/*
-            latest.json
+          files: release-assets/*
           generate_release_notes: true
