@@ -61,7 +61,7 @@ const statusMessage = ref<string | null>(null)
 
 const primaryAction = computed<ToolAction>(() => ({
   id: 'run',
-  label: mode.value === 'encode' ? 'Run Encode' : 'Run Decode',
+  label: mode.value === 'encode' ? 'Encode' : 'Decode',
   busy: loading.value,
   disabled: loading.value,
   shortcut: 'Cmd Enter',
@@ -72,8 +72,8 @@ const primaryAction = computed<ToolAction>(() => ({
 
 const secondaryActions = computed<ToolAction[]>(() => [
   { id: 'copy', label: 'Copy Output', disabled: !output.value || loading.value },
-  { id: 'clear', label: 'Clear', disabled: loading.value },
   { id: 'swap', label: 'Swap I/O', disabled: !output.value || loading.value },
+  { id: 'clear', label: 'Clear', disabled: loading.value },
 ])
 
 const outputPanelStats = computed(() => {

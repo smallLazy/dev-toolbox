@@ -43,7 +43,8 @@ const primaryAction = computed<ToolAction>(() => ({
 }))
 
 const secondaryActions = computed<ToolAction[]>(() => [
-  { id: 'copy', label: 'Copy Result', disabled: !output.value || loading.value },
+  { id: 'copy', label: 'Copy Output', disabled: !output.value || loading.value },
+  { id: 'swap', label: 'Swap I/O', disabled: !output.value || loading.value },
   { id: 'clear', label: 'Clear', disabled: loading.value },
 ])
 
@@ -78,6 +79,11 @@ async function handleSecondaryAction(id: string) {
     await toolbar.execute('clear')
     statusPhase.value = 'idle'
     statusMessage.value = null
+    return
+  }
+
+  if (id === 'swap') {
+    await toolbar.execute('swap')
   }
 }
 
