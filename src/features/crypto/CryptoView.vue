@@ -10,6 +10,8 @@ import { onMounted } from 'vue'
 import { useCrypto } from './composables'
 import { useTextActionTrigger } from '@/composables/useTextActionTrigger'
 import { usePointerSafeAction } from '@/composables/usePointerSafeAction'
+import ToolSegmentedControl from '@/templates/ToolSegmentedControl.vue'
+import ToolOptionGroup from '@/templates/ToolOptionGroup.vue'
 
 const {
   input, key, iv, output, error, loading,
@@ -52,36 +54,23 @@ onMounted(() => init())
         <div class="card-body">
           <div class="form-grid">
             <!-- Operation -->
-            <div class="field">
-              <label class="field-label">Operation</label>
-              <div class="segmented-control">
-                <button
-                  type="button"
-                  :class="{ active: mode === 'encrypt' }"
-                  :aria-pressed="mode === 'encrypt'"
-                  @click="mode = 'encrypt'"
-                >Encrypt</button>
-                <button
-                  type="button"
-                  :class="{ active: mode === 'decrypt' }"
-                  :aria-pressed="mode === 'decrypt'"
-                  @click="mode = 'decrypt'"
-                >Decrypt</button>
-              </div>
-            </div>
+            <ToolOptionGroup label="Operation">
+              <ToolSegmentedControl
+                :model-value="mode"
+                :options="[{ label: 'Encrypt', value: 'encrypt' }, { label: 'Decrypt', value: 'decrypt' }]"
+                @update:model-value="(v: string) => mode = v as 'encrypt' | 'decrypt'"
+              />
+            </ToolOptionGroup>
 
-            <!-- Algorithm -->
-            <div class="field">
-              <label class="field-label">Algorithm</label>
+            <ToolOptionGroup label="Algorithm">
               <select v-model="inConfig.algorithm" class="dt-select">
                 <option value="aes-256-cbc">AES-256-CBC</option>
                 <option value="aes-256-ecb">AES-256-ECB</option>
               </select>
-            </div>
+            </ToolOptionGroup>
 
             <!-- Key -->
-            <div class="field">
-              <label class="field-label">Key</label>
+            <ToolOptionGroup label="Key">
               <input
                 v-model="key"
                 type="text"
@@ -89,11 +78,10 @@ onMounted(() => init())
                 placeholder="32-byte key"
                 spellcheck="false"
               />
-            </div>
+            </ToolOptionGroup>
 
             <!-- IV (CBC only) -->
-            <div v-if="inConfig.algorithm === 'aes-256-cbc'" class="field">
-              <label class="field-label">IV</label>
+            <ToolOptionGroup v-if="inConfig.algorithm === 'aes-256-cbc'" label="IV">
               <input
                 v-model="iv"
                 type="text"
@@ -101,46 +89,42 @@ onMounted(() => init())
                 placeholder="16-byte IV for CBC"
                 spellcheck="false"
               />
-            </div>
+            </ToolOptionGroup>
 
             <!-- Key Encoding -->
-            <div class="field">
-              <label class="field-label">Key Encoding</label>
+            <ToolOptionGroup label="Key Encoding">
               <select v-model="inConfig.keyEncoding" class="dt-select">
                 <option value="utf8">UTF-8</option>
                 <option value="hex">Hex</option>
                 <option value="base64">Base64</option>
               </select>
-            </div>
+            </ToolOptionGroup>
 
             <!-- IV Encoding (CBC only) -->
-            <div v-if="inConfig.algorithm === 'aes-256-cbc'" class="field">
-              <label class="field-label">IV Encoding</label>
+            <ToolOptionGroup v-if="inConfig.algorithm === 'aes-256-cbc'" label="IV Encoding">
               <select v-model="inConfig.ivEncoding" class="dt-select">
                 <option value="utf8">UTF-8</option>
                 <option value="hex">Hex</option>
                 <option value="base64">Base64</option>
               </select>
-            </div>
+            </ToolOptionGroup>
 
             <!-- Input Encoding -->
-            <div class="field">
-              <label class="field-label">Input Encoding</label>
+            <ToolOptionGroup label="Input Encoding">
               <select v-model="inConfig.inputEncoding" class="dt-select">
                 <option value="utf8">UTF-8</option>
                 <option value="hex">Hex</option>
                 <option value="base64">Base64</option>
               </select>
-            </div>
+            </ToolOptionGroup>
 
             <!-- Output Encoding -->
-            <div class="field">
-              <label class="field-label">Output Encoding</label>
+            <ToolOptionGroup label="Output Encoding">
               <select v-model="inConfig.outputEncoding" class="dt-select">
                 <option value="hex">Hex</option>
                 <option value="base64">Base64</option>
               </select>
-            </div>
+            </ToolOptionGroup>
           </div>
         </div>
       </div>
@@ -246,14 +230,6 @@ onMounted(() => init())
 .card-output .card-body { background: var(--color-neutral-15); }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
-.field { display: flex; flex-direction: column; gap: var(--space-compact); }
-.field-label { font-size: var(--text-label); font-weight: var(--weight-medium); color: var(--color-neutral-80); }
-
-.segmented-control { display: flex; gap: 0; }
-.segmented-control button { flex: 1; padding: var(--space-1) var(--space-4); font-size: var(--text-body); font-weight: var(--weight-medium); background: var(--color-neutral-25); color: var(--color-neutral-70); border: var(--border-width-thin) solid var(--border-color-default); cursor: pointer; transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard); }
-.segmented-control button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
-.segmented-control button:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
-.segmented-control button.active { background: var(--color-accent-primary); color: var(--color-neutral-120); border-color: var(--color-accent-primary); }
 
 .action-bar { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 

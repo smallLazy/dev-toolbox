@@ -44,10 +44,8 @@ const LEGACY_FEATURE_LAYOUT_ALLOWLIST = new Set([
   'src/features/http-client/HttpClientView.vue',
   'src/features/jira/JiraView.vue',
   'src/features/jwt/JwtView.vue',
-  'src/features/markdown/MarkdownView.vue',
   'src/features/prompt/PromptView.vue',
   'src/features/qrcode/QrcodeView.vue',
-  'src/features/regex/RegexView.vue',
   'src/features/request-decoder/RequestDecoderView.vue',
   'src/features/review/ReviewView.vue',
   'src/features/rsa/RsaView.vue',
@@ -56,11 +54,8 @@ const LEGACY_FEATURE_LAYOUT_ALLOWLIST = new Set([
   'src/features/sm3/Sm3View.vue',
   'src/features/sm4/Sm4View.vue',
   'src/features/translate/TranslateView.vue',
-  'src/features/uuid/UuidView.vue',
   'src/features/websocket/WebsocketView.vue',
   'src/features/wecom/WecomView.vue',
-  'src/features/xml/XmlView.vue',
-  'src/features/yaml/YamlView.vue',
   'src/features/zentao/ZentaoView.vue',
 ])
 
@@ -70,6 +65,12 @@ const VAR_RE = /var\(\s*(--[A-Za-z0-9_-]+)\s*(?:,[^)]+)?\)/g
 const EMOJI_RE = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/u
 const HARDCODED_VISUAL_RE = /\b(?:padding|margin|gap|font-size|border-radius|width|height|min-height|max-width):\s*-?\d+(?:\.\d+)?px\b/g
 const OLD_LAYOUT_RE = /(?:class=["'][^"']*\b(?:card|action-bar)\b|^\s*\.(?:card|action-bar)\b)/
+const FEATURE_TOOL_FIELD_RE = /\.tool-field\s*\{/
+const FEATURE_TOOL_FIELD_LABEL_RE = /\.tool-field-label\s*\{/
+const FEATURE_FIELD_CSS_RE = /\.field\s*\{/
+const FEATURE_FIELD_LABEL_CSS_RE = /\.field-label\s*\{/
+const FEATURE_SEGMENTED_CONTROL_CSS_RE = /\.segmented-control\s*\{/
+const SEGMENTED_CONTROL_PATH = 'src/templates/ToolSegmentedControl.vue'
 
 function normalizeRel(filePath: string): string {
   return filePath.split(path.sep).join('/')
@@ -126,6 +127,8 @@ function checkFile(filePath: string, relPath: string, tokens: Set<string>, findi
   const lines = content.split('\n')
   const themeFile = isThemeFile(relPath)
   const legacyFeatureLayout = LEGACY_FEATURE_LAYOUT_ALLOWLIST.has(relPath)
+  let hasFieldCss = false
+  let hasFieldLabelCss = false
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
@@ -171,6 +174,89 @@ function checkFile(filePath: string, relPath: string, tokens: Set<string>, findi
       if (themeFile || value.includes('1px') || value.includes('2px')) continue
       pushFinding(findings, relPath, lineNum, 'DESIGN-012', 'warning', `Hardcoded visual value: ${value}. Prefer design tokens.`)
     }
+
+    // DESIGN-013 — Feature pages must use ToolOptionGroup, not duplicate .tool-field/.tool-field-label
+    if (relPath.startsWith('src/features/') && relPath.endsWith('.vue')) {
+      if (FEATURE_TOOL_FIELD_RE.test(line) && !legacyFeatureLayout) {
+        pushFinding(findings, relPath, lineNum, 'DESIGN-013', 'error',
+          'Feature page defines .tool-field. Use ToolOptionGroup from @/templates/ToolOptionGroup.vue instead.')
+      }
+      if (FEATURE_TOOL_FIELD_LABEL_RE.test(line) && !legacyFeatureLayout) {
+        pushFinding(findings, relPath, lineNum, 'DESIGN-013', 'error',
+          'Feature page defines .tool-field-label. Use ToolOptionGroup from @/templates/ToolOptionGroup.vue instead.')
+      }
+
+      // DESIGN-016 — Feature pages must not define .segmented-control CSS (use ToolSegmentedControl)
+      if (FEATURE_SEGMENTED_CONTROL_CSS_RE.test(line) && !legacyFeatureLayout) {
+        pushFinding(findings, relPath, lineNum, 'DESIGN-016', 'error',
+          'Feature page defines .segmented-control CSS. Use ToolSegmentedControl from @/templates/ToolSegmentedControl.vue instead.')
+      }
+
+      // DESIGN-017 — Track .field / .field-label co-occurrence
+      if (FEATURE_FIELD_CSS_RE.test(line) && !legacyFeatureLayout) hasFieldCss = true
+      if (FEATURE_FIELD_LABEL_CSS_RE.test(line) && !legacyFeatureLayout) hasFieldLabelCss = true
+    }
+  }
+
+  // DESIGN-017 — Feature pages must not define both .field and .field-label (use ToolOptionGroup)
+  if (hasFieldCss && hasFieldLabelCss && !legacyFeatureLayout) {
+    pushFinding(findings, relPath, 1, 'DESIGN-017', 'error',
+      'Feature page defines .field + .field-label CSS combination. Use ToolOptionGroup from @/templates/ToolOptionGroup.vue instead.')
+  }
+
+  // DESIGN-014 / DESIGN-015 — ToolSegmentedControl must enforce nowrap and inline-flex
+  if (relPath === SEGMENTED_CONTROL_PATH) {
+    checkSegmentedControl(content, relPath, findings)
+  }
+}
+
+function checkSegmentedControl(content: string, relPath: string, findings: DesignFinding[]): void {
+  const lines = content.split('\n')
+  let inButtonBlock = false
+  let inControlBlock = false
+  let buttonHasNowrap = false
+  let controlDisplayIsInlineFlex = false
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const lineNum = i + 1
+    if (isComment(line)) continue
+
+    // Track which CSS block we're inside (very basic — just checks for selector lines)
+    if (/\.segmented-control\s*\{/.test(line)) {
+      inControlBlock = true
+      inButtonBlock = false
+    } else if (/\.segmented-control\s+button\s*[,{]/.test(line) || /\.segmented-control\s+button\s*\{/.test(line)) {
+      inButtonBlock = true
+      inControlBlock = false
+    } else if (line.trim() === '}') {
+      inControlBlock = false
+      inButtonBlock = false
+    }
+
+    // DESIGN-014: button block must include white-space: nowrap
+    if (inButtonBlock && /\bwhite-space\s*:\s*nowrap\b/.test(line)) {
+      buttonHasNowrap = true
+    }
+
+    // DESIGN-015: .segmented-control block must use display: inline-flex (not display: flex)
+    if (inControlBlock && /\bdisplay\s*:\s*inline-flex\b/.test(line)) {
+      controlDisplayIsInlineFlex = true
+    }
+    if (inControlBlock && /\bdisplay\s*:\s*flex\s*;/.test(line) && !/\binline-flex\b/.test(line)) {
+      pushFinding(findings, relPath, lineNum, 'DESIGN-015', 'error',
+        'ToolSegmentedControl .segmented-control must use display: inline-flex, not display: flex (block). Block-level flex stretches the control to fill its parent, causing layout instability.')
+    }
+  }
+
+  if (!buttonHasNowrap) {
+    pushFinding(findings, relPath, 1, 'DESIGN-014', 'error',
+      'ToolSegmentedControl .segmented-control button must include white-space: nowrap to prevent text wrapping (e.g. "Code Point" wrapping to two lines).')
+  }
+
+  if (!controlDisplayIsInlineFlex) {
+    pushFinding(findings, relPath, 1, 'DESIGN-015', 'error',
+      'ToolSegmentedControl .segmented-control must use display: inline-flex so it sizes to content rather than stretching to fill the parent.')
   }
 }
 
