@@ -33,7 +33,6 @@ export interface DesignValidationResult {
 const LEGACY_FEATURE_LAYOUT_ALLOWLIST = new Set([
   'src/features/agent/AgentView.vue',
   'src/features/color/ColorView.vue',
-  'src/features/crypto/CryptoView.vue',
   'src/features/curl/CurlView.vue',
   'src/features/diff/DiffView.vue',
   'src/features/explain/ExplainView.vue',
