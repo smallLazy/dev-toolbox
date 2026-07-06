@@ -91,6 +91,15 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
+      - name: Diagnose Windows build outputs
+        if: matrix.target == 'windows-x64'
+        run: |
+          echo "=== Windows build diagnostics ==="
+          echo "--- bundle tree ---"
+          find src-tauri/target -type f \( -name '*.msi' -o -name '*.exe' -o -name '*.zip' -o -name '*.sig' \) 2>/dev/null | sort || echo "(no matches)"
+          echo "--- full bundle dir listing ---"
+          ls -R src-tauri/target/${{ matrix.rust-target }}/release/bundle/ 2>/dev/null || echo "(bundle dir not found)"
+
       # ── macOS: use Tauri bundler to produce .dmg / .app ───────────
       - name: Build macOS installer
         if: startsWith(matrix.target, 'macos-')
@@ -123,6 +132,15 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+      - name: Diagnose Linux build outputs
+        if: matrix.target == 'linux-x64'
+        run: |
+          echo "=== Linux build diagnostics ==="
+          echo "--- bundle tree ---"
+          find src-tauri/target -type f \( -name '*.deb' -o -name '*.AppImage' -o -name '*.tar.gz' -o -name '*.sig' \) 2>/dev/null | sort || echo "(no matches)"
+          echo "--- full bundle dir listing ---"
+          ls -R src-tauri/target/${{ matrix.rust-target }}/release/bundle/ 2>/dev/null || echo "(bundle dir not found)"
 
       # ── Upload artifacts ──────────────────────────────────────────
       - name: Upload Windows artifacts
