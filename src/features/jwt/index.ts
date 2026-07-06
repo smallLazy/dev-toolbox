@@ -4,6 +4,7 @@ export { default as JwtView } from './JwtView.vue'
 export { JwtFeature } from './JwtFeature'
 export { useJwt } from './composables'
 export {
+  EXAMPLE_JWT,
   splitJwt,
   base64UrlToBase64,
   base64UrlDecode,
@@ -11,6 +12,7 @@ export {
   parseNumericDate,
   extractPayloadInfo,
   decodeJwt,
+  formatJwtOutput,
   validateJwtInput,
   getStats,
 } from './logic'

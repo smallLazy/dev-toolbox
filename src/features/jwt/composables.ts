@@ -7,7 +7,7 @@ import { createFeatureContext } from '@/sdk/feature'
 import { copyText } from '@/shared/clipboard'
 import { JwtFeature } from './JwtFeature'
 import { createToolbar } from './toolbar'
-import { defaults } from './settings'
+import { EXAMPLE_JWT } from './logic'
 import type { JwtConfig, JwtResult } from './types'
 
 export function useJwt() {
@@ -27,7 +27,12 @@ export function useJwt() {
   const error = ref<string | null>(null)
   const loading = ref(false)
 
+  const statusPhase = ref<'idle' | 'loading' | 'success' | 'error' | 'copied'>('idle')
+  const statusMessage = ref<string | null>('Ready')
+
   const stats = computed(() => feature.toolState)
+
+  // ── Toolbar ─────────────────────────────────────────────────────────
 
   const toolbar = createToolbar({
     async onCopy() {
@@ -38,6 +43,8 @@ export function useJwt() {
       }
       try {
         await copyText(output.value)
+        statusPhase.value = 'copied'
+        statusMessage.value = 'Copied to clipboard'
       } catch (e) {
         error.value = e instanceof Error ? e.message : 'Failed to copy output'
       }
@@ -47,10 +54,13 @@ export function useJwt() {
       result.value = null
       output.value = null
       error.value = null
+      statusPhase.value = 'idle'
+      statusMessage.value = 'Ready'
     },
   })
 
-  // Per-part copy helpers
+  // ── Per-part copy helpers ──────────────────────────────────────────
+
   async function copyHeader() {
     error.value = null
     if (!result.value) { error.value = 'No header to copy'; return }
@@ -69,6 +79,8 @@ export function useJwt() {
     try { await copyText(result.value.signature) } catch (e) { error.value = (e as Error).message }
   }
 
+  // ── Execute ─────────────────────────────────────────────────────────
+
   async function execute() {
     error.value = null
     result.value = null
@@ -86,6 +98,8 @@ export function useJwt() {
       const res = await feature.run(input.value, config)
       result.value = res
       output.value = res.output
+      statusPhase.value = 'success'
+      statusMessage.value = 'JWT decoded successfully'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(feature as any).recordHistory?.()
     } catch (e) {
@@ -94,6 +108,20 @@ export function useJwt() {
       loading.value = false
     }
   }
+
+  // ── Example ─────────────────────────────────────────────────────────
+
+  /** Fill input with the example JWT and auto-decode. */
+  async function loadExample() {
+    input.value = EXAMPLE_JWT
+    result.value = null
+    output.value = null
+    error.value = null
+    // Auto-decode — execute sets the final status message
+    await execute()
+  }
+
+  // ── Lifecycle ───────────────────────────────────────────────────────
 
   async function init() {
     await feature.initialize()
@@ -105,7 +133,7 @@ export function useJwt() {
   }
 
   return {
-    input, result, output, error, loading, stats, toolbar,
-    execute, copyHeader, copyPayload, copySignature, init, dispose,
+    input, result, output, error, loading, statusPhase, statusMessage, stats, toolbar,
+    execute, copyHeader, copyPayload, copySignature, loadExample, init, dispose,
   }
 }
