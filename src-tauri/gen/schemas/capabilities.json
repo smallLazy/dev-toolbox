@@ -1,1 +1,1 @@
-{"default":{"identifier":"default","description":"Capability for the main window","local":true,"windows":["main"],"permissions":["core:default","store:allow-get","store:allow-set","store:allow-save","store:allow-load"]}}
+{"default":{"identifier":"default","description":"Capability for the main window","local":true,"windows":["main"],"permissions":["core:default","store:allow-get","store:allow-set","store:allow-save","store:allow-load","updater:default","updater:allow-check","updater:allow-download","updater:allow-install","process:allow-restart"]}}

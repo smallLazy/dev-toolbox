@@ -1,7 +1,7 @@
 {
   "name": "dev-toolbox",
   "private": true,
-  "version": "0.1.0-beta.2",
+  "version": "0.1.2",
   "description": "A desktop developer toolkit — crypto, encoding, formatting, conversion, and inspection tools built on Tauri v2 + Vue 3 + Rust",
   "author": "smallLazy",
   "license": "MIT",
@@ -24,9 +24,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "build:mac": "npx tauri build --bundles dmg",
-    "build:linux": "npx tauri build --bundles deb",
-    "build:win": "npx tauri build --bundles msi,nsis",
+    "build:mac": "npx tauri build --bundles dmg --config src-tauri/tauri.ci.conf.json",
+    "build:linux": "npx tauri build --bundles deb --config src-tauri/tauri.ci.conf.json",
+    "build:win": "npx tauri build --bundles msi,nsis --config src-tauri/tauri.ci.conf.json",
     "build:release": "npm run validate && npx tauri build",
     "preview": "vite preview",
     "tauri": "tauri",
@@ -46,7 +46,9 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.2.0",
+    "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-store": "^2.2.0",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "pinia": "^2.3.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"

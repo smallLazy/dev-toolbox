@@ -1,6 +1,6 @@
 [package]
 name = "dev-toolbox"
-version = "0.1.0"
+version = "0.1.2"
 description = "A desktop developer toolkit — crypto, encoding, formatting, conversion, and inspection tools"
 authors = ["smallLazy"]
 edition = "2021"
@@ -25,3 +25,5 @@ cbc = "0.1"
 block-padding = "0.3"
 hex = "0.4"
 base64 = "0.22"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"

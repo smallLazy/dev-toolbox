@@ -85,24 +85,30 @@ jobs:
         if: matrix.target == 'windows-x64'
         run: npx tauri build --bundles msi,nsis --target ${{ matrix.rust-target }}
         env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       # ── macOS: use Tauri bundler to produce .dmg / .app ───────────
       - name: Build macOS installer
         if: startsWith(matrix.target, 'macos-')
         run: npx tauri build --bundles dmg,app --target ${{ matrix.rust-target }}
         env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       # ── Linux: use Tauri bundler to produce .deb / .AppImage ──────
       - name: Build Linux installer
         if: matrix.target == 'linux-x64'
         run: npx tauri build --bundles deb,appimage --target ${{ matrix.rust-target }}
         env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
       # ── Upload artifacts ──────────────────────────────────────────
       - name: Upload Windows artifacts
@@ -113,6 +119,8 @@ jobs:
           path: |
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/msi/*.msi
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/nsis/*.exe
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/updater/*.zip
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/updater/*.sig
 
       - name: Upload non-Windows artifacts
         if: matrix.target != 'windows-x64'
@@ -136,6 +144,83 @@ jobs:
       - name: Display structure
         run: find artifacts -type f | sort
 
+      # ── Generate latest.json for Tauri updater ──────────────────────
+      - name: Generate latest.json
+        id: manifest
+        run: |
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
+
+          const VERSION = process.env.VERSION;
+          const NOW = new Date().toISOString();
+          const BASE_URL = `https://github.com/smallLazy/dev-toolbox/releases/download/v${VERSION}`;
+
+          function findFile(patternDesc, namePattern, excludePattern) {
+            const { execSync } = require("child_process");
+            try {
+              const result = execSync(`find artifacts -name "${namePattern}" -not -name "${excludePattern || "*.sig"}" | head -1`, { encoding: "utf8" }).trim();
+              return result || null;
+            } catch { return null; }
+          }
+
+          function readSig(sigFile) {
+            if (!sigFile || !fs.existsSync(sigFile)) return "";
+            return fs.readFileSync(sigFile, "utf8").trim();
+          }
+
+          const platforms = {};
+
+          // macOS aarch64
+          const macArmApp = findFile("macOS ARM", "*_aarch64.app.tar.gz");
+          if (macArmApp) {
+            platforms["darwin-aarch64"] = {
+              signature: readSig(macArmApp + ".sig"),
+              url: `${BASE_URL}/${path.basename(macArmApp)}`
+            };
+          }
+
+          // macOS x86_64
+          const macX64App = findFile("macOS x64", "*_x64.app.tar.gz");
+          if (macX64App) {
+            platforms["darwin-x86_64"] = {
+              signature: readSig(macX64App + ".sig"),
+              url: `${BASE_URL}/${path.basename(macX64App)}`
+            };
+          }
+
+          // Windows x86_64 (MSI updater)
+          const winMsi = findFile("Windows MSI", "*.msi.zip");
+          if (winMsi) {
+            platforms["windows-x86_64"] = {
+              signature: readSig(winMsi + ".sig"),
+              url: `${BASE_URL}/${path.basename(winMsi)}`
+            };
+          }
+
+          // Linux x86_64 (AppImage updater)
+          const linuxAppImage = findFile("Linux AppImage", "*.AppImage.tar.gz");
+          if (linuxAppImage) {
+            platforms["linux-x86_64"] = {
+              signature: readSig(linuxAppImage + ".sig"),
+              url: `${BASE_URL}/${path.basename(linuxAppImage)}`
+            };
+          }
+
+          const manifest = {
+            version: VERSION,
+            notes: `See https://github.com/smallLazy/dev-toolbox/releases/tag/v${VERSION}`,
+            pub_date: NOW,
+            platforms
+          };
+
+          fs.writeFileSync("latest.json", JSON.stringify(manifest, null, 2));
+          console.log("Generated latest.json:");
+          console.log(JSON.stringify(manifest, null, 2));
+          '
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -148,5 +233,7 @@ jobs:
             ${{ needs.version.outputs.changelog }}
 
             🤖 Generated with [Claude Code](https://claude.com/claude-code)
-          files: artifacts/**/*
+          files: |
+            artifacts/**/*
+            latest.json
           generate_release_notes: true

@@ -3,8 +3,12 @@ import { computed, ref } from 'vue'
 import { APP_ICONS, Icons } from '@/design/icons'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { copyText } from '@/shared/clipboard'
+import { useUpdater } from '@/modules/updater/useUpdater'
+import { statusMessage } from '@/modules/updater/logic'
+import UpdateDialog from '@/modules/updater/UpdateDialog.vue'
 
 const store = useWorkspaceStore()
+const updater = useUpdater()
 
 // Build-time globals injected by Vite define
 const appVersion: string = __APP_VERSION__
@@ -82,6 +86,24 @@ async function copyVersion() {
     copyLabel.value = 'Failed'
     setTimeout(() => { copyLabel.value = 'Copy Version' }, 2000)
   }
+}
+
+// ── Updater ────────────────────────────────────────────────────────────
+
+const isChecking = computed(() => updater.state.value.status === 'checking')
+const updateStatusText = computed(() => statusMessage(updater.state.value.status))
+const showUpdateStatus = computed(() =>
+  updater.state.value.status !== 'idle' && updater.state.value.status !== 'error'
+)
+const showUpdateDialog = computed(() =>
+  updater.state.value.status === 'update-available' ||
+  updater.state.value.status === 'downloading' ||
+  updater.state.value.status === 'ready-to-install' ||
+  updater.state.value.status === 'error'
+)
+
+async function handleCheckForUpdates() {
+  await updater.checkForUpdates()
 }
 </script>
 
@@ -222,11 +244,27 @@ async function copyVersion() {
         <Icons.FileCode class="btn-icon" :size="14" />
         Open Documentation
       </button>
-      <button class="btn-secondary" disabled title="Coming in a future release">
-        <Icons.Refresh class="btn-icon" :size="14" />
-        Check for Updates
+      <button
+        class="btn-secondary"
+        :disabled="isChecking"
+        @click="handleCheckForUpdates"
+      >
+        <Icons.Refresh class="btn-icon" :class="{ 'spin': isChecking }" :size="14" />
+        {{ isChecking ? 'Checking...' : 'Check for Updates' }}
       </button>
+      <span v-if="showUpdateStatus" class="update-status">
+        {{ updateStatusText }}
+      </span>
     </div>
+
+    <!-- Update Dialog -->
+    <UpdateDialog
+      v-if="showUpdateDialog"
+      :state="updater.state.value"
+      @download="updater.downloadUpdate()"
+      @install="updater.installAndRestart()"
+      @dismiss="updater.dismissUpdate()"
+    />
   </div>
 </template>
 
@@ -408,5 +446,24 @@ async function copyVersion() {
 .btn-icon {
   flex-shrink: 0;
   color: var(--color-neutral-70);
+}
+
+/* ── Updater ─────────────────────────────────────────────────────────── */
+
+.update-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-body);
+  color: var(--color-accent-primary);
+  font-weight: var(--weight-medium);
+}
+
+.spin {
+  animation: spin-icon 1s linear infinite;
+}
+
+@keyframes spin-icon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>
