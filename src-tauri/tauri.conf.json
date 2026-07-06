@@ -71,7 +71,7 @@
       "endpoints": [
         "https://github.com/smallLazy/dev-toolbox/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM0MTBFRkZCQjdCNTU3Q0EKUldUS1Y3VzMrKzhReE0xUm1hNllIRy9LenJCOVc2cThVTDkycXhBQ1J2SXVZb2RXZFg3RllYTXgK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVGOTY2MzkwMDg3QTVBNkIKUldScldub0lrR09XWC9FOHh0SkJLS1FDT0FtclZkQSsyaUlEVlFaOVRUb2RuZldpL1pTNUN0U24K",
       "windows": {
         "installMode": "passive"
       }
