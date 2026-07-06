@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [master, main]
-    tags: ['v*']
 
 jobs:
   # ── macOS Apple Silicon ──────────────────────────────────────────────
