@@ -71,8 +71,8 @@ Tauri v2 static JSON manifest hosted at the GitHub Releases `latest` download UR
 **Platform artifacts:**
 - macOS ARM: `.app.tar.gz`
 - macOS x64: `.app.tar.gz`
-- Windows x64: `.msi.zip` (MSI updater bundle; NSIS remains as manual install only)
-- Linux x64: `.AppImage.tar.gz`
+- Windows x64: `.msi` (MSI installer as updater bundle; NSIS remains as manual install only)
+- Linux x64: `.AppImage`
 
 ### Signing
 
@@ -86,8 +86,8 @@ The release workflow passes **both** new and legacy env var names to Tauri bundl
 
 | New Name (Tauri v2 preferred) | Legacy Name (fallback) | GitHub Secret Source |
 |------------------------------|----------------------|---------------------|
-| `TAURI_SIGNING_PRIVATE_KEY` | `TAURI_PRIVATE_KEY` | `secrets.TAURI_SIGNING_PRIVATE_KEY` |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | `TAURI_KEY_PASSWORD` | `secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD` |
+| `TAURI_SIGNING_PRIVATE_KEY` | `TAURI_PRIVATE_KEY` | `secrets.TAURI_PRIVATE_KEY` |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | `TAURI_KEY_PASSWORD` | `secrets.TAURI_KEY_PASSWORD` |
 
 This ensures compatibility regardless of which env var name the Tauri CLI / bundler version reads.
 
@@ -138,8 +138,8 @@ git push origin v0.1.0
 
 # 6. Verify release assets
 open https://github.com/smallLazy/dev-toolbox/releases/tag/v0.1.0
-# Must include: latest.json, .app.tar.gz, .app.tar.gz.sig, .msi.zip, .msi.zip.sig,
-#               .AppImage.tar.gz, .AppImage.tar.gz.sig
+# Must include: latest.json, .app.tar.gz, .app.tar.gz.sig, .msi, .msi.sig,
+#               .AppImage, .AppImage.sig
 
 # 7. Verify latest.json is accessible
 curl -sL https://github.com/smallLazy/dev-toolbox/releases/latest/download/latest.json | jq .
@@ -220,7 +220,7 @@ Step 7: Verify upgrade
 | SMOKE-WIN-05 | Network error | 1. Disconnect 2. Click "Check for Updates" | Error message; app doesn't crash | — |
 | SMOKE-WIN-06 | Dialog dismiss | 1. UpdateDialog open 2. Click Cancel | Dialog closes; app continues normally | — |
 | SMOKE-WIN-07 | Visual — design tokens | 1. View UpdateDialog on Windows | Design tokens applied; consistent with macOS layout | — |
-| SMOKE-WIN-08 | MSI updater artifact | 1. Check release assets | `.msi.zip` + `.msi.zip.sig` present; NSIS `.exe` available as separate manual installer | — |
+| SMOKE-WIN-08 | MSI updater artifact | 1. Check release assets | `.msi` + `.msi.sig` present; NSIS `.exe` available as separate manual installer | — |
 
 ---
 

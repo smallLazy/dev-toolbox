@@ -1,7 +1,7 @@
 {
   "name": "dev-toolbox",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A desktop developer toolkit — crypto, encoding, formatting, conversion, and inspection tools built on Tauri v2 + Vue 3 + Rust",
   "author": "smallLazy",
   "license": "MIT",

@@ -91,15 +91,6 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
-      - name: Diagnose Windows build outputs
-        if: matrix.target == 'windows-x64'
-        run: |
-          echo "=== Windows build diagnostics ==="
-          echo "--- bundle tree ---"
-          find src-tauri/target -type f \( -name '*.msi' -o -name '*.exe' -o -name '*.zip' -o -name '*.sig' \) 2>/dev/null | sort || echo "(no matches)"
-          echo "--- full bundle dir listing ---"
-          ls -R src-tauri/target/${{ matrix.rust-target }}/release/bundle/ 2>/dev/null || echo "(bundle dir not found)"
-
       # ── macOS: use Tauri bundler to produce .dmg / .app ───────────
       - name: Build macOS installer
         if: startsWith(matrix.target, 'macos-')
@@ -133,15 +124,6 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
-      - name: Diagnose Linux build outputs
-        if: matrix.target == 'linux-x64'
-        run: |
-          echo "=== Linux build diagnostics ==="
-          echo "--- bundle tree ---"
-          find src-tauri/target -type f \( -name '*.deb' -o -name '*.AppImage' -o -name '*.tar.gz' -o -name '*.sig' \) 2>/dev/null | sort || echo "(no matches)"
-          echo "--- full bundle dir listing ---"
-          ls -R src-tauri/target/${{ matrix.rust-target }}/release/bundle/ 2>/dev/null || echo "(bundle dir not found)"
-
       # ── Upload artifacts ──────────────────────────────────────────
       - name: Upload Windows artifacts
         if: matrix.target == 'windows-x64'
@@ -150,11 +132,9 @@ jobs:
           name: release-${{ matrix.target }}
           path: |
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/msi/*.msi
-            src-tauri/target/${{ matrix.rust-target }}/release/bundle/msi/*.msi.zip
-            src-tauri/target/${{ matrix.rust-target }}/release/bundle/msi/*.msi.zip.sig
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/msi/*.msi.sig
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/nsis/*.exe
-            src-tauri/target/${{ matrix.rust-target }}/release/bundle/updater/*.zip
-            src-tauri/target/${{ matrix.rust-target }}/release/bundle/updater/*.sig
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/nsis/*.exe.sig
 
       - name: Upload macOS artifacts
         if: startsWith(matrix.target, 'macos-')
@@ -174,8 +154,7 @@ jobs:
           path: |
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/deb/*.deb
             src-tauri/target/${{ matrix.rust-target }}/release/bundle/appimage/*.AppImage
-            src-tauri/target/${{ matrix.rust-target }}/release/bundle/appimage/*.AppImage.tar.gz
-            src-tauri/target/${{ matrix.rust-target }}/release/bundle/appimage/*.AppImage.tar.gz.sig
+            src-tauri/target/${{ matrix.rust-target }}/release/bundle/appimage/*.AppImage.sig
 
   # ── Create GitHub Release ────────────────────────────────────────────
   release:
@@ -252,26 +231,37 @@ jobs:
 
           // ── Windows ────────────────────────────────────────────────
           const win = "artifacts/windows-x64";
-          const winUpdater = findOne(win, "*.msi.zip");
-          const winSig = findOne(win, "*.msi.zip.sig");
-          if (winUpdater) {
-            const n = stage(winUpdater); stage(winSig);
-            platforms["windows-x86_64"] = { signature: readText(winSig), url: `${BASE_URL}/${encodeURIComponent(n)}` };
-          }
           for (const f of findAll(win, "*.msi")) stage(f);
+          for (const f of findAll(win, "*.msi.sig")) stage(f);
           for (const f of findAll(win, "*setup*.exe")) stage(f);
+          for (const f of findAll(win, "*setup*.exe.sig")) stage(f);
+
+          const winMsi = findOne(win, "*_x64_en-US.msi") || findOne(win, "*.msi");
+          if (winMsi) {
+            const sigName = path.basename(winMsi) + ".sig";
+            const winSig = findOne(win, sigName);
+            platforms["windows-x86_64"] = {
+              signature: readText(winSig),
+              url: `${BASE_URL}/${encodeURIComponent(path.basename(winMsi))}`
+            };
+          }
 
           // ── Linux ──────────────────────────────────────────────────
           const linux = "artifacts/linux-x64";
           for (const f of findAll(linux, "*.deb")) stage(f);
           for (const f of findAll(linux, "*.AppImage")) {
-            if (!f.endsWith(".tar.gz") && !f.endsWith(".sig")) stage(f);
+            if (!f.endsWith(".sig")) stage(f);
           }
-          const linuxUpdater = findOne(linux, "*.AppImage.tar.gz");
-          const linuxSig = findOne(linux, "*.AppImage.tar.gz.sig");
-          if (linuxUpdater) {
-            const n = stage(linuxUpdater); stage(linuxSig);
-            platforms["linux-x86_64"] = { signature: readText(linuxSig), url: `${BASE_URL}/${encodeURIComponent(n)}` };
+          for (const f of findAll(linux, "*.AppImage.sig")) stage(f);
+
+          const linuxAppImage = findOne(linux, "*.AppImage");
+          if (linuxAppImage) {
+            const sigName = path.basename(linuxAppImage) + ".sig";
+            const linuxSig = findOne(linux, sigName);
+            platforms["linux-x86_64"] = {
+              signature: readText(linuxSig),
+              url: `${BASE_URL}/${encodeURIComponent(path.basename(linuxAppImage))}`
+            };
           }
 
           // ── latest.json ────────────────────────────────────────────
