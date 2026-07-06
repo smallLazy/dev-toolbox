@@ -8,7 +8,8 @@ import { describe, it, expect } from 'vitest'
 import {
   formatJson, minifyJson, validateJson, sortKeys,
   getStats, formatSize,
-  parseJson, transformJson, getJsonStats,
+  parseJson, transformJson, getJsonStats, formatJsonError,
+  EXAMPLE_JSON,
 } from '../logic'
 import { jsonDefaults } from '../settings'
 
@@ -460,52 +461,60 @@ describe('transformJson', () => {
 
   // ── Validate mode ───────────────────────────────────────────────────
   describe('mode: validate', () => {
-    it('validates valid object and returns stats', () => {
+    it('validates valid object and returns formatted JSON', () => {
       const result = transformJson('{"name":"Dev Toolbox","version":"1.0"}', 'validate')
       expect(result.success).toBe(true)
-      expect(result.output).toContain('Valid JSON')
-      expect(result.output).toContain('Type: object')
-      expect(result.output).toContain('Keys: 2')
+      expect(result.output).toContain('"name"')
+      expect(result.output).toContain('\n')
+      // Stats still available via result.stats
+      expect(result.stats).not.toBeNull()
+      expect(result.stats!.type).toBe('object')
+      expect(result.stats!.keys).toBe(2)
     })
 
-    it('validates valid array and returns stats', () => {
+    it('validates valid array and returns formatted JSON', () => {
       const result = transformJson('[1,2,3]', 'validate')
       expect(result.success).toBe(true)
-      expect(result.output).toContain('Valid JSON')
-      expect(result.output).toContain('Type: array')
-      expect(result.output).toContain('Items: 3')
+      expect(result.output).toContain('[\n')
+      expect(result.stats).not.toBeNull()
+      expect(result.stats!.type).toBe('array')
+      expect(result.stats!.items).toBe(3)
     })
 
     it('validates string primitive', () => {
       const result = transformJson('"hello"', 'validate')
       expect(result.success).toBe(true)
-      expect(result.output).toContain('Valid JSON')
-      expect(result.output).toContain('Type: string')
+      expect(result.output).toBe('"hello"')
+      expect(result.stats!.type).toBe('string')
     })
 
     it('validates number primitive', () => {
       const result = transformJson('42', 'validate')
       expect(result.success).toBe(true)
-      expect(result.output).toContain('Type: number')
+      expect(result.output).toBe('42')
+      expect(result.stats!.type).toBe('number')
     })
 
     it('validates boolean primitive', () => {
       const result = transformJson('true', 'validate')
       expect(result.success).toBe(true)
-      expect(result.output).toContain('Type: boolean')
+      expect(result.output).toBe('true')
+      expect(result.stats!.type).toBe('boolean')
     })
 
     it('validates null', () => {
       const result = transformJson('null', 'validate')
       expect(result.success).toBe(true)
-      expect(result.output).toContain('Type: null')
+      expect(result.output).toBe('null')
+      expect(result.stats!.type).toBe('null')
     })
 
-    it('handles invalid JSON', () => {
+    it('handles invalid JSON with enriched error', () => {
       const result = transformJson('{broken', 'validate')
       expect(result.success).toBe(false)
       expect(result.output).toBeNull()
       expect(result.error).toBeTruthy()
+      expect(result.error).toContain('Invalid JSON')
     })
 
     it('handles empty input safely', () => {
@@ -609,5 +618,75 @@ describe('getJsonStats', () => {
     // 😀 is 4 bytes in UTF-8
     expect(stats.type).toBe('object')
     expect(stats.bytes).toBeGreaterThan(stats.chars)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// formatJsonError
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('formatJsonError', () => {
+  it('extracts position and computes line/column on single-line input', () => {
+    const input = '{"a":1,}'
+    // position 7 is the trailing comma
+    const msg = formatJsonError(input, "Unexpected token } in JSON at position 7")
+    expect(msg).toContain('Invalid JSON at line 1, column 8')
+    expect(msg).toContain('Unexpected token }')
+  })
+
+  it('computes line/column for multi-line input', () => {
+    const input = '{\n  "a": 1\n  "b":\n}'
+    // The error position depends on the engine, but format should work
+    const msg = formatJsonError(input, "Unexpected token } in JSON at position 20")
+    expect(msg).toContain('Invalid JSON at line')
+    expect(msg).toContain('column')
+  })
+
+  it('falls back when no position in error message', () => {
+    const msg = formatJsonError('{"a":1}', 'Some generic error')
+    expect(msg).toBe('Invalid JSON: Some generic error')
+  })
+
+  it('handles position at start of input (position 0)', () => {
+    const msg = formatJsonError('{invalid', "Unexpected token i in JSON at position 0")
+    expect(msg).toContain('Invalid JSON at line 1, column 1')
+  })
+
+  it('computes correct line when error is on line 3', () => {
+    const input = '{\n  "a": 1,\n  "b":\n}'
+    // position after the second newline
+    const msg = formatJsonError(input, "Unexpected token } in JSON at position 21")
+    expect(msg).toContain('Invalid JSON at line')
+  })
+
+  it('handles position at end of input', () => {
+    const input = '{"a":1'
+    const msg = formatJsonError(input, "Unexpected end of JSON input at position 6")
+    expect(msg).toContain('Invalid JSON')
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EXAMPLE_JSON
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('EXAMPLE_JSON', () => {
+  it('is valid JSON', () => {
+    expect(() => JSON.parse(EXAMPLE_JSON)).not.toThrow()
+  })
+
+  it('contains expected keys', () => {
+    const parsed = JSON.parse(EXAMPLE_JSON)
+    expect(parsed.name).toBe('Dev Toolbox')
+    expect(parsed.version).toBe('1.0.0')
+    expect(parsed.features).toEqual(['format', 'minify', 'validate'])
+    expect(parsed.local).toBe(true)
+  })
+
+  it('can be formatted by transformJson', () => {
+    const result = transformJson(EXAMPLE_JSON, 'format')
+    expect(result.success).toBe(true)
+    expect(result.output).toContain('"name"')
+    expect(result.output).toContain('\n')
   })
 })

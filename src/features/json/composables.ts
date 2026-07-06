@@ -12,7 +12,7 @@ import { createFeatureContext } from '@/sdk/feature'
 import { copyText } from '@/shared/clipboard'
 import { JsonFeature } from './JsonFeature'
 import { createJsonToolbar } from './toolbar'
-import { transformJson, getJsonStats } from './logic'
+import { transformJson, getJsonStats, formatJsonError, EXAMPLE_JSON } from './logic'
 import type { JsonConfig, JsonMode, JsonStats } from './types'
 import { jsonDefaults } from './settings'
 
@@ -92,7 +92,11 @@ export function useJsonPlugin() {
       stats.value = result.stats
       feature.recordHistory(currentMode)
     } else if (result.error) {
-      error.value = result.error
+      error.value = formatJsonError(input.value, result.error)
+      // Validate mode: show error details in output panel too
+      if (currentMode === 'validate') {
+        output.value = error.value
+      }
     }
     // Empty input: output=null, error=null (result.error is null)
   }
@@ -108,6 +112,15 @@ export function useJsonPlugin() {
       error.value = null
       stats.value = null
     }
+  }
+
+  /** Fill input with example JSON and reset output/error. */
+  function loadExample() {
+    input.value = EXAMPLE_JSON
+    output.value = null
+    error.value = null
+    stats.value = null
+    mode.value = 'format'
   }
 
   // ── Lifecycle ───────────────────────────────────────────────────────
@@ -128,6 +141,6 @@ export function useJsonPlugin() {
     // Toolbar
     toolbar,
     // Actions
-    execute, selectMode, init, dispose,
+    execute, selectMode, loadExample, init, dispose,
   }
 }

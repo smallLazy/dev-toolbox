@@ -6,14 +6,13 @@ import ToolLayout from '@/templates/ToolLayout.vue'
 import ToolWorkspace from '@/templates/ToolWorkspace.vue'
 import InputOutputPanel from '@/templates/InputOutputPanel.vue'
 import ToolActionBar from '@/templates/ToolActionBar.vue'
-import ToolOptionsRow from '@/templates/ToolOptionsRow.vue'
 import ToolStatusBar from '@/templates/ToolStatusBar.vue'
 import type { ToolAction } from '@/templates/types'
 import type { JsonMode } from './types'
 
 const {
   input, output, error, loading, stats,
-  toolbar, execute, selectMode, init, dispose,
+  toolbar, execute, selectMode, loadExample, init, dispose,
 } = useJsonPlugin()
 
 const {
@@ -28,7 +27,7 @@ const {
 } = useTextActionTrigger({ model: input, loading, execute: runFormat })
 
 const statusPhase = ref<'idle' | 'loading' | 'success' | 'error' | 'copied'>('idle')
-const statusMessage = ref<string | null>(null)
+const statusMessage = ref<string | null>('Ready')
 
 const primaryAction = computed<ToolAction>(() => ({
   id: 'format',
@@ -44,6 +43,7 @@ const secondaryActions = computed<ToolAction[]>(() => [
   { id: 'validate', label: 'Validate', disabled: loading.value },
   { id: 'copy', label: 'Copy Result', disabled: !output.value || loading.value },
   { id: 'clear', label: 'Clear', disabled: loading.value },
+  { id: 'example', label: 'Example', disabled: loading.value },
 ])
 
 const outputPanelStats = computed(() => {
@@ -66,9 +66,15 @@ async function runMode(nextMode: JsonMode) {
   selectMode(nextMode)
   await nextTick()
   await execute()
-  if (!error.value && nextMode === 'validate') {
+  if (!error.value && output.value) {
     statusPhase.value = 'success'
-    statusMessage.value = 'JSON is valid.'
+    if (nextMode === 'format') {
+      statusMessage.value = 'Formatted successfully'
+    } else if (nextMode === 'minify') {
+      statusMessage.value = 'Minified successfully'
+    } else if (nextMode === 'validate') {
+      statusMessage.value = 'Valid JSON'
+    }
   }
 }
 
@@ -86,7 +92,7 @@ async function handleSecondaryAction(id: string) {
     await toolbar.execute('copy')
     if (!error.value) {
       statusPhase.value = 'copied'
-      statusMessage.value = 'Result copied to clipboard.'
+      statusMessage.value = 'Copied to clipboard'
     }
     return
   }
@@ -94,14 +100,21 @@ async function handleSecondaryAction(id: string) {
   if (id === 'clear') {
     await toolbar.execute('clear')
     statusPhase.value = 'idle'
-    statusMessage.value = null
+    statusMessage.value = 'Ready'
+    return
+  }
+
+  if (id === 'example') {
+    loadExample()
+    // Auto-format — runFormat sets the final status message
+    await runFormat()
   }
 }
 
 function clearStatus() {
   error.value = null
   statusPhase.value = 'idle'
-  statusMessage.value = null
+  statusMessage.value = 'Ready'
 }
 
 onMounted(() => init())
@@ -116,12 +129,6 @@ onUnmounted(() => dispose())
     layout="editor"
     @keydown="handleShortcut"
   >
-    <template #options>
-      <ToolOptionsRow>
-        <div class="tool-note">Format is the primary action. Minify and Validate are available as secondary actions.</div>
-      </ToolOptionsRow>
-    </template>
-
     <template #workspace>
       <ToolWorkspace layout="editor">
         <template #input>
@@ -136,7 +143,7 @@ onUnmounted(() => dispose())
               v-model="input"
               class="dt-textarea tool-textarea mono-editor"
               rows="14"
-              placeholder='Paste JSON text... e.g. {"name": "Dev Toolbox", "version": "1.0"}'
+              placeholder='Paste JSON text, for example {"name":"Dev Toolbox","version":"1.0.0"}'
               aria-label="JSON input"
               spellcheck="false"
               @blur="handleInputBlur"
@@ -150,7 +157,7 @@ onUnmounted(() => dispose())
             title="Output"
             :value="output ?? ''"
             readonly
-            placeholder="Formatted, minified, or validation output will appear here."
+            placeholder="Output will appear here."
             :stats="output ? outputPanelStats : null"
             aria-label="JSON output"
           />
@@ -180,11 +187,6 @@ onUnmounted(() => dispose())
 </template>
 
 <style scoped>
-.tool-note {
-  color: var(--text-color-description);
-  font-size: var(--text-body);
-}
-
 .tool-textarea {
   flex: 1;
   min-height: var(--tool-textarea-min-height);

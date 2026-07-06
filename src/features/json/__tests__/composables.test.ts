@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { transformJson, getJsonStats } from '../logic'
+import { transformJson, getJsonStats, formatJsonError, EXAMPLE_JSON } from '../logic'
 import { createJsonToolbar } from '../toolbar'
 import type { JsonMode } from '../types'
 
@@ -35,7 +35,11 @@ function simulateExecute(state: JsonState) {
   if (result.success) {
     state.output = result.output
   } else if (result.error) {
-    state.error = result.error
+    state.error = formatJsonError(state.input, result.error)
+    // Validate mode: show error details in output panel too
+    if (state.mode === 'validate') {
+      state.output = state.error
+    }
   }
   // empty input: output=null, error=null
 }
@@ -111,8 +115,8 @@ describe('JSON mode switch', () => {
 
     simulateSelectMode(state, 'validate')
     expect(state.mode).toBe('validate')
-    expect(state.output).toContain('Valid JSON')
-    expect(state.output).toContain('Type: object')
+    expect(state.output).toContain('"a"')
+    expect(state.output).toContain('\n')
     expect(state.error).toBeNull()
   })
 
@@ -159,35 +163,35 @@ describe('JSON execute', () => {
     expect(state.error).toBeNull()
   })
 
-  it('validate: produces validation result with stats', () => {
+  it('validate: produces formatted JSON output (not text stats)', () => {
     const state = createState()
     state.input = '{"a":1,"b":2}'
     state.mode = 'validate'
 
     simulateExecute(state)
-    expect(state.output).toContain('Valid JSON')
-    expect(state.output).toContain('Type: object')
-    expect(state.output).toContain('Keys: 2')
+    expect(state.output).toContain('"a"')
+    expect(state.output).toContain('\n')
     expect(state.error).toBeNull()
   })
 
-  it('validate array: shows Items count', () => {
+  it('validate array: returns formatted JSON', () => {
     const state = createState()
     state.input = '[1,2,3,4,5]'
     state.mode = 'validate'
 
     simulateExecute(state)
-    expect(state.output).toContain('Type: array')
-    expect(state.output).toContain('Items: 5')
+    expect(state.output).toContain('[\n')
+    expect(state.output).toContain('1')
+    expect(state.error).toBeNull()
   })
 
-  it('validate primitive string: shows type', () => {
+  it('validate primitive string: returns string as-is', () => {
     const state = createState()
     state.input = '"hello"'
     state.mode = 'validate'
 
     simulateExecute(state)
-    expect(state.output).toContain('Type: string')
+    expect(state.output).toBe('"hello"')
     // No "Keys:" or "Items:" for primitives
     expect(state.output).not.toContain('Keys:')
     expect(state.output).not.toContain('Items:')
@@ -504,6 +508,83 @@ describe('JSON toolbar wiring', () => {
       const action = toolbar.getAction(id)
       expect(action, `action "${id}" should not be registered`).toBeUndefined()
     }
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Example / loadExample
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('JSON loadExample', () => {
+  it('loadExample() sets input to EXAMPLE_JSON and clears output/error', () => {
+    const state = createState()
+    // Pre-populate with some data
+    state.input = 'old input'
+    state.output = 'old output'
+    state.error = 'old error'
+
+    // Simulate loadExample:
+    state.input = EXAMPLE_JSON
+    state.output = null
+    state.error = null
+
+    expect(state.input).toBe(EXAMPLE_JSON)
+    expect(state.output).toBeNull()
+    expect(state.error).toBeNull()
+  })
+
+  it('after loadExample, format produces valid output', () => {
+    const state = createState()
+    state.input = EXAMPLE_JSON
+    state.mode = 'format'
+
+    simulateExecute(state)
+    expect(state.output).toBeTruthy()
+    expect(state.output).toContain('"name"')
+    expect(state.output).toContain('\n')
+    expect(state.error).toBeNull()
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Error enrichment with line/column
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('JSON error enrichment', () => {
+  it('invalid JSON error includes line/column info', () => {
+    const state = createState()
+    state.input = '{"a":1,}'
+    state.mode = 'format'
+
+    simulateExecute(state)
+    expect(state.error).toBeTruthy()
+    expect(state.error).toContain('Invalid JSON')
+    expect(state.error).toContain('line')
+    expect(state.error).toContain('column')
+    expect(state.output).toBeNull()
+  })
+
+  it('invalid JSON in validate mode shows error in output too', () => {
+    const state = createState()
+    state.input = '{broken'
+    state.mode = 'validate'
+
+    simulateExecute(state)
+    expect(state.error).toBeTruthy()
+    expect(state.error).toContain('Invalid JSON')
+    // Validate mode: error details also shown in output
+    expect(state.output).toBeTruthy()
+    expect(state.output).toContain('Invalid JSON')
+  })
+
+  it('format mode error does NOT populate output', () => {
+    const state = createState()
+    state.input = '{broken'
+    state.mode = 'format'
+
+    simulateExecute(state)
+    expect(state.error).toBeTruthy()
+    expect(state.output).toBeNull()
   })
 })
 

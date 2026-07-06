@@ -6,7 +6,8 @@ export { useJsonPlugin } from './composables'
 export {
   formatJson, minifyJson, validateJson, sortKeys,
   getStats, formatSize,
-  parseJson, transformJson, getJsonStats,
+  parseJson, transformJson, getJsonStats, formatJsonError,
+  EXAMPLE_JSON,
 } from './logic'
 export { jsonSettingsSchema, jsonDefaults } from './settings'
 export type { JsonConfig, JsonState, JsonMode, JsonFormatResult, JsonValidateResult, JsonTransformResult, JsonStats } from './types'

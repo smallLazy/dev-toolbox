@@ -13,6 +13,11 @@
 
 import type { JsonConfig, JsonFormatResult, JsonValidateResult, JsonTransformResult, JsonStats, JsonMode } from './types'
 
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+/** Example JSON for the "Example" button. Compact so users can see Format in action. */
+export const EXAMPLE_JSON = '{"name":"Dev Toolbox","version":"1.0.0","features":["format","minify","validate"],"local":true}'
+
 // ═══════════════════════════════════════════════════════════════════════════
 // NEW — Safe, structured functions (v1 composable path)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -31,7 +36,7 @@ export function parseJson(input: string): { success: true; data: unknown } | { s
     return { success: true, data }
   } catch (e) {
     const msg = (e as SyntaxError).message || 'Unknown JSON parse error'
-    return { success: false, error: msg }
+    return { success: false, error: formatJsonError(trimmed, msg) }
   }
 }
 
@@ -88,6 +93,33 @@ export function getJsonStats(input: string): JsonStats {
   return stats
 }
 
+/**
+ * Format a JSON parse error message with line/column information.
+ *
+ * Extracts the character position from JSON.parse error messages
+ * (e.g. "Unexpected token } in JSON at position 128") and computes
+ * the corresponding line and column from the input string.
+ *
+ * Falls back to a plain "Invalid JSON: ..." message when position
+ * cannot be extracted.
+ */
+export function formatJsonError(input: string, errorMessage: string): string {
+  // Already enriched — don't double-wrap
+  if (errorMessage.startsWith('Invalid JSON')) {
+    return errorMessage
+  }
+  const posMatch = errorMessage.match(/position\s+(\d+)/i)
+  if (!posMatch) {
+    return `Invalid JSON: ${errorMessage}`
+  }
+  const position = parseInt(posMatch[1], 10)
+  const before = input.slice(0, position)
+  const line = (before.match(/\n/g) || []).length + 1
+  const lastNewline = before.lastIndexOf('\n')
+  const column = lastNewline === -1 ? position + 1 : position - lastNewline
+  return `Invalid JSON at line ${line}, column ${column}: ${errorMessage}`
+}
+
 // ── Internal safe implementations ──────────────────────────────────────────
 
 function formatJsonSafe(input: string, config?: JsonConfig): JsonTransformResult {
@@ -125,18 +157,15 @@ function validateJsonSafe(input: string): JsonTransformResult {
   if (!parsed.success) {
     return { success: false, output: null, error: parsed.error, stats: null }
   }
-  const stats = getJsonStats(input)
-  const lines: string[] = ['Valid JSON']
-  if (stats.type) {
-    lines.push(`Type: ${stats.type}`)
+  // On success: return pretty-printed JSON so the user can review the structure.
+  // Stats (type, keys, items) are still available via result.stats.
+  try {
+    const formatted = JSON.stringify(parsed.data, null, 2)
+    const stats = getJsonStats(formatted)
+    return { success: true, output: formatted, error: null, stats }
+  } catch (e) {
+    return { success: false, output: null, error: (e as Error).message || 'Validate failed', stats: null }
   }
-  if (stats.keys !== undefined) {
-    lines.push(`Keys: ${stats.keys}`)
-  }
-  if (stats.items !== undefined) {
-    lines.push(`Items: ${stats.items}`)
-  }
-  return { success: true, output: lines.join('\n'), error: null, stats }
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
