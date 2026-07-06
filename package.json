@@ -38,7 +38,11 @@
     "validate:arch": "npx tsx scripts/ci/validate-architecture.ts",
     "validate:design": "npx tsx scripts/ci/validate-design.ts",
     "validate:plugins": "npx tsx scripts/ci/validate-plugins.ts",
-    "validate:ai": "npx tsx scripts/ci/validate-ai.ts"
+    "validate:ai": "npx tsx scripts/ci/validate-ai.ts",
+    "check:quick": "npm run validate:design && npm run validate:arch",
+    "check:push": "npm run build && npm run validate:plugins",
+    "check:full": "npm run validate && npx vite build",
+    "prepare": "husky"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.2.0",
@@ -50,6 +54,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2.2.0",
     "@vitejs/plugin-vue": "^5.2.0",
+    "husky": "^9.1.7",
     "typescript": "~5.7.0",
     "vite": "^6.0.0",
     "vitest": "^4.1.9",

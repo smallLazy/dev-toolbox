@@ -305,6 +305,66 @@ npx vitest run src/features/base64/
 
 Every plugin requires **5+ unit tests** for its `logic.ts`. Tests are pure — no DOM, no Tauri APIs, no side effects.
 
+## Git Hooks
+
+Dev Toolbox uses [Husky](https://typicode.github.io/husky/) to run automated checks before commits and pushes. Hooks are automatically enabled after `npm install` — no manual setup required.
+
+### pre-commit — Quick Checks
+
+Runs on every `git commit`. Lightweight, completes in seconds:
+
+```
+npm run check:quick
+→ validate:design (Design Token compliance)
+→ validate:arch  (Architecture boundaries)
+```
+
+These are the fastest static checks — no type-checking, no tests, no build. They catch the most common mistakes (hardcoded colors, cross-feature imports) without slowing down your commit workflow.
+
+### pre-push — Medium Checks
+
+Runs on every `git push`. Catches issues before they reach the remote:
+
+```
+npm run check:push
+→ vue-tsc --noEmit  (TypeScript type checking)
+→ vite build        (Production build)
+→ validate:plugins  (Plugin structure validation)
+```
+
+This prevents type errors and build failures from being pushed to the remote.
+
+### CI — Full Quality Gate
+
+GitHub Actions runs the **complete** validation on every PR and push to `master`. This is the authoritative quality gate and includes everything the hooks don't:
+
+- Full test suite (Vitest + cargo test)
+- AI governance validation
+- Navigation validation
+- Rust clippy
+- Code coverage
+
+**Hooks are a fast first line of defense — they do not replace CI.**
+
+### Skipping Hooks
+
+In emergencies (hotfix, bisect, WIP commits), you can skip hooks:
+
+```bash
+git commit --no-verify        # Skip pre-commit
+git push --no-verify          # Skip pre-push
+```
+
+`--no-verify` is not recommended for regular use. If you find yourself skipping hooks often, open an issue so we can improve them.
+
+### Available Scripts
+
+| Script | What it runs | When |
+|--------|-------------|------|
+| `npm run check:quick` | design + architecture validation | pre-commit |
+| `npm run check:push` | type-check + build + plugin validation | pre-push |
+| `npm run check:full` | full validate + build | manually, before PR |
+
 ## Quality Checks
 
 Before committing, run the full validation suite:
