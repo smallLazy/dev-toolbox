@@ -3,8 +3,8 @@
  *
  * Tests for pure utility functions: formatBytes, formatProgress, statusMessage.
  */
-import { describe, it, expect } from 'vitest'
-import { formatBytes, formatProgress, statusMessage } from '../logic'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { formatBytes, formatProgress, statusMessage, dialogTitle, withTimeout, CHECK_TIMEOUT_MS, CHECK_TIMEOUT_MESSAGE } from '../logic'
 
 describe('formatBytes', () => {
   it('returns "0 B" for zero', () => {
@@ -91,5 +91,88 @@ describe('statusMessage', () => {
     expect(statusMessage('ready-to-install')).toBe('Ready to Install')
     expect(statusMessage('installing')).toBe('Installing...')
     expect(statusMessage('error')).toBe('Update Error')
+  })
+})
+
+// ── dialogTitle ───────────────────────────────────────────────────────────────
+
+describe('dialogTitle', () => {
+  it('returns empty string for idle', () => {
+    expect(dialogTitle('idle')).toBe('')
+  })
+
+  it('returns state-appropriate titles for every status', () => {
+    expect(dialogTitle('checking')).toBe('Checking for Updates')
+    expect(dialogTitle('up-to-date')).toBe("You're Up to Date")
+    expect(dialogTitle('update-available')).toBe('Update Available')
+    expect(dialogTitle('downloading')).toBe('Downloading Update')
+    expect(dialogTitle('ready-to-install')).toBe('Ready to Install')
+    expect(dialogTitle('installing')).toBe('Installing Update')
+    expect(dialogTitle('error')).toBe('Update Check Failed')
+  })
+})
+
+// ── withTimeout ───────────────────────────────────────────────────────────────
+
+describe('withTimeout', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('resolves with the result when the promise settles before the timeout', async () => {
+    const promise = Promise.resolve('success')
+
+    const resultPromise = withTimeout(promise, 5000, 'timed out')
+    await vi.runAllTimersAsync()
+    const result = await resultPromise
+
+    expect(result).toBe('success')
+  })
+
+  it('rejects with the error message when the timeout fires first', async () => {
+    // A promise that never settles — simulates a hung network request
+    const hangingPromise = new Promise(() => {})
+
+    // Use a real 1 ms timeout here to avoid fake-timer / Promise.race
+    // interaction that produces an unhandled-rejection diagnostic in Node.
+    // Restore real timers just for this assertion.
+    vi.useRealTimers()
+
+    await expect(
+      withTimeout(hangingPromise, 1, 'Connection timed out'),
+    ).rejects.toThrow('Connection timed out')
+
+    // Re-enable fake timers for subsequent tests
+    vi.useFakeTimers()
+  })
+
+  it('clears the timeout when the promise resolves before the timeout', async () => {
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout')
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout')
+
+    const promise = Promise.resolve('ok')
+    const resultPromise = withTimeout(promise, 5000, 'timed out')
+
+    await vi.runAllTimersAsync()
+    await resultPromise
+
+    // clearTimeout should have been called to clean up
+    expect(clearTimeoutSpy).toHaveBeenCalled()
+
+    setTimeoutSpy.mockRestore()
+    clearTimeoutSpy.mockRestore()
+  })
+
+  it('exports CHECK_TIMEOUT_MS as 15 seconds', () => {
+    expect(CHECK_TIMEOUT_MS).toBe(15_000)
+  })
+
+  it('exports CHECK_TIMEOUT_MESSAGE with network hint', () => {
+    expect(CHECK_TIMEOUT_MESSAGE).toContain('Unable to check for updates')
+    expect(CHECK_TIMEOUT_MESSAGE).toContain('network connection')
   })
 })

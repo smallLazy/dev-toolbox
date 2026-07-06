@@ -10,6 +10,7 @@
 import { computed } from 'vue'
 import { Icons } from '@/design/icons'
 import type { UpdateState } from './useUpdater'
+import { dialogTitle } from './logic'
 
 const props = defineProps<{
   state: UpdateState
@@ -26,6 +27,8 @@ const isDownloading = computed(() => props.state.status === 'downloading')
 const isReadyToInstall = computed(() => props.state.status === 'ready-to-install')
 const isError = computed(() => props.state.status === 'error')
 
+const title = computed(() => dialogTitle(props.state.status))
+
 const progressPercent = computed(() => props.state.downloadProgress?.percentage ?? 0)
 const downloaded = computed(() => props.state.downloadProgress?.downloadedFormatted ?? '')
 const total = computed(() => props.state.downloadProgress?.totalFormatted ?? '')
@@ -37,7 +40,7 @@ const total = computed(() => props.state.downloadProgress?.totalFormatted ?? '')
       <div class="dialog-card">
         <!-- Header -->
         <div class="dialog-header">
-          <h2 class="dialog-title">Update Available</h2>
+          <h2 class="dialog-title">{{ title }}</h2>
           <button class="dialog-close" @click="emit('dismiss')" aria-label="Close">
             <Icons.X :size="18" />
           </button>

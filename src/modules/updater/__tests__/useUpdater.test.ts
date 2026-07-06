@@ -123,6 +123,54 @@ describe('useUpdater', () => {
     expect(state.value.error).toBe('Failed to check for updates')
   })
 
+  // ── checkForUpdates: Timeout ─────────────────────────────────────────────
+
+  it('transitions to error when check hangs and timeout fires', async () => {
+    vi.useFakeTimers()
+
+    // Simulate a network hang — check() never settles
+    mockCheck.mockReturnValue(new Promise(() => {}))
+
+    const { state, checkForUpdates } = useUpdater()
+
+    // Don't await — we need to inspect state while it's pending
+    const promise = checkForUpdates()
+
+    // Verify we entered the checking state
+    expect(state.value.status).toBe('checking')
+
+    // Advance past the 15s timeout
+    await vi.advanceTimersByTimeAsync(16_000)
+    await promise
+
+    expect(state.value.status).toBe('error')
+    expect(state.value.error).toBe(
+      'Unable to check for updates. Please check your network connection.',
+    )
+
+    vi.useRealTimers()
+  })
+
+  it('releases checking state in finally block after timeout', async () => {
+    vi.useFakeTimers()
+
+    mockCheck.mockReturnValue(new Promise(() => {}))
+
+    const { state, checkForUpdates } = useUpdater()
+
+    const promise = checkForUpdates()
+    expect(state.value.status).toBe('checking')
+
+    await vi.advanceTimersByTimeAsync(16_000)
+    await promise
+
+    // The finally block guarantees we are no longer in checking state
+    expect(state.value.status).not.toBe('checking')
+    expect(state.value.status).toBe('error')
+
+    vi.useRealTimers()
+  })
+
   // ── downloadUpdate: Success ────────────────────────────────────────────
 
   it('transitions through downloading to ready-to-install', async () => {

@@ -16,7 +16,14 @@
 import { ref, type Ref } from 'vue'
 import { check } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
-import { formatBytes, formatProgress, type UpdateStatus } from './logic'
+import {
+  formatBytes,
+  formatProgress,
+  withTimeout,
+  CHECK_TIMEOUT_MS,
+  CHECK_TIMEOUT_MESSAGE,
+  type UpdateStatus,
+} from './logic'
 
 export interface DownloadProgress {
   percentage: number
@@ -75,7 +82,7 @@ export function useUpdater() {
     }
 
     try {
-      const update = await check()
+      const update = await withTimeout(check(), CHECK_TIMEOUT_MS, CHECK_TIMEOUT_MESSAGE)
       pendingUpdate = update
 
       if (!update) {
@@ -99,6 +106,13 @@ export function useUpdater() {
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Failed to check for updates'
       state.value = { ...state.value, status: 'error', error: message }
+    } finally {
+      // Safety: ensure the checking/loading state is always released.
+      // Under normal operation the try/catch branches already transition away
+      // from 'checking'; this guard catches any unexpected edge case.
+      if (state.value.status === 'checking') {
+        state.value = { ...state.value, status: 'error', error: CHECK_TIMEOUT_MESSAGE }
+      }
     }
   }
 

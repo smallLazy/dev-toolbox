@@ -68,8 +68,50 @@ export type UpdateStatus =
   | 'installing'
   | 'error'
 
+/** Timeout duration for update checks (milliseconds). */
+export const CHECK_TIMEOUT_MS = 15_000
+
+/** Error message shown when the update check times out. */
+export const CHECK_TIMEOUT_MESSAGE =
+  'Unable to check for updates. Please check your network connection.'
+
+/**
+ * Race a promise against a timeout.
+ *
+ * If the promise settles before the timeout, the result is returned and the
+ * timer is cleared. If the timeout fires first, the returned promise rejects
+ * with an Error carrying `errorMessage`.
+ *
+ * Usage:
+ *   const result = await withTimeout(check(), 15_000, 'Timed out')
+ */
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  errorMessage: string,
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(errorMessage))
+    }, timeoutMs)
+  })
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise])
+    return result
+  } finally {
+    // Always clear the timer so it doesn't leak
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+    }
+  }
+}
+
 /**
  * Human-readable status message for each state.
+ * Used by AboutView for the inline status label next to the button.
  */
 export function statusMessage(status: UpdateStatus): string {
   const messages: Record<UpdateStatus, string> = {
@@ -83,4 +125,22 @@ export function statusMessage(status: UpdateStatus): string {
     'error': 'Update Error',
   }
   return messages[status]
+}
+
+/**
+ * Dialog title for each updater state.
+ * Used by UpdateDialog to render a state-appropriate heading.
+ */
+export function dialogTitle(status: UpdateStatus): string {
+  const titles: Record<UpdateStatus, string> = {
+    'idle': '',
+    'checking': 'Checking for Updates',
+    'up-to-date': "You're Up to Date",
+    'update-available': 'Update Available',
+    'downloading': 'Downloading Update',
+    'ready-to-install': 'Ready to Install',
+    'installing': 'Installing Update',
+    'error': 'Update Check Failed',
+  }
+  return titles[status]
 }
