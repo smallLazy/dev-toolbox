@@ -5,7 +5,8 @@
 import { createMemoryHistory, type FeatureHistory } from '@/sdk/feature'
 
 export interface DiffHistoryEntry {
-  input: string
+  leftText: string
+  rightText: string
   output: string | null
   timestamp: number
 }

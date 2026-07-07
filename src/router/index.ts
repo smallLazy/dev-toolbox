@@ -43,6 +43,11 @@ const router = createRouter({
       redirect: { path: "/sql", query: { mode: "in-builder" } },
     },
     {
+      path: "/diff",
+      name: "diff",
+      component: () => import("../features/diff/DiffView.vue"),
+    },
+    {
       path: "/base64",
       name: "base64",
       component: () => import("../features/base64/Base64View.vue"),

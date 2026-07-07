@@ -168,8 +168,8 @@ describe('Plugin Status Field', () => {
       const status = (p.definition as Record<string, unknown>).status
       return status === 'active'
     })
-    // The exact count is 12 — changing this means active tools were added/removed
-    expect(activePlugins.length, 'Active plugin count must be 12').toBe(12)
+    // The exact count is 13 — changing this means active tools were added/removed
+    expect(activePlugins.length, 'Active plugin count must be 13').toBe(13)
   })
 
   it('no plugin uses emoji as its icon field', () => {

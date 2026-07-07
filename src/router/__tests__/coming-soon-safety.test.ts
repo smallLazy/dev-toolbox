@@ -57,13 +57,13 @@ const PLUGIN_ROUTES: Record<string, string> = {
 
 // Active plugins: those with explicit router records pointing to real views
 const ACTIVE_PLUGINS = new Set([
-  'base64', 'crypto', 'hash', 'hello', 'html-encode', 'json', 'jwt',
+  'base64', 'crypto', 'diff', 'hash', 'hello', 'html-encode', 'json', 'jwt',
   'preset-php-compatible', 'sql', 'timestamp', 'unicode', 'url',
 ])
 
 // Stub view file names — auto-generated placeholders that must never render
 const STUB_VIEW_NAMES = [
-  'AgentView.vue', 'ColorView.vue', 'CurlView.vue', 'DiffView.vue',
+  'AgentView.vue', 'ColorView.vue', 'CurlView.vue',
   'ExplainView.vue', 'GiteeView.vue', 'GithubView.vue', 'GraphqlView.vue',
   'HttpClientView.vue', 'JiraView.vue',
   'MarkdownView.vue', 'PromptView.vue', 'QrcodeView.vue',
