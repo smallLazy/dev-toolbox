@@ -22,6 +22,7 @@ const {
   contextLines,
   ignoreWhitespace,
   ignoreCase,
+  ignoreLineOrder,
   leftStats,
   rightStats,
   diffStats,
@@ -32,8 +33,6 @@ const {
 } = useDiff()
 
 // ── Execute wrapper — syncs right DOM value before running diff ─────
-// useTextActionTrigger.runAction() already syncs the left textarea.
-// This wrapper handles the right textarea sync on top.
 async function executeWithSync() {
   syncRightFromDom()
   await execute()
@@ -119,6 +118,7 @@ const secondaryActions = computed<ToolAction[]>(() => {
   return actions
 })
 
+// ── Diff output ─────────────────────────────────────────────────────
 const parsedLines = computed(() => {
   if (!output.value) return []
   return parseUnifiedDiffLines(output.value)
@@ -135,6 +135,9 @@ const outputPanelStats = computed(() => {
     lines: output.value ? output.value.split('\n').length : 0,
   }
 })
+
+const hasCompared = computed(() => output.value !== null)
+const hasDifferences = computed(() => hasCompared.value && output.value !== '')
 
 // ── Handlers ────────────────────────────────────────────────────────
 function handleContextLinesChange(val: string) {
@@ -186,107 +189,121 @@ onUnmounted(() => dispose())
             @update:model-value="handleContextLinesChange"
           />
         </ToolOptionGroup>
-        <ToolOptionGroup label="Ignore Whitespace">
+        <div class="tool-check-options">
           <label class="tool-check-field">
             <input v-model="ignoreWhitespace" type="checkbox" />
             <span>Ignore Whitespace</span>
           </label>
-        </ToolOptionGroup>
-        <ToolOptionGroup label="Ignore Case">
           <label class="tool-check-field">
             <input v-model="ignoreCase" type="checkbox" />
             <span>Ignore Case</span>
           </label>
-        </ToolOptionGroup>
+          <label class="tool-check-field">
+            <input v-model="ignoreLineOrder" type="checkbox" />
+            <span>Ignore Line Order</span>
+          </label>
+        </div>
       </ToolOptionsRow>
     </template>
 
     <template #workspace>
-      <ToolWorkspace layout="io">
-        <template #input>
-          <div class="diff-input-stack">
+      <div class="diff-layout">
+        <!-- Row 1: Inputs side by side -->
+        <ToolWorkspace layout="io">
+          <template #input>
             <InputOutputPanel
               title="Original Text"
               :stats="leftStats"
               :invalid="!!error"
-              aria-label="Left text to compare"
+              aria-label="Original text to compare"
             >
               <textarea
                 ref="inputEl"
                 v-model="leftText"
                 class="dt-textarea tool-textarea"
-                rows="8"
+                rows="6"
                 placeholder="Paste the original version here..."
-                aria-label="Left text to compare"
+                aria-label="Original text to compare"
                 spellcheck="false"
                 @blur="handleInputBlur"
                 @compositionstart="handleCompositionStart"
                 @compositionend="handleCompositionEnd"
               />
             </InputOutputPanel>
+          </template>
+          <template #output>
             <InputOutputPanel
               title="Modified Text"
               :stats="rightStats"
               :invalid="!!error"
-              aria-label="Right text to compare"
+              aria-label="Modified text to compare"
             >
               <textarea
                 ref="rightInputEl"
                 v-model="rightText"
                 class="dt-textarea tool-textarea"
-                rows="8"
+                rows="6"
                 placeholder="Paste the modified version here..."
-                aria-label="Right text to compare"
+                aria-label="Modified text to compare"
                 spellcheck="false"
                 @blur="handleRightBlur"
                 @compositionstart="handleRightCompositionStart"
                 @compositionend="handleRightCompositionEnd"
               />
             </InputOutputPanel>
-          </div>
-        </template>
-        <template #output>
-          <InputOutputPanel
-            title="Diff Output"
-            :stats="outputPanelStats"
-            aria-label="Diff output"
-          >
-            <div v-if="output && parsedLines.length > 0" class="diff-viewer">
-              <div class="diff-summary">
-                <span class="diff-summary-stat diff-summary-added">+{{ diffStats?.addedCount ?? 0 }} added</span>
-                <span class="diff-summary-stat diff-summary-removed">-{{ diffStats?.removedCount ?? 0 }} removed</span>
-                <span class="diff-summary-stat diff-summary-unchanged">{{ unchangedCount }} unchanged</span>
-                <span class="diff-summary-note">Modified vs. Original</span>
-              </div>
-              <div class="diff-lines" role="list" aria-label="Diff output lines">
-                <div
-                  v-for="(line, i) in parsedLines"
-                  :key="i"
-                  class="diff-line"
-                  :class="`diff-line--${line.type}`"
-                  role="listitem"
-                >
-                  <span class="diff-line-marker" aria-hidden="true">{{ line.marker }}</span>
-                  <span class="diff-line-content">{{ line.content }}</span>
-                </div>
-              </div>
-            </div>
-            <div v-else class="diff-empty">
-              Unified diff output will appear here.
-            </div>
-          </InputOutputPanel>
-        </template>
-      </ToolWorkspace>
-    </template>
+          </template>
+        </ToolWorkspace>
 
-    <template #actions>
-      <ToolActionBar
-        :primary="primaryAction"
-        :secondary="secondaryActions"
-        @primary-pointer-down="handlePointerDown"
-        @primary-click="handleClick"
-        @action="handleSecondaryAction"
-      />
+        <!-- Row 2: Actions -->
+        <ToolActionBar
+          :primary="primaryAction"
+          :secondary="secondaryActions"
+          @primary-pointer-down="handlePointerDown"
+          @primary-click="handleClick"
+          @action="handleSecondaryAction"
+        />
+
+        <!-- Row 3: Diff Output -->
+        <InputOutputPanel
+          title="Diff Output"
+          :stats="outputPanelStats"
+          aria-label="Diff output"
+        >
+          <!-- Has differences: show visual diff viewer -->
+          <div v-if="hasDifferences && parsedLines.length > 0" class="diff-viewer">
+            <div class="diff-summary">
+              <span class="diff-summary-stat diff-summary-added">+{{ diffStats?.addedCount ?? 0 }} added</span>
+              <span class="diff-summary-stat diff-summary-removed">-{{ diffStats?.removedCount ?? 0 }} removed</span>
+              <span class="diff-summary-stat diff-summary-unchanged">{{ unchangedCount }} unchanged</span>
+              <span class="diff-summary-note">Modified vs. Original</span>
+            </div>
+            <div class="diff-lines" role="list" aria-label="Diff output lines">
+              <div
+                v-for="(line, i) in parsedLines"
+                :key="i"
+                class="diff-line"
+                :class="`diff-line--${line.type}`"
+                role="listitem"
+              >
+                <span class="diff-line-marker" aria-hidden="true">{{ line.marker }}</span>
+                <span class="diff-line-content">{{ line.content }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- No differences after compare -->
+          <div v-else-if="hasCompared && !hasDifferences" class="diff-empty">
+            <p class="diff-empty-title">No differences found.</p>
+            <p class="diff-empty-desc">Modified Text matches Original Text under current options.</p>
+          </div>
+
+          <!-- Pre-compare (initial) -->
+          <div v-else class="diff-empty">
+            <p class="diff-empty-title">Ready to compare</p>
+            <p class="diff-empty-desc">Paste original and modified text, then press Compare.</p>
+          </div>
+        </InputOutputPanel>
+      </div>
     </template>
 
     <template #status>
@@ -301,22 +318,28 @@ onUnmounted(() => dispose())
 </template>
 
 <style scoped>
-.diff-input-stack {
+/* ── Layout ────────────────────────────────────────────────────────── */
+
+.diff-layout {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  min-height: 0;
-  height: 100%;
+  gap: var(--space-4);
 }
 
-.diff-input-stack > :deep(.io-panel) {
-  flex: 1;
-  min-height: 0;
-}
+/* ── Textarea ──────────────────────────────────────────────────────── */
 
 .tool-textarea {
   flex: 1;
   min-height: var(--tool-textarea-min-height);
+}
+
+/* ── Options ───────────────────────────────────────────────────────── */
+
+.tool-check-options {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .tool-check-field {
@@ -361,7 +384,6 @@ onUnmounted(() => dispose())
 .diff-summary-note {
   margin-left: auto;
   color: var(--text-color-description);
-  font-style: italic;
 }
 
 .diff-lines {
@@ -369,7 +391,7 @@ onUnmounted(() => dispose())
   overflow-y: auto;
   font-family: var(--font-mono);
   font-size: var(--text-body);
-  line-height: 1.5;
+  line-height: var(--leading-normal);
 }
 
 .diff-line {
@@ -377,7 +399,6 @@ onUnmounted(() => dispose())
   padding: 0 var(--space-3);
   white-space: pre;
   overflow-wrap: normal;
-  min-height: calc(1.5em + 2px);
 }
 
 .diff-line-marker {
@@ -394,13 +415,13 @@ onUnmounted(() => dispose())
 .diff-line--added {
   background: var(--color-success-bg);
   color: var(--color-success-text);
-  border-left: 3px solid var(--color-success-border);
+  border-left: var(--border-width-thick) solid var(--color-success-border);
 }
 
 .diff-line--removed {
   background: var(--color-danger-bg);
   color: var(--color-danger-text);
-  border-left: 3px solid var(--color-danger-border);
+  border-left: var(--border-width-thick) solid var(--color-danger-border);
 }
 
 .diff-line--hunk {
@@ -413,12 +434,28 @@ onUnmounted(() => dispose())
   color: var(--text-color-body);
 }
 
+/* ── Empty states ──────────────────────────────────────────────────── */
+
 .diff-empty {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-color-description);
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+}
+
+.diff-empty-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text-color-body);
+  margin: 0;
+}
+
+.diff-empty-desc {
   font-size: var(--text-body);
+  color: var(--text-color-description);
+  margin: 0;
 }
 </style>

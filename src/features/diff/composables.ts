@@ -37,6 +37,7 @@ export function useDiff() {
   const contextLines = ref(defaults.contextLines)
   const ignoreWhitespace = ref(defaults.ignoreWhitespace)
   const ignoreCase = ref(defaults.ignoreCase)
+  const ignoreLineOrder = ref(defaults.ignoreLineOrder)
 
   // ── Derived stats ──────────────────────────────────────────────────
   const diffStats = computed(() => {
@@ -95,6 +96,7 @@ export function useDiff() {
         contextLines: contextLines.value,
         ignoreWhitespace: ignoreWhitespace.value,
         ignoreCase: ignoreCase.value,
+        ignoreLineOrder: ignoreLineOrder.value,
       }
       const result = await feature.run(leftText.value, config)
       output.value = result
@@ -124,6 +126,7 @@ export function useDiff() {
     contextLines,
     ignoreWhitespace,
     ignoreCase,
+    ignoreLineOrder,
     leftStats,
     rightStats,
     diffStats,

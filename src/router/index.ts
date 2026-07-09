@@ -9,11 +9,6 @@ const router = createRouter({
       component: () => import("../modules/home/DashboardView.vue"),
     },
     {
-      path: "/hello",
-      name: "hello",
-      component: () => import("../features/hello/HelloView.vue"),
-    },
-    {
       path: "/crypto",
       name: "crypto",
       component: () => import("../features/crypto/CryptoView.vue"),
@@ -81,6 +76,21 @@ const router = createRouter({
       path: "/jwt",
       name: "jwt",
       component: () => import("../features/jwt/JwtView.vue"),
+    },
+    {
+      path: "/qrcode",
+      name: "qrcode",
+      component: () => import("../features/qrcode/QrcodeView.vue"),
+    },
+    {
+      path: "/uuid",
+      name: "uuid",
+      component: () => import("../features/uuid/UuidView.vue"),
+    },
+    {
+      path: "/xml",
+      name: "xml",
+      component: () => import("../features/xml/XmlView.vue"),
     },
     {
       path: "/config",

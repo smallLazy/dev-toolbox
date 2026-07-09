@@ -24,11 +24,18 @@ export const settingsSchema: SettingField[] = [
     label: 'Ignore Case',
     default: false,
   },
+  {
+    key: 'ignoreLineOrder',
+    type: 'toggle' as const,
+    label: 'Ignore Line Order',
+    default: false,
+  },
 ]
 
 export const defaults: DiffConfig = {
   contextLines: 3,
   ignoreWhitespace: false,
   ignoreCase: false,
+  ignoreLineOrder: false,
   rightText: '',
 }

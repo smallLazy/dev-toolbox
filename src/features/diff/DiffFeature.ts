@@ -73,6 +73,7 @@ export class DiffFeature extends BaseFeature<DiffConfig, string, string> {
       contextLines: config.contextLines,
       ignoreWhitespace: config.ignoreWhitespace,
       ignoreCase: config.ignoreCase,
+      ignoreLineOrder: config.ignoreLineOrder,
     })
 
     this._toolState = {

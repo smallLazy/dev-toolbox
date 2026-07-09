@@ -42,36 +42,25 @@ function getImportedComponents(source: string): string[] {
 
 // Plugin routes from the plugin definitions
 const PLUGIN_ROUTES: Record<string, string> = {
-  agent: '/agent', base64: '/base64', color: '/color', crypto: '/crypto',
-  curl: '/curl', diff: '/diff', explain: '/explain', gitee: '/gitee',
-  github: '/github', graphql: '/graphql', hash: '/hash', hello: '/hello',
-  'html-encode': '/html-encode', 'http-client': '/http-client', jira: '/jira',
-  json: '/json', jwt: '/jwt', markdown: '/markdown',
-  'preset-php-compatible': '/preset/php-compatible', prompt: '/prompt',
-  qrcode: '/qrcode', regex: '/regex', 'request-decoder': '/request-decoder',
-  review: '/review', rsa: '/rsa', sentry: '/sentry', sm2: '/sm2', sm3: '/sm3',
-  sm4: '/sm4', sql: '/sql', timestamp: '/timestamp', translate: '/translate',
-  unicode: '/unicode', url: '/url', uuid: '/uuid', websocket: '/websocket',
-  wecom: '/wecom', xml: '/xml', yaml: '/yaml', zentao: '/zentao',
+  base64: '/base64', crypto: '/crypto',
+  diff: '/diff',
+  hash: '/hash',
+  'html-encode': '/html-encode',
+  json: '/json', jwt: '/jwt',
+  'preset-php-compatible': '/preset/php-compatible', qrcode: '/qrcode',
+  sql: '/sql', timestamp: '/timestamp',
+  unicode: '/unicode', url: '/url', uuid: '/uuid',
+  xml: '/xml',
 }
 
 // Active plugins: those with explicit router records pointing to real views
 const ACTIVE_PLUGINS = new Set([
-  'base64', 'crypto', 'diff', 'hash', 'hello', 'html-encode', 'json', 'jwt',
-  'preset-php-compatible', 'sql', 'timestamp', 'unicode', 'url',
+  'base64', 'crypto', 'diff', 'hash', 'html-encode', 'json', 'jwt',
+  'preset-php-compatible', 'qrcode', 'sql', 'timestamp', 'unicode', 'url', 'uuid', 'xml',
 ])
 
 // Stub view file names — auto-generated placeholders that must never render
-const STUB_VIEW_NAMES = [
-  'AgentView.vue', 'ColorView.vue', 'CurlView.vue',
-  'ExplainView.vue', 'GiteeView.vue', 'GithubView.vue', 'GraphqlView.vue',
-  'HttpClientView.vue', 'JiraView.vue',
-  'MarkdownView.vue', 'PromptView.vue', 'QrcodeView.vue',
-  'RegexView.vue', 'RequestDecoderView.vue', 'ReviewView.vue',
-  'RsaView.vue', 'SentryView.vue', 'Sm2View.vue', 'Sm3View.vue',
-  'Sm4View.vue', 'TranslateView.vue',
-  'UuidView.vue', 'WebsocketView.vue', 'WecomView.vue',
-  'XmlView.vue', 'YamlView.vue', 'ZentaoView.vue',
+const STUB_VIEW_NAMES: string[] = [
 ]
 
 // ── Tests ────────────────────────────────────────────────────────────────

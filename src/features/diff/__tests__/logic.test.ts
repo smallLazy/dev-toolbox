@@ -17,6 +17,7 @@ const defaults: DiffOptions = {
   contextLines: 3,
   ignoreWhitespace: false,
   ignoreCase: false,
+  ignoreLineOrder: false,
 }
 
 // ── computeDiff ──────────────────────────────────────────────────────
@@ -227,7 +228,7 @@ describe('computeDiff', () => {
       const result = computeDiff(
         'Hello   World',
         '  hello world  ',
-        { contextLines: 3, ignoreWhitespace: true, ignoreCase: true },
+        { ...defaults, ignoreWhitespace: true, ignoreCase: true },
       )
       expect(result.isIdentical).toBe(true)
     })
@@ -237,7 +238,7 @@ describe('computeDiff', () => {
       const result = computeDiff(
         'Hello   World',
         'Hello World',
-        { contextLines: 3, ignoreWhitespace: false, ignoreCase: true },
+        { ...defaults, ignoreWhitespace: false, ignoreCase: true },
       )
       expect(result.isIdentical).toBe(false)
     })
@@ -514,7 +515,7 @@ describe('parseUnifiedDiffLines', () => {
   })
 
   it('parses mixed lines from a real unified diff', () => {
-    const diff = computeDiff('a\nb\nc', 'a\nx\nc', { contextLines: 3, ignoreWhitespace: false, ignoreCase: false })
+    const diff = computeDiff('a\nb\nc', 'a\nx\nc', { ...defaults, ignoreWhitespace: false, ignoreCase: false })
     const output = formatUnifiedDiff(diff)
     const parsed = parseUnifiedDiffLines(output)
     expect(parsed.length).toBeGreaterThan(0)
@@ -545,5 +546,144 @@ describe('parseUnifiedDiffLines', () => {
     expect(result[2].type).toBe('added')
     expect(result[3].type).toBe('removed')
     expect(result[4].type).toBe('unchanged')
+  })
+})
+
+// ── computeDiff with ignoreLineOrder ─────────────────────────────────
+
+describe('computeDiff with ignoreLineOrder', () => {
+  const ilo: DiffOptions = {
+    contextLines: 3,
+    ignoreWhitespace: false,
+    ignoreCase: false,
+    ignoreLineOrder: true,
+  }
+
+  it('returns isIdentical=true when order differs but content is same', () => {
+    const result = computeDiff('1002\n1001', '1001\n1002', ilo)
+    expect(result.isIdentical).toBe(true)
+    expect(result.addedCount).toBe(0)
+    expect(result.removedCount).toBe(0)
+  })
+
+  it('detects added line when modified has extra content', () => {
+    const result = computeDiff('a\nb', 'a\nb\nc', ilo)
+    expect(result.isIdentical).toBe(false)
+    expect(result.addedCount).toBe(1)
+    expect(result.removedCount).toBe(0)
+  })
+
+  it('detects removed line when original has extra content', () => {
+    const result = computeDiff('a\nb\nc', 'a\nb', ilo)
+    expect(result.isIdentical).toBe(false)
+    expect(result.removedCount).toBe(1)
+    expect(result.addedCount).toBe(0)
+  })
+
+  it('handles duplicate count: original has 2xA, modified has 1xA', () => {
+    const result = computeDiff('A\nA', 'A', ilo)
+    expect(result.removedCount).toBe(1)
+    expect(result.addedCount).toBe(0)
+  })
+
+  it('handles duplicate count: original has 1xA, modified has 2xA', () => {
+    const result = computeDiff('A', 'A\nA', ilo)
+    expect(result.addedCount).toBe(1)
+    expect(result.removedCount).toBe(0)
+  })
+
+  it('handles complex multiset: extra + missing + reordered', () => {
+    const result = computeDiff('a\nb\nc\nd', 'c\na\ne', ilo)
+    expect(result.removedCount).toBe(2) // b, d
+    expect(result.addedCount).toBe(1) // e
+    expect(result.isIdentical).toBe(false)
+  })
+
+  it('combines ignoreLineOrder + ignoreWhitespace', () => {
+    const result = computeDiff(
+      'hello   world',
+      '  hello world',
+      { ...ilo, ignoreWhitespace: true },
+    )
+    expect(result.isIdentical).toBe(true)
+  })
+
+  it('combines ignoreLineOrder + ignoreCase', () => {
+    const result = computeDiff(
+      'HELLO',
+      'hello',
+      { ...ilo, ignoreCase: true },
+    )
+    expect(result.isIdentical).toBe(true)
+  })
+
+  it('combines ignoreLineOrder + both options', () => {
+    const result = computeDiff(
+      'HELLO   WORLD\nFOO',
+      '  hello world\nfoo',
+      { ...ilo, ignoreWhitespace: true, ignoreCase: true },
+    )
+    expect(result.isIdentical).toBe(true)
+  })
+
+  it('preserves original line content in removed lines', () => {
+    const result = computeDiff('Hello\nWorld', 'Hello', ilo)
+    const removed = result.hunks.flatMap((h) => h.lines).filter((l) => l.type === 'removed')
+    expect(removed).toHaveLength(1)
+    expect(removed[0].content).toBe('World')
+  })
+
+  it('preserves original line content in added lines', () => {
+    const result = computeDiff('Hello', 'Hello\nWorld', ilo)
+    const added = result.hunks.flatMap((h) => h.lines).filter((l) => l.type === 'added')
+    expect(added).toHaveLength(1)
+    expect(added[0].content).toBe('World')
+  })
+
+  it('handles empty left (all lines are additions)', () => {
+    const result = computeDiff('', 'a\nb', ilo)
+    expect(result.addedCount).toBe(2)
+    expect(result.removedCount).toBe(0)
+  })
+
+  it('handles empty right (all lines are removals)', () => {
+    const result = computeDiff('a\nb', '', ilo)
+    expect(result.removedCount).toBe(2)
+    expect(result.addedCount).toBe(0)
+  })
+
+  it('handles both inputs empty', () => {
+    const result = computeDiff('', '', ilo)
+    expect(result.isIdentical).toBe(true)
+    expect(result.hunks).toHaveLength(0)
+  })
+
+  it('formats unordered diff with @@ unordered @@ header', () => {
+    const diff = computeDiff('a\nb', 'a\nc', ilo)
+    const output = formatUnifiedDiff(diff)
+    expect(output).toContain('@@ unordered @@')
+  })
+
+  it('returns empty string for identical unordered inputs', () => {
+    const diff = computeDiff('a\nb', 'b\na', ilo)
+    const output = formatUnifiedDiff(diff)
+    expect(output).toBe('')
+  })
+
+  it('real-world: ID list reorder with ignoreLineOrder off shows diff', () => {
+    const result = computeDiff('1002\n1001', '1001\n1002', {
+      ...ilo,
+      ignoreLineOrder: false,
+    })
+    expect(result.isIdentical).toBe(false)
+  })
+
+  it('real-world: CSV value reorder with ignoreLineOrder on is identical', () => {
+    const result = computeDiff(
+      'alice\nbob\ncharlie',
+      'charlie\nalice\nbob',
+      ilo,
+    )
+    expect(result.isIdentical).toBe(true)
   })
 })

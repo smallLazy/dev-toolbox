@@ -40,18 +40,8 @@ const CHINESE_NAME_WHITELIST: string[] = [
 // Every plugin name must use the CORRECT form, not the incorrect one.
 // This prevents regressions like Rsa→rsa, Graphql→graphql, etc.
 const CORRECT_ACRONYM_MAP: Record<string, string> = {
-  rsa: 'RSA',
-  sm2: 'SM2',
-  sm3: 'SM3',
-  sm4: 'SM4',
   uuid: 'UUID',
   xml: 'XML',
-  yaml: 'YAML',
-  graphql: 'GraphQL',
-  websocket: 'WebSocket',
-  github: 'GitHub',
-  wecom: 'WeCom',
-  zentao: 'ZenTao',
   jwt: 'JWT',
   url: 'URL',
   sql: 'SQL',
@@ -60,26 +50,14 @@ const CORRECT_ACRONYM_MAP: Record<string, string> = {
   html: 'HTML',
   http: 'HTTP',
   php: 'PHP',
-  curl: 'cURL',
 }
 
 // Incorrect patterns that must NOT appear in plugin names
 const FORBIDDEN_NAME_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
-  { pattern: /\bRsa\b/, label: '"Rsa" — use "RSA"' },
-  { pattern: /\bSm[234]\b/, label: '"Sm2/Sm3/Sm4" — use "SM2/SM3/SM4"' },
   { pattern: /\bUuid\b/, label: '"Uuid" — use "UUID"' },
   { pattern: /\bXml\b/, label: '"Xml" — use "XML"' },
-  { pattern: /\bYaml\b/, label: '"Yaml" — use "YAML"' },
-  { pattern: /\bGraphql\b/, label: '"Graphql" — use "GraphQL"' },
-  { pattern: /\bHttpClient\b/, label: '"HttpClient" — use "HTTP Client"' },
-  { pattern: /\bRequestDecoder\b/, label: '"RequestDecoder" — use "Request Decoder"' },
-  { pattern: /\bWebsocket\b/, label: '"Websocket" — use "WebSocket"' },
-  { pattern: /\bGithub\b/, label: '"Github" — use "GitHub"' },
-  { pattern: /\bWecom\b/, label: '"Wecom" — use "WeCom"' },
-  { pattern: /\bZentao\b/, label: '"Zentao" — use "ZenTao"' },
   { pattern: /\bQrcode\b/, label: '"Qrcode" — use "QR Code"' },
   { pattern: /\bHtmlEncode\b/, label: '"HtmlEncode" — use "HTML"' },
-  { pattern: /\bCurl\b/, label: '"Curl" — use "cURL"' },
 ]
 
 describe('Plugin Name Convention', () => {
@@ -168,8 +146,8 @@ describe('Plugin Status Field', () => {
       const status = (p.definition as Record<string, unknown>).status
       return status === 'active'
     })
-    // The exact count is 13 — changing this means active tools were added/removed
-    expect(activePlugins.length, 'Active plugin count must be 13').toBe(13)
+    // The exact count is 15 — changing this means active tools were added/removed
+    expect(activePlugins.length, 'Active plugin count must be 15').toBe(15)
   })
 
   it('no plugin uses emoji as its icon field', () => {
@@ -218,7 +196,8 @@ describe('Plugin Route Validity', () => {
 describe('Plugin Category Classification', () => {
   const getCategory = (pluginId: string): string | undefined => {
     const plugin = allPlugins.find(p => p.definition.id === pluginId)
-    return (plugin?.definition as Record<string, unknown>).category as string | undefined
+    if (!plugin) return undefined
+    return (plugin.definition as Record<string, unknown>).category as string | undefined
   }
 
   it('HTML Encode must NOT be in Crypto category', () => {
@@ -238,40 +217,23 @@ describe('Plugin Category Classification', () => {
     expect(category, `AES category="${category}" — must be "crypto"`).toBe('crypto')
   })
 
-  it('RSA must be in Crypto category', () => {
-    const category = getCategory('rsa')
-    expect(category, `RSA category="${category}" — must be "crypto"`).toBe('crypto')
-  })
-
-  it('SM2 must be in Crypto category', () => {
-    const category = getCategory('sm2')
-    expect(category, `SM2 category="${category}" — must be "crypto"`).toBe('crypto')
-  })
-
-  it('SM3 must be in Crypto category', () => {
-    const category = getCategory('sm3')
-    expect(category, `SM3 category="${category}" — must be "crypto"`).toBe('crypto')
-  })
-
-  it('SM4 must be in Crypto category', () => {
-    const category = getCategory('sm4')
-    expect(category, `SM4 category="${category}" — must be "crypto"`).toBe('crypto')
-  })
-
   it('Hash must be in Crypto category', () => {
     const category = getCategory('hash')
     expect(category, `Hash category="${category}" — must be "crypto"`).toBe('crypto')
   })
 
-  it('Integration tools (Gitee, GitHub, Jira, Sentry, WeCom, ZenTao) are in enterprise category', () => {
-    const integrationIds = ['gitee', 'github', 'jira', 'sentry', 'wecom', 'zentao']
-    const violations: string[] = []
-    for (const id of integrationIds) {
-      const category = getCategory(id)
-      if (category !== 'enterprise') {
-        violations.push(`Plugin "${id}" category="${category}" — must be "enterprise"`)
-      }
+  it('removed plugins are not registered', () => {
+    const removedIds = [
+      'curl', 'graphql', 'http-client', 'request-decoder', 'websocket',
+      'gitee', 'github', 'jira', 'sentry', 'wecom', 'zentao',
+      'rsa', 'sm2', 'sm3', 'sm4',
+      'markdown', 'yaml',
+      'color', 'regex',
+      'agent', 'explain', 'prompt', 'review', 'translate',
+      'hello',
+    ]
+    for (const id of removedIds) {
+      expect(getCategory(id), `Plugin "${id}" should not be registered`).toBeUndefined()
     }
-    expect(violations, `Integration tools with wrong category:\n${violations.join('\n')}`).toHaveLength(0)
   })
 })

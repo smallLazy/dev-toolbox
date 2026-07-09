@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * XML Plugin — Main View
+ * XML Formatter — Main View
  *
- * Phase 3 migration: ToolLayout skeleton with unified status bar.
- * Business logic and composables unchanged.
+ * Supports Format, Minify, and Validate modes.
+ * Uses ToolLayout + ToolWorkspace standard layout.
  */
 
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -15,8 +15,12 @@ import InputOutputPanel from '@/templates/InputOutputPanel.vue'
 import ToolActionBar from '@/templates/ToolActionBar.vue'
 import ToolStatusBar from '@/templates/ToolStatusBar.vue'
 import type { ToolAction } from '@/templates/types'
+import type { XmlMode } from './types'
 
-const { input, output, error, loading, toolbar, execute, init, dispose } = useXml()
+const {
+  input, output, error, loading, stats,
+  toolbar, execute, selectMode, loadExample, init, dispose,
+} = useXml()
 
 const {
   inputEl,
@@ -26,25 +30,32 @@ const {
   handlePointerDown,
   handleClick,
   handleShortcut,
-} = useTextActionTrigger({ model: input, loading, execute })
+} = useTextActionTrigger({ model: input, loading, execute: runFormat })
 
 const statusPhase = ref<'idle' | 'loading' | 'success' | 'error' | 'copied'>('idle')
-const statusMessage = ref<string | null>(null)
+const statusMessage = ref<string | null>('Ready')
 
 const primaryAction = computed<ToolAction>(() => ({
-  id: 'run',
+  id: 'format',
   label: 'Format',
   busy: loading.value,
-  disabled: loading.value,
+  disabled: loading.value || !input.value.trim(),
   shortcut: 'Cmd Enter',
-  ariaLabel: 'Format XML input',
+  ariaLabel: 'Format XML',
 }))
 
 const secondaryActions = computed<ToolAction[]>(() => [
+  { id: 'minify', label: 'Minify', disabled: loading.value || !input.value.trim() },
+  { id: 'validate', label: 'Validate', disabled: loading.value || !input.value.trim() },
   { id: 'copy', label: 'Copy Output', disabled: !output.value || loading.value },
   { id: 'clear', label: 'Clear', disabled: loading.value },
-  { id: 'swap', label: 'Swap I/O', disabled: !output.value || loading.value },
+  { id: 'example', label: 'Load Sample', disabled: loading.value },
 ])
+
+const outputPanelStats = computed(() => {
+  if (!stats.value || stats.value.chars === 0) return null
+  return { chars: stats.value.chars, lines: stats.value.lines }
+})
 
 const visibleStatusPhase = computed(() => {
   if (loading.value) return 'loading'
@@ -58,7 +69,31 @@ const visibleStatusMessage = computed(() => {
   return statusMessage.value
 })
 
+async function runMode(nextMode: XmlMode) {
+  selectMode(nextMode)
+  await execute()
+  if (!error.value && output.value) {
+    statusPhase.value = 'success'
+    if (nextMode === 'format') {
+      statusMessage.value = 'Formatted successfully'
+    } else if (nextMode === 'minify') {
+      statusMessage.value = 'Minified successfully'
+    } else if (nextMode === 'validate') {
+      statusMessage.value = 'Valid XML'
+    }
+  }
+}
+
+async function runFormat() {
+  await runMode('format')
+}
+
 async function handleSecondaryAction(id: string) {
+  if (id === 'minify' || id === 'validate') {
+    await runMode(id as XmlMode)
+    return
+  }
+
   if (id === 'copy') {
     await toolbar.execute('copy')
     if (!error.value) {
@@ -71,20 +106,20 @@ async function handleSecondaryAction(id: string) {
   if (id === 'clear') {
     await toolbar.execute('clear')
     statusPhase.value = 'idle'
-    statusMessage.value = null
+    statusMessage.value = 'Ready'
+    return
   }
 
-  if (id === 'swap') {
-    await toolbar.execute('swap')
-    statusPhase.value = 'idle'
-    statusMessage.value = null
+  if (id === 'example') {
+    loadExample()
+    await runFormat()
   }
 }
 
 function clearStatus() {
   error.value = null
   statusPhase.value = 'idle'
-  statusMessage.value = null
+  statusMessage.value = 'Ready'
 }
 
 onMounted(() => init())
@@ -93,9 +128,9 @@ onUnmounted(() => dispose())
 
 <template>
   <ToolLayout
-    title="XML"
+    title="XML Formatter"
     description="Format, minify, and validate XML."
-    :shortcut-hints="['Cmd Enter to run']"
+    :shortcut-hints="['Cmd Enter to format']"
     layout="io"
     @keydown="handleShortcut"
   >
@@ -111,9 +146,9 @@ onUnmounted(() => dispose())
             <textarea
               ref="inputEl"
               v-model="input"
-              class="dt-textarea tool-textarea"
-              rows="12"
-              placeholder="Enter XML to format..."
+              class="dt-textarea tool-textarea mono-editor"
+              rows="14"
+              placeholder="Paste or type XML here..."
               aria-label="XML input"
               spellcheck="false"
               @blur="handleInputBlur"
@@ -128,7 +163,7 @@ onUnmounted(() => dispose())
             :value="output ?? ''"
             readonly
             placeholder="Formatted XML output will appear here."
-            :stats="output ? { chars: output.length } : null"
+            :stats="output ? outputPanelStats : null"
             aria-label="XML output"
           />
         </template>
@@ -160,5 +195,12 @@ onUnmounted(() => dispose())
 .tool-textarea {
   flex: 1;
   min-height: var(--tool-textarea-min-height);
+}
+
+.mono-editor {
+  font-family: var(--font-mono);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  tab-size: 2;
 }
 </style>

@@ -83,6 +83,18 @@ export function computeDiff(
     }
   }
 
+  // ── Unordered (multiset) path ────────────────────────────────────
+
+  if (options.ignoreLineOrder) {
+    return computeUnorderedDiff(
+      leftLines,
+      rightLines,
+      leftNormalized,
+      rightNormalized,
+      options.contextLines,
+    )
+  }
+
   // ── LCS Table ─────────────────────────────────────────────────────
   const m = leftLines.length
   const n = rightLines.length
@@ -178,6 +190,137 @@ export function computeDiff(
   }
 }
 
+// ── Unordered (multiset) diff ──────────────────────────────────────
+
+/**
+ * Multiset/bag comparison — ignores line order.
+ *
+ * Lines with the same normalized key are compared by count:
+ *   - Extra copies in original → removed
+ *   - Extra copies in modified → added
+ *   - Common copies → unchanged
+ *
+ * Output uses `leftLineNumber: null, rightLineNumber: null` since
+ * positions are meaningless in unordered mode.
+ */
+function computeUnorderedDiff(
+  leftLines: string[],
+  rightLines: string[],
+  leftNormalized: string[],
+  rightNormalized: string[],
+  _contextLines: number,
+): DiffResult {
+  // Build per-key line lists preserving original order
+  const leftByKey = new Map<string, { index: number; content: string }[]>()
+  const rightByKey = new Map<string, { index: number; content: string }[]>()
+
+  for (let i = 0; i < leftLines.length; i++) {
+    const key = leftNormalized[i]
+    if (!leftByKey.has(key)) leftByKey.set(key, [])
+    leftByKey.get(key)!.push({ index: i, content: leftLines[i] })
+  }
+
+  for (let i = 0; i < rightLines.length; i++) {
+    const key = rightNormalized[i]
+    if (!rightByKey.has(key)) rightByKey.set(key, [])
+    rightByKey.get(key)!.push({ index: i, content: rightLines[i] })
+  }
+
+  // Compute common count per key
+  const commonCount = new Map<string, number>()
+  const allKeys = new Set([...leftByKey.keys(), ...rightByKey.keys()])
+  for (const key of allKeys) {
+    const lc = leftByKey.get(key)?.length ?? 0
+    const rc = rightByKey.get(key)?.length ?? 0
+    commonCount.set(key, Math.min(lc, rc))
+  }
+
+  // Track how many instances of each key have been "consumed" as removed/added
+  const leftConsumed = new Map<string, number>()
+  for (const key of allKeys) leftConsumed.set(key, 0)
+
+  const diffLines: DiffLine[] = []
+  let addedCount = 0
+  let removedCount = 0
+
+  // Pass A — walk original → emit removed (excess in original)
+  for (let i = 0; i < leftLines.length; i++) {
+    const key = leftNormalized[i]
+    const total = leftByKey.get(key)!.length
+    const common = commonCount.get(key)!
+    const excess = total - common
+    const consumed = leftConsumed.get(key)!
+
+    if (consumed < excess) {
+      diffLines.push({
+        type: 'removed',
+        leftLineNumber: null,
+        rightLineNumber: null,
+        content: leftLines[i],
+      })
+      removedCount++
+      leftConsumed.set(key, consumed + 1)
+    }
+  }
+
+  // Reset consumed tracker for the unchanged pass
+  for (const key of allKeys) leftConsumed.set(key, 0)
+
+  const rightConsumed = new Map<string, number>()
+  for (const key of allKeys) rightConsumed.set(key, 0)
+
+  // Pass B — walk modified → emit added (excess in modified)
+  for (let i = 0; i < rightLines.length; i++) {
+    const key = rightNormalized[i]
+    const total = rightByKey.get(key)!.length
+    const common = commonCount.get(key)!
+    const excess = total - common
+    const consumed = rightConsumed.get(key)!
+
+    if (consumed < excess) {
+      diffLines.push({
+        type: 'added',
+        leftLineNumber: null,
+        rightLineNumber: null,
+        content: rightLines[i],
+      })
+      addedCount++
+      rightConsumed.set(key, consumed + 1)
+    }
+  }
+
+  // Pass C — walk original → emit unchanged (common instances)
+  for (let i = 0; i < leftLines.length; i++) {
+    const key = leftNormalized[i]
+    const common = commonCount.get(key)!
+    const consumed = leftConsumed.get(key)!
+
+    if (consumed < common) {
+      diffLines.push({
+        type: 'unchanged',
+        leftLineNumber: null,
+        rightLineNumber: null,
+        content: leftLines[i],
+      })
+      leftConsumed.set(key, consumed + 1)
+    }
+  }
+
+  // Build a single unordered hunk (sentinel: leftStart=0, rightStart=0).
+  // Never trim context for unordered mode — line numbers are meaningless
+  // and buildHunks would replace the sentinel with computed numbers.
+  if (diffLines.length === 0) {
+    return { hunks: [], addedCount: 0, removedCount: 0, isIdentical: true }
+  }
+
+  return {
+    hunks: [{ lines: diffLines, leftStart: 0, rightStart: 0 }],
+    addedCount,
+    removedCount,
+    isIdentical: addedCount === 0 && removedCount === 0,
+  }
+}
+
 // ── Hunk builder ─────────────────────────────────────────────────────
 
 function buildHunks(diffLines: DiffLine[], contextLines: number): DiffHunk[] {
@@ -249,9 +392,13 @@ export function formatUnifiedDiff(diff: DiffResult): string {
   for (const hunk of diff.hunks) {
     const leftCount = hunk.lines.filter((l) => l.type !== 'added').length
     const rightCount = hunk.lines.filter((l) => l.type !== 'removed').length
-    output.push(
-      `@@ -${hunk.leftStart},${leftCount} +${hunk.rightStart},${rightCount} @@`,
-    )
+    if (hunk.leftStart === 0 && hunk.rightStart === 0) {
+      output.push('@@ unordered @@')
+    } else {
+      output.push(
+        `@@ -${hunk.leftStart},${leftCount} +${hunk.rightStart},${rightCount} @@`,
+      )
+    }
 
     for (const line of hunk.lines) {
       switch (line.type) {

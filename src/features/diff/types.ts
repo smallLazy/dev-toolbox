@@ -10,6 +10,8 @@ export interface DiffOptions {
   ignoreWhitespace: boolean
   /** When true, compare case-insensitively */
   ignoreCase: boolean
+  /** When true, compare using multiset (bag) semantics — order-independent */
+  ignoreLineOrder: boolean
 }
 
 export interface DiffConfig extends FeatureConfig, DiffOptions {
