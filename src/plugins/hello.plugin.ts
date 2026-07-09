@@ -1,13 +1,12 @@
 /**
  * Hello Plugin — Powered by Plugin SDK
  *
- * Before (78 lines of manual ToolPlugin manifest):
- *   export const helloPlugin: ToolPlugin = { ...verbose manifest... }
+ * This is an internal framework validation tool used to verify that the
+ * Workspace Core (plugin lifecycle, DI, routing, command registry) is
+ * functioning correctly. It is intentionally excluded from the plugin
+ * barrel export and the user-facing tool list.
  *
- * After (27 lines with definePlugin):
- *   export default definePlugin({ ...concise definition... })
- *
- * Code reduction: 65%
+ * Not a user-facing developer tool — kept for development and testing.
  */
 
 import { definePlugin, createCommand, type PluginContext } from '@/sdk/plugin'
@@ -19,7 +18,7 @@ export default definePlugin({
   version: '1.0.0',
   description: 'Framework Validation — verify Workspace Core is running correctly',
   category: 'utility',
-  status: 'active',
+  status: 'coming-soon',
 
   // Route: string path + lazy component
   route: '/hello',

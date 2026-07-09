@@ -117,11 +117,16 @@ npm run build:release
 | `npm run build:win` | 构建 Windows MSI |
 | `npm run build:release` | 完整校验 + 全平台 Tauri 构建 |
 | `npm test` | 运行全部单元测试（Vitest） |
-| `npm run validate` | 完整 CI 质量门（类型检查 + 测试 + 架构 + 设计 + 插件 + AI） |
+| `npm run validate` | 完整 CI 质量门（类型检查 + 测试 + 架构 + 设计 + 插件 + AI + 文档 + 布局） |
 | `npm run validate:arch` | 架构合规检查 |
 | `npm run validate:design` | Design Token 合规检查 |
 | `npm run validate:plugins` | 插件结构校验 |
 | `npm run validate:ai` | AI 治理合规检查 |
+| `npm run validate:docs` | 文档治理检查 |
+| `npm run validate:layout` | 工具页面布局合规检查 |
+| `npm run validate:plugin-specs` | 插件规格文档合规检查 |
+| `npm run check:quick` | 快速检查（文档 + 布局 + 设计 + 架构）— pre-commit 用 |
+| `npm run check:push` | 推送前检查（文档 + 布局 + 类型检查 + 构建 + 插件）— pre-push 用 |
 | `npm run create-plugin <name>` | 从模板生成新插件 |
 | `npm run preview` | 本地预览生产构建 |
 
@@ -185,13 +190,19 @@ dev-toolbox/
 │   │   └── ToolUnavailable.vue   # 未激活工具占位
 │   │
 │   ├── templates/                # 页面模板
-│   │   ├── ToolPage.vue          # 标准工具页布局
-│   │   ├── PluginWorkspace.vue   # 插件工作区包装
+│   │   ├── ToolLayout.vue        # 工具页外层容器（强制使用）
+│   │   ├── ToolWorkspace.vue     # 工具内容布局（I/O 工具强制使用）
+│   │   ├── InputOutputPanel.vue  # 输入/输出面板
+│   │   ├── ToolActionBar.vue     # 操作按钮栏
 │   │   ├── ToolHeader.vue        # 工具标题栏
-│   │   ├── ToolActions.vue       # 操作按钮栏
-│   │   ├── ToolOutputPanel.vue   # 输出展示面板
-│   │   ├── ToolSection.vue       # 工具内容区
+│   │   ├── ToolOptionsRow.vue    # 选项行容器
+│   │   ├── ToolOptionGroup.vue   # 选项组
+│   │   ├── ToolStatusBar.vue     # 状态/错误信息栏
 │   │   ├── ToolSegmentedControl.vue # 模式切换控件
+│   │   ├── ToolPage.vue          # ⚠️ 旧版 — 已废弃，禁止使用
+│   │   ├── ToolSection.vue       # ⚠️ 旧版 — 已废弃，禁止使用
+│   │   ├── ToolActions.vue       # ⚠️ 旧版 — 已废弃，禁止使用
+│   │   ├── ToolOutputPanel.vue   # ⚠️ 旧版 — 已废弃，禁止使用
 │   │   └── PluginEmptyState.vue  # 空状态占位
 │   │
 │   ├── modules/                  # 内置应用页（首页、关于、设置、SQL）
@@ -227,6 +238,8 @@ dev-toolbox/
 │
 ├── scripts/                      # 工具脚本
 │   ├── create-plugin.ts          # 插件生成器
+│   ├── validate-docs.js          # 文档治理校验
+│   ├── validate-tool-layout.js   # 工具页面布局校验
 │   └── ci/                       # CI 校验脚本
 │       ├── validate-architecture.ts
 │       ├── validate-design.ts
@@ -291,7 +304,39 @@ npm run create-plugin <name> -- --template=<type>
 | **字体** | `var(--text-*)` | `13px`、`14px` |
 | **图标** | `@/design/icons` | 直接导入 `lucide-vue-next` |
 | **图标** | 从图标注册中心取 SVG 组件 | 在模板中使用 Emoji |
-| **布局** | `Card + Section` 模式 | 自定义布局 |
+| **布局** | `ToolLayout` + `ToolWorkspace` + `InputOutputPanel` | 自定义布局或旧组件（ToolPage/ToolSection/ToolActions/ToolOutputPanel） |
+
+### 工具页面布局规范
+
+所有工具页面必须遵循标准布局结构。违反规范将被 `npm run validate:layout` 检测。
+
+**标准 I/O 工具页面结构：**
+
+```
+<ToolLayout layout="io">
+  ├── <template #options>      ← ToolOptionsRow + ToolOptionGroup（可选）
+  ├── <template #workspace>    ← ToolWorkspace layout="io"
+  │   ├── <template #input>    ← InputOutputPanel
+  │   └── <template #output>   ← InputOutputPanel（必须带 readonly）
+  ├── <template #actions>      ← ToolActionBar
+  └── <template #status>       ← ToolStatusBar
+</ToolLayout>
+```
+
+**必须遵守：**
+- ✅ 工具页面必须使用 `ToolLayout` 作为外层容器
+- ✅ I/O 工具必须使用 `ToolWorkspace layout="io"`
+- ✅ 输入输出区域必须使用 `InputOutputPanel`
+- ✅ 输出 `InputOutputPanel` 必须带 `readonly` 属性
+- ✅ 操作区建议使用 `ToolActionBar`
+- ✅ `layout="custom"` 必须有注释说明原因
+
+**禁止：**
+- ❌ 禁止使用 `ToolPage` / `ToolSection` / `ToolActions` / `ToolOutputPanel` 作为页面主结构
+- ❌ 禁止 `layout="custom"` 无注释说明
+- ❌ 禁止跳过 `ToolLayout` 外层容器
+
+详细规范见 [`docs/design/design-system-v2.md`](./docs/design/design-system-v2.md) §8.5。
 
 ### 测试
 
@@ -304,6 +349,59 @@ npx vitest run src/features/base64/
 ```
 
 每个插件要求 **5 个以上单元测试**，覆盖其 `logic.ts`。测试是纯函数测试 — 不涉及 DOM、Tauri API 或副作用。
+
+## Git Hooks
+
+Dev Toolbox 使用 [Husky](https://typicode.github.io/husky/) 在提交和推送前自动运行检查。`npm install` 后自动启用，无需手动配置。
+
+### pre-commit — 快速检查
+
+每次 `git commit` 时运行，数秒内完成：
+
+```
+npm run check:quick
+→ validate:docs   (文档治理检查)
+→ validate:layout (工具页面布局合规)
+→ validate:design (Design Token 合规)
+→ validate:arch   (架构边界)
+```
+
+### pre-push — 中等检查
+
+每次 `git push` 时运行，在代码到达远程仓库前拦截问题：
+
+```
+npm run check:push
+→ validate:docs   (文档治理检查)
+→ validate:layout (工具页面布局合规)
+→ vue-tsc --noEmit  (TypeScript 类型检查)
+→ vite build        (生产构建)
+→ validate:plugins  (插件结构校验)
+```
+
+### CI — 完整质量门
+
+GitHub Actions 在每次向 `master` 推送或发起 PR 时运行**完整**校验，包括 hooks 不覆盖的：
+- 完整测试套件（Vitest + cargo test）
+- AI 治理校验
+- 文档治理校验
+- 工具布局校验
+- 导航校验
+- Rust clippy
+- 代码覆盖率
+
+**Hooks 是快速第一道防线 — 不替代 CI。**
+
+### 跳过 Hooks
+
+紧急情况下（hotfix、bisect、WIP 提交）可跳过：
+
+```bash
+git commit --no-verify        # 跳过 pre-commit
+git push --no-verify          # 跳过 pre-push
+```
+
+不建议频繁使用 `--no-verify`。
 
 ## 质量检查
 
@@ -323,6 +421,8 @@ npm run validate
 | 设计 | `validate-design.ts` | Design Token 使用、无硬编码值 |
 | 插件 | `validate-plugins.ts` | 插件结构、必需文件、注册正确性 |
 | AI 治理 | `validate-ai.ts` | AI 可读文档存在性、CLAUDE.md/AGENTS.md 合规 |
+| 文档 | `validate-docs.js` | 文档 front matter 状态、deprecated/archive 规范、SSOT 完整性 |
+| 工具布局 | `validate-tool-layout.js` | 工具页面布局合规：ToolLayout、ToolWorkspace、InputOutputPanel、禁止旧组件 |
 
 单独执行某项检查：
 
@@ -331,6 +431,8 @@ npm run validate:arch       # 仅架构
 npm run validate:design     # 仅设计令牌
 npm run validate:plugins    # 仅插件结构
 npm run validate:ai         # 仅 AI 治理
+npm run validate:docs       # 仅文档治理
+npm run validate:layout     # 仅工具布局
 npx vue-tsc --noEmit        # 仅 TypeScript
 npm test                    # 仅测试
 ```
@@ -359,28 +461,31 @@ npm test                    # 仅测试
 
 ## 文档索引
 
+> **📚 文档 SSOT**：[`docs/DOCS_INDEX.md`](./docs/DOCS_INDEX.md) — 完整文档索引，含状态元信息（active / deprecated / archive / snapshot）。
+
+### AI Agent 入口
+
 | 文档 | 说明 |
 |------|------|
-| [AGENTS.md](./AGENTS.md) | 通用 AI Agent 入口 |
+| [AGENTS.md](./AGENTS.md) | 通用 AI Agent 入口 — 所有 AI Agent 首先阅读 |
 | [CLAUDE.md](./CLAUDE.md) | Claude Code 专属指令 |
-| [CHANGELOG.md](./CHANGELOG.md) | 发布历史与变更记录 |
+
+### 核心参考
+
+| 文档 | 说明 |
+|------|------|
+| `docs/DOCS_INDEX.md` | **文档 SSOT** — 完整索引与状态元信息 |
 | `docs/ai/AI_OVERVIEW.md` | 面向 AI Agent 的项目介绍 |
-| `docs/ai/AI_ARCHITECTURE.md` | 插件架构详解 |
-| `docs/ai/AI_PLUGIN_GUIDE.md` | 插件开发分步指南 |
-| `docs/ai/AI_UI_GUIDE.md` | 设计系统合规指南 |
-| `docs/ai/AI_CODE_REVIEW.md` | 代码审查清单 |
-| `docs/ai/AI_RELEASE.md` | 发布清单 |
-| `docs/ai/AI_CONTEXT_GRAPH.md` | 文档阅读顺序图 |
-| `docs/ai/AI_DECISIONS.md` | 架构决策记录 |
+| `docs/architecture/workspace-architecture-v1.md` | 架构 SSOT |
 | `docs/design/design-system-v2.md` | 设计系统 SSOT |
 | `docs/design/ui-copy-guidelines.md` | UI 文案语言一致性规范 |
-| `docs/design/ui-guidelines-v1.md` | 页面布局与组件模式 |
-| `docs/design/icon-guidelines-v1.md` | 图标系统规则 |
 | `docs/platform/platform-freeze-v1.md` | 冻结层说明 |
+| `docs/development/tool-development-guidelines.md` | 工具开发标准流程 |
+| `docs/product/plugin-definition-of-done-v1.md` | 插件完成标准 |
 | `docs/sdk/feature-sdk-v1.md` | Feature SDK API 参考 |
 | `docs/sdk/plugin-sdk-v1.md` | Plugin SDK API 参考 |
-| `docs/product/plugin-definition-of-done-v1.md` | 插件完成标准 |
-| `docs/release/release-engineering-v1.md` | 发布工程指南 |
+
+> 详细规范、发布说明和归档文档见 [`docs/DOCS_INDEX.md`](./docs/DOCS_INDEX.md)。
 
 ## 许可证
 

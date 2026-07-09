@@ -14,6 +14,7 @@ Claude must read these before coding (in order):
 
 ```
 [ ] AGENTS.md                              ← Universal AI rules
+[ ] docs/DOCS_INDEX.md                     ← Documentation SSOT (status metadata for all docs)
 [ ] docs/ai/AI_OVERVIEW.md                 ← Project introduction
 [ ] docs/ai/AI_ARCHITECTURE.md             ← Why Plugin Architecture
 [ ] docs/platform/platform-freeze-v1.md    ← What's frozen
@@ -24,6 +25,14 @@ Claude must read these before coding (in order):
 ```
 
 For full context: `docs/ai/AI_CONTEXT_GRAPH.md`
+
+**Document Governance**: All docs in `docs/` have front matter with `status` field:
+- `active` — current, authoritative ✅ Use as implementation basis
+- `deprecated` — superseded, check `replaced_by` field ❌ Do NOT use
+- `archive` — historical migration/design records ❌ Do NOT use
+- `snapshot` — point-in-time release records ❌ Do NOT use
+
+Always check `docs/DOCS_INDEX.md` for a doc's status before relying on it.
 
 ### 2. Run These Commands
 
@@ -65,6 +74,9 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ❌ Hand-write plugin directories (use Generator)
 ❌ Add manual route registrations
 ❌ Use plain @click="execute()" as the sole event on primary text-transform buttons
+❌ Use ToolPage, ToolSection, ToolActions, or ToolOutputPanel as primary tool page structure
+❌ Use layout="custom" without a comment explaining why standard layouts cannot be used
+❌ Skip ToolLayout wrapper — every tool page must use ToolLayout as the outer shell
 ```
 
 #### Always Do
@@ -85,6 +97,13 @@ npx vue-tsc --noEmit        # Does TypeScript compile?
 ✅ Textarea must bind ref="inputEl", @blur, @compositionstart, @compositionend (text-transform tools)
 ✅ Mode controls must follow the shared layout rule: single Mode controls use full width, Mode+Variant controls use two columns; action labels must use Title Case and shared labels such as Run Encode, Copy Output, and Swap I/O
 ✅ Copy Output and Swap I/O are output-dependent actions: hide them when there is no output, and hide Swap I/O when the current mode output is not suitable as input (e.g., Validate mode)
+✅ Use ToolLayout as the outer shell for all tool pages
+✅ I/O tools must use ToolWorkspace layout="io" with InputOutputPanel for input/output
+✅ Output InputOutputPanel must have readonly attribute
+✅ Use ToolActionBar for primary and secondary action buttons
+✅ Run npm run validate:layout after modifying any tool page layout
+✅ Active plugins must have docs/plugin-specs/<plugin-id>.md — run npm run validate:plugin-specs
+✅ Read the plugin-spec before modifying a plugin's behavior
 ```
 
 ### UI Copy Language Consistency
@@ -232,6 +251,11 @@ When developing any Dev Toolbox tool, always follow the standard workflow:
 [ ] No Core/SDK/Registry modifications
 [ ] Card+Section layout used
 [ ] All states covered: idle, loading, success, error, empty
+[ ] Tool page uses ToolLayout + ToolWorkspace + InputOutputPanel + ToolActionBar (see docs/design/design-system-v2.md §8.5)
+[ ] Output InputOutputPanel has readonly attribute
+[ ] No legacy components (ToolPage, ToolSection, ToolActions, ToolOutputPanel) used as primary structure
+[ ] layout="custom" has a justifying comment if used
+[ ] Active plugin has docs/plugin-specs/<plugin-id>.md (npm run validate:plugin-specs)
 [ ] UI copy: English by default (see docs/design/ui-copy-guidelines.md)
 [ ] UI copy: No mixed CN/EN on the same page
 [ ] Plugin name in English (Title Case) unless Chinese tool with justification
@@ -243,6 +267,7 @@ When developing any Dev Toolbox tool, always follow the standard workflow:
 [ ] npx vue-tsc --noEmit passes
 [ ] npm test passes (all tests, not just new ones)
 [ ] npm run validate passes (all CI checks)
+[ ] npm run validate:docs passes (doc governance)
 [ ] No hardcoded hex values (grep for # in diff)
 [ ] No hardcoded px values (grep for px in diff)
 [ ] No emoji in templates (grep for emoji in diff)
@@ -274,6 +299,7 @@ npm run validate
 npx tsx scripts/ci/validate-architecture.ts
 npx tsx scripts/ci/validate-design.ts
 npx tsx scripts/ci/validate-ai.ts
+node scripts/validate-docs.js
 
 # Development
 npm run tauri dev

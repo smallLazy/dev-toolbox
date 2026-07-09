@@ -80,27 +80,51 @@ Every Plugin must pass the DoD checklist before merge. See `docs/product/plugin-
 
 Read these in order. Do NOT copy — these are the Single Source of Truth:
 
+### First Priority — Doc Governance & Project Rules
+
 | # | Document | What It Covers |
 |---|----------|---------------|
-| 1 | `docs/ai/AI_OVERVIEW.md` | Project introduction for AI |
-| 2 | `docs/platform/platform-freeze-v1.md` | What's frozen and why |
-| 3 | `docs/ai/AI_ARCHITECTURE.md` | Plugin Architecture explained |
+| 1 | `docs/DOCS_INDEX.md` | **Documentation SSOT** — all doc statuses (active/deprecated/archive/snapshot) |
+| 2 | `docs/ai/AI_OVERVIEW.md` | Project introduction for AI |
+| 3 | `docs/platform/platform-freeze-v1.md` | What's frozen and why |
+
+### Second Priority — Architecture & Design
+
+| # | Document | What It Covers |
+|---|----------|---------------|
 | 4 | `docs/architecture/workspace-architecture-v1.md` | Full Architecture SSOT |
-| 5 | `docs/design/design-system-v2.md` | Design System SSOT (Tokens, Components, Patterns) |
-| 6 | `docs/design/ui-guidelines-v1.md` | Page Layout, Sidebar, Card structure |
-| 7 | `docs/design/icon-guidelines-v1.md` | Icon System rules |
-| 8 | `docs/design/interaction-guidelines-v1.md` | Motion, States, Transitions |
-| 9 | `docs/sdk/feature-sdk-v1.md` | BaseFeature, FeatureContext API |
-| 10 | `docs/sdk/plugin-sdk-v1.md` | definePlugin, PluginContext API |
-| 11 | `docs/plugin/plugin-generator.md` | Plugin Generator usage |
-| 12 | `docs/ai/AI_PLUGIN_GUIDE.md` | Step-by-step Plugin creation |
-| 13 | `docs/product/plugin-definition-of-done-v1.md` | DoD Checklist |
-| 14 | `docs/ai/AI_CODE_REVIEW.md` | Code Review Checklist |
-| 15 | `docs/ai/AI_RELEASE.md` | Release Checklist |
+| 5 | `docs/ai/AI_ARCHITECTURE.md` | Plugin Architecture explained |
+| 6 | `docs/design/design-system-v2.md` | Design System SSOT (Tokens, Components, Patterns) |
+| 7 | `docs/design/ui-copy-guidelines.md` | UI Copy Language Consistency |
+| 8 | `docs/design/icon-guidelines-v1.md` | Icon System rules |
+
+### Third Priority — Development Workflow
+
+| # | Document | What It Covers |
+|---|----------|---------------|
+| 9 | `docs/development/tool-development-guidelines.md` | Tool dev workflow & completion report |
+| 10 | `docs/ai/AI_PLUGIN_GUIDE.md` | Step-by-step Plugin creation |
+| 11 | `docs/sdk/feature-sdk-v1.md` | BaseFeature, FeatureContext API |
+| 12 | `docs/sdk/plugin-sdk-v1.md` | definePlugin, PluginContext API |
+| 13 | `docs/plugin/plugin-generator.md` | Plugin Generator usage |
+| 14 | `docs/product/plugin-definition-of-done-v1.md` | DoD Checklist |
+| 15 | `docs/ai/AI_CODE_REVIEW.md` | Code Review Checklist |
+| 16 | `docs/ai/AI_RELEASE.md` | Release Checklist |
 
 **Reading order map**: `docs/ai/AI_CONTEXT_GRAPH.md`
 
 **Architecture decisions (why)**: `docs/ai/AI_DECISIONS.md`
+
+### ⚠️ Doc Status Governance
+
+All docs in `docs/` carry front matter with a `status` field. Before relying on any document, check its status:
+
+- `status: active` → ✅ Current, authoritative — use as implementation basis
+- `status: deprecated` → ❌ Superseded — check `replaced_by` field for the current doc
+- `status: archive` → ❌ Historical record only — do NOT use for current implementation
+- `status: snapshot` → ❌ Point-in-time record — does not reflect current state
+
+If a doc is `deprecated` or `archive`, find its `active` replacement via `docs/DOCS_INDEX.md`.
 
 ---
 
@@ -173,6 +197,10 @@ npm run tauri build            # Tauri production build (desktop app)
 | Modify Design System components | Frozen — Token additions only |
 | Bypass Plugin Generator | Manual creation violates rules |
 | Import from another Feature | Features must be independently deletable |
+| Use ToolPage/ToolSection/ToolActions/ToolOutputPanel | Legacy components — use ToolLayout + InputOutputPanel + ToolActionBar |
+| Use layout="custom" without comment | Must explain why standard io/editor/inspector cannot be used |
+| Skip ToolLayout wrapper | Every tool page must use ToolLayout as the outer shell |
+| Activate plugin without spec | Every active plugin must have docs/plugin-specs/<id>.md |
 | Hardcode colors (`#XXXXXX`) | Use `var(--color-*)` |
 | Hardcode spacing (`16px`) | Use `var(--space-*)` |
 | Hardcode fonts (`13px`) | Use `var(--text-*)` |
@@ -207,28 +235,36 @@ npm run validate
 ```
 AGENTS.md                       ← You are here (AI entry point)
 CLAUDE.md                       ← Claude Code specific instructions
-docs/ai/                        ← AI-oriented documentation
-  ├── AI_OVERVIEW.md            ← Project introduction
-  ├── AI_ARCHITECTURE.md        ← Architecture for AI
-  ├── AI_PLUGIN_GUIDE.md        ← Plugin development guide
-  ├── AI_UI_GUIDE.md            ← UI/Design guide
-  ├── AI_CODE_REVIEW.md         ← Review checklist
-  ├── AI_RELEASE.md             ← Release checklist
-  ├── AI_CONTEXT_GRAPH.md       ← Reading order map
-  ├── AI_PROMPT_CONVENTION.md   ← Prompt format standard
-  └── AI_DECISIONS.md           ← Architecture decisions
 docs/
-  ├── platform/                 ← Platform freeze spec
+  ├── DOCS_INDEX.md             ← Documentation SSOT (status metadata for all docs)
+  ├── ai/                        ← AI-oriented documentation
+  │   ├── AI_OVERVIEW.md        ← Project introduction
+  │   ├── AI_ARCHITECTURE.md    ← Architecture for AI
+  │   ├── AI_PLUGIN_GUIDE.md    ← Plugin development guide
+  │   ├── AI_UI_GUIDE.md        ← UI/Design guide
+  │   ├── AI_CODE_REVIEW.md     ← Review checklist
+  │   ├── AI_RELEASE.md         ← Release checklist
+  │   ├── AI_CONTEXT_GRAPH.md   ← Reading order map
+  │   ├── AI_PROMPT_CONVENTION.md ← Prompt format standard
+  │   ├── AI_DECISIONS.md       ← Architecture decisions
+  │   └── AI_DEVELOPMENT_RULES.md ← AI dev rules summary
   ├── architecture/             ← Architecture SSOT
   ├── design/                   ← Design SSOT
+  ├── platform/                 ← Platform freeze spec
   ├── sdk/                      ← SDK SSOT
   ├── product/                  ← DoD SSOT
   ├── plugin/                   ← Generator docs
-  └── release/                  ← Release engineering
+  ├── release/                  ← Release engineering
+  ├── development/              ← Development workflow
+  ├── releases/                 ← Snapshot: historical release notes
+  ├── checklists/               ← Snapshot: historical QA checklists
+  └── archive/                  ← Archive: historical migration plans (do NOT use)
 scripts/ci/
   ├── validate-architecture.ts  ← CI: Architecture check
   ├── validate-design.ts        ← CI: Design Token check
   └── validate-ai.ts            ← CI: AI Governance check
+scripts/
+  └── validate-docs.js          ← CI: Documentation governance check
 ```
 
 ---

@@ -117,11 +117,14 @@ Build output is in `src-tauri/target/release/bundle/`.
 | `npm run build:win` | Build Windows MSI |
 | `npm run build:release` | Full validate + multi-platform Tauri build |
 | `npm test` | Run all unit tests (Vitest) |
-| `npm run validate` | Full CI quality gate (type-check + tests + architecture + design + plugins + AI) |
+| `npm run validate` | Full CI quality gate (type-check + tests + architecture + design + plugins + AI + docs + layout) |
 | `npm run validate:arch` | Architecture compliance check |
 | `npm run validate:design` | Design Token compliance check |
 | `npm run validate:plugins` | Plugin structure validation |
 | `npm run validate:ai` | AI Governance compliance check |
+| `npm run validate:docs` | Documentation governance check |
+| `npm run validate:layout` | Tool page layout compliance check |
+| `npm run validate:plugin-specs` | Plugin spec document compliance check |
 | `npm run create-plugin <name>` | Generate a new Plugin from template |
 | `npm run preview` | Preview production build locally |
 
@@ -315,8 +318,10 @@ Runs on every `git commit`. Lightweight, completes in seconds:
 
 ```
 npm run check:quick
+→ validate:docs   (Documentation governance)
+→ validate:layout (Tool page layout compliance)
 → validate:design (Design Token compliance)
-→ validate:arch  (Architecture boundaries)
+→ validate:arch   (Architecture boundaries)
 ```
 
 These are the fastest static checks — no type-checking, no tests, no build. They catch the most common mistakes (hardcoded colors, cross-feature imports) without slowing down your commit workflow.
@@ -327,6 +332,8 @@ Runs on every `git push`. Catches issues before they reach the remote:
 
 ```
 npm run check:push
+→ validate:docs   (Documentation governance)
+→ validate:layout (Tool page layout compliance)
 → vue-tsc --noEmit  (TypeScript type checking)
 → vite build        (Production build)
 → validate:plugins  (Plugin structure validation)
@@ -361,8 +368,8 @@ git push --no-verify          # Skip pre-push
 
 | Script | What it runs | When |
 |--------|-------------|------|
-| `npm run check:quick` | design + architecture validation | pre-commit |
-| `npm run check:push` | type-check + build + plugin validation | pre-push |
+| `npm run check:quick` | docs + layout + design + architecture validation | pre-commit |
+| `npm run check:push` | docs + layout + type-check + build + plugin validation | pre-push |
 | `npm run check:full` | full validate + build | manually, before PR |
 
 ## Quality Checks
@@ -383,6 +390,8 @@ This runs sequentially:
 | Design | `validate-design.ts` | Design Token usage, no hardcoded values |
 | Plugins | `validate-plugins.ts` | Plugin structure, required files, registration correctness |
 | AI Governance | `validate-ai.ts` | AI-readable docs presence, CLAUDE.md/AGENTS.md compliance |
+| Documentation | `validate-docs.js` | Doc front matter status, deprecated/archive rules, SSOT integrity |
+| Tool Layout | `validate-tool-layout.js` | Tool page layout compliance — ToolLayout, ToolWorkspace, InputOutputPanel, no legacy components |
 
 Individual checks:
 
@@ -391,6 +400,8 @@ npm run validate:arch       # Architecture only
 npm run validate:design     # Design tokens only
 npm run validate:plugins    # Plugin structure only
 npm run validate:ai         # AI governance only
+npm run validate:docs       # Documentation governance only
+npm run validate:layout     # Tool layout only
 npx vue-tsc --noEmit        # TypeScript only
 npm test                    # Tests only
 ```
@@ -419,29 +430,31 @@ GitHub Actions runs the full quality gate on every PR and push to `master`:
 
 ## Documentation
 
+> **📚 Documentation SSOT**: [`docs/DOCS_INDEX.md`](./docs/DOCS_INDEX.md) — complete document index with status metadata (active / deprecated / archive / snapshot).
+
+### AI Agent Entry Points
+
 | Document | Description |
 |----------|-------------|
-| [AGENTS.md](./AGENTS.md) | Universal AI agent entry point |
+| [AGENTS.md](./AGENTS.md) | Universal AI agent entry point — all AI Agents read this first |
 | [CLAUDE.md](./CLAUDE.md) | Claude Code specific instructions |
-| [CHANGELOG.md](./CHANGELOG.md) | Release history and changes |
+
+### Key References
+
+| Document | Description |
+|----------|-------------|
+| `docs/DOCS_INDEX.md` | **Documentation SSOT** — full index with status metadata |
 | `docs/ai/AI_OVERVIEW.md` | Project introduction for AI agents |
-| `docs/ai/AI_ARCHITECTURE.md` | Plugin Architecture explained |
-| `docs/ai/AI_PLUGIN_GUIDE.md` | Step-by-step Plugin creation guide |
-| `docs/ai/AI_UI_GUIDE.md` | Design System compliance guide |
-| `docs/ai/AI_CODE_REVIEW.md` | Code review checklist |
-| `docs/ai/AI_RELEASE.md` | Release checklist |
-| `docs/ai/AI_CONTEXT_GRAPH.md` | Documentation reading order |
-| `docs/ai/AI_DECISIONS.md` | Architecture decision records |
+| `docs/architecture/workspace-architecture-v1.md` | Architecture SSOT |
 | `docs/design/design-system-v2.md` | Design System SSOT |
 | `docs/design/ui-copy-guidelines.md` | UI copy language consistency |
-| `docs/design/ui-guidelines-v1.md` | Page layout and component patterns |
-| `docs/design/icon-guidelines-v1.md` | Icon system rules |
 | `docs/platform/platform-freeze-v1.md` | What is frozen and why |
+| `docs/development/tool-development-guidelines.md` | Standard workflow and completion report |
+| `docs/product/plugin-definition-of-done-v1.md` | Plugin DoD checklist |
 | `docs/sdk/feature-sdk-v1.md` | Feature SDK API reference |
 | `docs/sdk/plugin-sdk-v1.md` | Plugin SDK API reference |
-| `docs/product/plugin-definition-of-done-v1.md` | Plugin DoD checklist |
-| `docs/release/release-engineering-v1.md` | Release engineering guide |
-| `docs/development/tool-development-guidelines.md` | Standard workflow and completion report template for Dev Toolbox tools |
+
+> Detailed specs, release notes, and archived documents are indexed in [`docs/DOCS_INDEX.md`](./docs/DOCS_INDEX.md).
 
 ## License
 
