@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # UI Copy Language Guidelines v1.0 — Dev Toolbox
 
 > **Rule**: Developer Toolbox is a developer-facing tool. Default UI language is **English**.

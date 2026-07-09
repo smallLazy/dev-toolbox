@@ -1,3 +1,9 @@
+---
+status: archive
+last_reviewed: 2026-07-08
+owner: dev-tools
+reason: Historical migration plan — preserved for reference only
+---
 # Cloud Encrypt → Pipeline/Preset v2 — 实施前审查报告
 
 > **日期**: 2026-07-01

@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin Development Workflow v1.0
 
 > **Rule**: Specification first. No code before spec is approved.

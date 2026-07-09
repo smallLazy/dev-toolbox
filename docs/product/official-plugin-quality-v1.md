@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Official Plugin Quality Standards v1.0
 
 > **规则**: 未通过全部 Quality Gate 的 Plugin 禁止合并。

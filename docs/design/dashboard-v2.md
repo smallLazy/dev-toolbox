@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Dashboard v2.0 — Product Design Spec
 
 > **Sprint**: 01 — UX Foundation

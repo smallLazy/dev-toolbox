@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Icon Guidelines v1.0
 
 > **规则**: 整个产品只有一套 Icon System。禁止任何地方直接 import lucide/emoji/PNG。

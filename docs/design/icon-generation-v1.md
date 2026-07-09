@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # App Icon Generation v1.0
 
 > **Tool**: Tauri CLI (`npx tauri icon`)

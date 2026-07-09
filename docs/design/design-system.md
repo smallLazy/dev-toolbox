@@ -1,3 +1,10 @@
+---
+status: deprecated
+last_reviewed: 2026-07-08
+owner: dev-tools
+replaced_by: docs/design/design-system-v2.md
+reason: Superseded by Design System v2.0 — v1 is kept for historical reference only
+---
 # Dev Toolbox Design System
 
 > 基于 Microsoft Fluent Design System，为 macOS 开发者工具适配的暗色主题设计规范。

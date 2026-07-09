@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Tool Development Guidelines v1.0
 
 > **Rule**: Every Dev Toolbox tool must follow the standard development workflow defined in this document. After completion, every tool must produce a **Tool Completion Report** using the mandatory template in Section 8.
@@ -110,7 +115,11 @@ Connect UI **only after** pure logic is implemented and unit tests pass.
 
 **Requirements:**
 
-- Reuse the existing unified tool layout (`ToolPage`, `PluginWorkspace`, `Card+Section`)
+- Reuse the standard tool layout: `ToolLayout` + `ToolWorkspace` + `InputOutputPanel` + `ToolActionBar`
+- I/O-type tools MUST use `ToolWorkspace layout="io"` with input/output `InputOutputPanel` slots
+- Output `InputOutputPanel` MUST have `readonly` attribute
+- Output-dependent actions (Copy Output, Swap I/O) must be hidden when there is no output
+- Must NOT use legacy components as primary structure: `ToolPage`, `ToolSection`, `ToolActions`, `ToolOutputPanel`
 - Must NOT break existing Design Tokens
 - Must NOT use hardcoded colors, spacing, or emoji icons
 - UI components must only handle: state management, event binding, and rendering
@@ -118,6 +127,7 @@ Connect UI **only after** pure logic is implemented and unit tests pass.
 - Error messages must be user-friendly — never use `alert()`
 - States must be clearly distinguishable: **idle**, **loading**, **success**, **error**, **empty**
 - Common interactions (`Copy`, `Clear`, `Run`) must remain consistent with existing tools
+- After completion, run `npm run validate:layout` to verify layout compliance
 
 ### Step 4 — Component Interaction Tests
 
@@ -654,6 +664,7 @@ npm run build                # Production build
 npm run validate:arch        # Architecture compliance
 npm run validate:design      # Design Token compliance
 npm run validate:plugins     # Plugin structure validation
+npm run validate:layout      # Tool page layout compliance
 ```
 
 **Requirements:**
@@ -865,6 +876,7 @@ The Base64 tool demonstrates the standard workflow:
 | npm run validate:arch | Passed / Failed / Not Run |  |
 | npm run validate:design | Passed / Failed / Not Run |  |
 | npm run validate:plugins | Passed / Failed / Not Run |  |
+| npm run validate:layout | Passed / Failed / Not Run |  |
 
 ## 8. Manual Smoke Test
 

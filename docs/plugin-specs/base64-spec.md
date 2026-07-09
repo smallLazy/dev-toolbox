@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin Specification: Base64
 
 > **Status**: Review | **SSOT**: This document.
@@ -16,7 +21,7 @@
 | **Description** | Encode and decode text to/from Base64 with full Unicode support |
 | **Version** | `1.0.0` |
 | **Priority** | `P0` |
-| **Owner** | TBD |
+| **Owner** | dev-tools |
 | **Sprint** | Sprint 02 — Core Utilities |
 | **Milestone** | v1.0.0-beta.1 |
 
@@ -409,6 +414,26 @@ The Loading state exists solely for **uniform UI behavior** across all plugins:
 
 ---
 
+## Overview
+
+Base64 encoder and decoder. Full Unicode and Emoji support via TextEncoder/TextDecoder. Standard RFC 4648 Base64 with optional no-padding mode for pipeline use. Pure-JS implementation with zero external dependencies.
+
+## Validation
+
+- Empty input: prompts user to enter text
+- Decode: validates Base64 alphabet, length, and padding correctness
+- Invalid characters: reports position of first invalid character
+- Whitespace in input: trimmed before validation
+
+## Layout Requirements
+
+- Uses `ToolLayout layout="io"` as outer shell — the reference layout for all I/O tools
+- Uses `ToolWorkspace layout="io"` with input/output `InputOutputPanel`
+- Output panel has `readonly`
+- Uses `ToolActionBar` for primary and secondary actions
+- Uses `ToolOptionsRow` with `ToolSegmentedControl` for mode selection
+- Copy Output and Swap I/O hidden when there is no output
+
 ## Accessibility
 
 - [ ] All inputs have visible labels (`aria-label` on textareas: "Plain text input" / "Base64 input" on encode mode, roles adjusted per mode)
@@ -576,6 +601,15 @@ Potential enhancements for future versions (roadmap only — no commitment):
 - Streaming support for very large inputs
 
 > **Note**: This list is informational. It does not affect v1 scope, implementation, or acceptance criteria.
+
+---
+
+## Known Gaps
+
+- No Base64URL variant exposed in UI (standard Base64 only)
+- No MIME Base64 with line wrapping
+- No file upload for binary Base64 encoding
+- No Data URL generation mode
 
 ---
 

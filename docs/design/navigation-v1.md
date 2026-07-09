@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Navigation Architecture v1.0
 
 > **设计目标**: 支持 300+ Plugin，用户 3 秒内找到任意工具。

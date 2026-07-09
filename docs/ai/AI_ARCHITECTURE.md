@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Architecture Guide
 
 > **Purpose**: Explain the Plugin Architecture and Frozen Layers to AI Agents. Understand WHY before touching any code.

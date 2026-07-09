@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Feature SDK v1.0 — Developer Workspace
 
 > **定位**: Core Framework 之上的工具开发抽象层。所有 Feature 必须继承本 SDK。

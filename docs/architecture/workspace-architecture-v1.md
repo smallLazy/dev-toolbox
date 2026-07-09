@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Developer Workspace — Architecture Specification v1.0
 
 > **定位**: 可扩展至上百个开发工具的企业级 Tauri + Vue3 Workspace。

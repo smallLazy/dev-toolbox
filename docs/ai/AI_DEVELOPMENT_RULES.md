@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Development Rules v1.0
 
 > **Status**: This file is now a consolidated index. Detailed AI guidance has moved to individual files in `docs/ai/`.

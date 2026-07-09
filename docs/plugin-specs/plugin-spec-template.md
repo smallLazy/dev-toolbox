@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin Specification: `<PluginName>`
 
 > **Status**: Draft | Review | Approved | In Development | Released

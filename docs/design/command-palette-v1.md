@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Command Palette v1.0 — Product Design Spec
 
 > **Sprint**: 01 — UX Foundation

@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Release Checklist
 
 > **Purpose**: Standardized release checklist for AI Agents preparing a release.

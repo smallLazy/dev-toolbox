@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI UI Development Guide
 
 > **Purpose**: How AI Agents must build UI — using Design Tokens, Components, and Icons. Zero custom styling.

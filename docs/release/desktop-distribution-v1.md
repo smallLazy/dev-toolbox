@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Desktop Distribution v1.0 — Dev Toolbox
 
 > **Purpose**: Packaging and distribution guide for Dev Toolbox desktop application.

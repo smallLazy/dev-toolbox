@@ -1,3 +1,9 @@
+---
+status: archive
+last_reviewed: 2026-07-08
+owner: dev-tools
+reason: Historical migration plan — preserved for reference only
+---
 # Cloud Encrypt → Pipeline/Preset 长期迁移设计方案
 
 > **状态**: Draft

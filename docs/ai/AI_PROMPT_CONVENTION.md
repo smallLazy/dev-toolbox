@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Prompt Convention
 
 > **Purpose**: Standardize all AI prompts in this project. Consistent format → consistent results.

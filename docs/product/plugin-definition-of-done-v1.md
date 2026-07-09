@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin Definition of Done v1.0
 
 > **规则**: 任何 Plugin 必须通过全部 Checklist 才能合并。

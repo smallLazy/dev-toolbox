@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Release Engineering v1.0 — Developer Workspace
 
 > **定位**: 完整的 CI/CD + 多平台构建 + 语义化版本 + Quality Gate 体系。

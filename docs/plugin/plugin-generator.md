@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin Generator v1.0 — Developer Workspace
 
 > **定位**: Platform 官方唯一推荐的插件创建方式。禁止手写插件目录。

@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Platform Freeze v1.0
 
 > **生效日期**: 2026-07-30

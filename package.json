@@ -34,14 +34,17 @@
     "package": "npm run build:mac",
     "release": "npm run validate && npx tauri build --bundles dmg,app,msi,nsis,deb,appimage",
     "test": "npx vitest run --passWithNoTests",
-    "validate": "npx vue-tsc --noEmit && npm test && npx tsx scripts/ci/validate-architecture.ts && npx tsx scripts/ci/validate-design.ts && npx tsx scripts/ci/validate-plugins.ts && npx tsx scripts/ci/validate-ai.ts",
+    "validate": "npx vue-tsc --noEmit && npm test && npx tsx scripts/ci/validate-architecture.ts && npx tsx scripts/ci/validate-design.ts && npx tsx scripts/ci/validate-plugins.ts && npx tsx scripts/ci/validate-ai.ts && node scripts/validate-docs.js && node scripts/validate-tool-layout.js && node scripts/validate-plugin-specs.js",
     "validate:arch": "npx tsx scripts/ci/validate-architecture.ts",
     "validate:design": "npx tsx scripts/ci/validate-design.ts",
     "validate:plugins": "npx tsx scripts/ci/validate-plugins.ts",
     "validate:ai": "npx tsx scripts/ci/validate-ai.ts",
-    "check:quick": "npm run validate:design && npm run validate:arch",
-    "check:push": "npm run build && npm run validate:plugins",
-    "check:full": "npm run validate && npx vite build",
+    "validate:docs": "node scripts/validate-docs.js",
+    "validate:layout": "node scripts/validate-tool-layout.js",
+    "validate:plugin-specs": "node scripts/validate-plugin-specs.js",
+    "check:quick": "npm run validate:docs && npm run validate:layout && npm run validate:plugin-specs && npm run validate:design && npm run validate:arch",
+    "check:push": "npm run validate:docs && npm run validate:layout && npm run validate:plugin-specs && npm run build && npm run validate:plugins",
+    "check:full": "npm run validate:docs && npm run validate && npx vite build",
     "prepare": "husky"
   },
   "dependencies": {
@@ -50,11 +53,14 @@
     "@tauri-apps/plugin-store": "^2.2.0",
     "@tauri-apps/plugin-updater": "^2.10.1",
     "pinia": "^2.3.0",
+    "qrcode": "^1.5.4",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "xml-formatter": "^3.7.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.2.0",
+    "@types/qrcode": "^1.5.6",
     "@vitejs/plugin-vue": "^5.2.0",
     "husky": "^9.1.7",
     "typescript": "~5.7.0",

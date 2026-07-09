@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # UI Polish v1 — Developer Workspace
 
 > **定位**: 将所有 UI 提升至 DevToys + Raycast + Xcode 水准。

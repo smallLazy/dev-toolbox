@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin Specification: UUID
 
 > **Status**: Draft | **SSOT**: This document.
@@ -86,6 +91,34 @@ uuid, guid, generate, unique, id, v4, v7, random, identifier, 唯一标识, 生�
 | 3 | Batch 5 | 5 UUIDs, one per line |
 | 4 | Validate valid UUID | `true` |
 | 5 | Validate `"not-uuid"` | `false` |
+
+## Overview
+
+UUID generation and validation tool. Supports v4 (random) and v7 (time-ordered) generation. Single-click copy, batch generation (1–100), and format validation.
+
+## Validation
+
+- Invalid UUID format: returns validation error with specific reason
+- Batch count: clamped to 1–100 range
+
+## Layout Requirements
+
+- Uses `ToolLayout layout="io"` as outer shell
+- Uses `ToolWorkspace layout="io"` with input/output `InputOutputPanel`
+- Output panel has `readonly`
+- Uses `ToolActionBar` for primary and secondary actions
+
+## Accessibility
+
+- All textareas have `aria-label` attributes
+- Primary button uses `aria-label`
+- Output panel uses `aria-live="polite"`
+
+## Known Gaps
+
+- UUID v1 not yet implemented (time-based, needs MAC address handling)
+- UUID v5 not yet implemented (namespace-based)
+- No uppercase/lowercase toggle exposed in UI
 
 ## Acceptance Criteria
 

@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Overview — Dev Toolbox
 
 > **Purpose**: First document for any AI Agent entering this repository. Read this before touching any code.

@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Beta Readiness Checklist v1.0
 
 > **Sprint**: 1.9 — Beta Readiness

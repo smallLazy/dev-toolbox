@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin SDK v1.0 — Developer Workspace
 
 > **定位**: 插件开发者唯一需要接触的 API。零 Core 知识即可创建插件。

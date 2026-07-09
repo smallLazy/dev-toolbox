@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Interaction Guidelines v1.0
 
 > **规则**: 所有交互必须遵循本规范。禁止 Feature 自定义动画。

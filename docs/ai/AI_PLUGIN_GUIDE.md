@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Plugin Development Guide
 
 > **Purpose**: Step-by-step guide for AI Agents to create Plugins. Follow this exactly — no deviations.

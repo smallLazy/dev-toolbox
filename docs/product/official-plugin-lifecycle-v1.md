@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Official Plugin Lifecycle v1.0
 
 > **规则**: 所有 Official Plugin 必须遵循本生命周期。

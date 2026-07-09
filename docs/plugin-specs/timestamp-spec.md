@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Plugin Specification: Timestamp
 
 > **Status**: Draft | **SSOT**: This document.
@@ -93,6 +98,36 @@ So that I can debug time-related issues in logs, APIs, and databases.
 ```
 timestamp, unix, epoch, date, time, convert, iso8601, utc, 时间戳, 日期, 转换
 ```
+
+## Overview
+
+Timestamp conversion tool. Converts between Unix timestamps (seconds/milliseconds auto-detect) and human-readable dates. Supports multiple timezone formats and ISO 8601 output.
+
+## Validation
+
+- Invalid timestamp: non-numeric input rejected with error message
+- Invalid date: unparseable date string rejected
+- Auto-detect: values >= 1e12 treated as milliseconds
+
+## Layout Requirements
+
+- Uses `ToolLayout layout="io"` as outer shell
+- Uses `ToolWorkspace layout="io"` with input/output `InputOutputPanel`
+- Output panel has `readonly`
+- Uses `ToolActionBar` for primary and secondary actions
+- Current time display updates every second
+
+## Accessibility
+
+- All textareas have `aria-label` attributes
+- Primary button uses `aria-label`
+- Live clock uses `aria-live="polite"`
+
+## Known Gaps
+
+- Only UTC and local timezone supported (no IANA timezone database)
+- No date picker widget
+- No batch conversion
 
 ## UI Layout
 

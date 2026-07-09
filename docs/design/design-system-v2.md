@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Developer Workspace — Product Design Spec v2.0
 
 > **角色**: 长期维护的企业级 Design System，面向专业开发者的现代化 Developer Workspace。
@@ -1031,6 +1036,73 @@ Sidebar:
 - [ ] Focus ring 可见
 - [ ] 动画使用 `var(--duration-*)` + `var(--ease-*)`
 - [ ] 键盘可达（Tab / Enter / Esc）
+
+---
+
+## 8.5 Tool Layout Requirements
+
+> **Mandatory**: All tool pages MUST follow these layout rules. Violations are flagged by `npm run validate:layout`.
+
+### Standard Tool Page Structure
+
+Every tool page must use the following component hierarchy:
+
+```
+<ToolLayout layout="io|editor|inspector|custom">
+  ├── <template #options>        ← ToolOptionsRow + ToolOptionGroup (optional)
+  ├── <template #workspace>      ← ToolWorkspace (required for I/O tools)
+  │   ├── <template #input>      ← InputOutputPanel
+  │   └── <template #output>     ← InputOutputPanel (with readonly)
+  ├── <template #actions>        ← ToolActionBar
+  └── <template #status>         ← ToolStatusBar
+</ToolLayout>
+```
+
+### Component Roles
+
+| Component | Role | Required |
+|-----------|------|----------|
+| **ToolLayout** | Outer shell — provides header, options, workspace, actions, status slots | ✅ Always |
+| **ToolWorkspace** | Content layout — grid-based input/output/side panes | ✅ I/O tools |
+| **InputOutputPanel** | Input/output text area with header, stats, error display | ✅ I/O tools |
+| **ToolActionBar** | Action button bar with primary + secondary action slots | ✅ Recommended |
+| **ToolOptionsRow** | Horizontal options bar within workspace | Optional |
+| **ToolOptionGroup** | Labeled group of controls | Optional |
+| **ToolStatusBar** | Status/error message display | Recommended |
+
+### Layout Modes
+
+| Layout | When to Use |
+|--------|------------|
+| `layout="io"` | Standard input→output transform tools (Base64, JSON, URL, Hash, etc.) |
+| `layout="editor"` | Single-pane editor tools |
+| `layout="inspector"` | Read/analyze tools with side info panel |
+| `layout="custom"` | Complex tools that genuinely cannot fit standard layouts. **Must include a comment explaining why.** |
+
+### Forbidden Patterns
+
+The following legacy components must NOT be used as a tool page's primary structure:
+
+| Component | Replacement |
+|-----------|-------------|
+| `ToolPage` | `ToolLayout` |
+| `ToolSection` | `InputOutputPanel` |
+| `ToolActions` | `ToolActionBar` |
+| `ToolOutputPanel` | `InputOutputPanel` with `readonly` |
+
+### Custom Layout Rules
+
+When `layout="custom"` is used:
+1. A comment must appear within 3 lines before or on the same line explaining why standard layouts cannot be used.
+2. The tool must still be wrapped in `<ToolLayout>`.
+3. The custom layout should be an exception, not the norm.
+4. Custom layout tools are tracked in `scripts/validate-tool-layout.js` allowlist.
+
+### Validation
+
+```bash
+npm run validate:layout   # Check all active tool views for layout compliance
+```
 
 ---
 

@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Code Review Checklist
 
 > **Purpose**: Standardized review checklist for AI Agents reviewing Plugin code. Every PR must pass all categories.

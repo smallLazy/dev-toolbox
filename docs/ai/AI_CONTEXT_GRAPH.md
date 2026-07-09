@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Context Graph — Reading Order
 
 > **Purpose**: Help AI Agents build mental context in the correct order. Follow this graph top-to-bottom.

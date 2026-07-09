@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # Official Plugin Roadmap v1.0
 
 > **Platform**: Frozen. All new capabilities = Official Plugins.

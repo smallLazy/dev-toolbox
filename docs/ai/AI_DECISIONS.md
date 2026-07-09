@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # AI Decision Record
 
 > **Purpose**: Record WHY key architectural decisions were made. Prevents AI Agents from re-litigating settled decisions.

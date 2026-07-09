@@ -1,3 +1,8 @@
+---
+status: active
+last_reviewed: 2026-07-08
+owner: dev-tools
+---
 # UI Guidelines v1.0 — Developer Workspace
 
 > **规则**: 所有 Plugin 页面必须遵循本规范。禁止 Plugin 自定义布局。
